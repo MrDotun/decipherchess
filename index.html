@@ -1,136 +1,154 @@
-u<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decipher Chess Academy | Master the Move</title>
+    <title>Decipher Chess Academy | Premium Chess Excellence</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap');
         
+        :root {
+            --gold: #D4AF37;
+            --dark-blue: #020617;
+            --glass: rgba(15, 23, 42, 0.7);
+        }
+
         body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #050a14;
-            color: #ffffff;
-            scroll-behavior: smooth;
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--dark-blue);
+            color: #f8fafc;
+            overflow-x: hidden;
         }
 
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
+        h1, h2, .brand { font-family: 'Cinzel', serif; }
+
+        .glass-nav {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
         }
 
-        .gold-text {
-            background: linear-gradient(45deg, #d4af37, #f9e29c);
+        .gold-gradient-text {
+            background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .hero-gradient {
-            background: radial-gradient(circle at top right, #1a2a6c, #b21f1f, #fdbb2d);
-            filter: blur(150px);
-            opacity: 0.2;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
+        .hero-visual {
+            position: relative;
+            height: 60vh;
+            overflow: hidden;
+            border-radius: 0 0 50px 50px;
         }
 
-        .card-hover:hover {
-            transform: translateY(-10px);
-            transition: 0.3s ease;
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+        .chess-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .nav-link:hover { color: #d4af37; transition: 0.3s; }
+        .chess-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .img-container {
+            height: 200px; /* Kept compact as requested */
+            overflow: hidden;
+            border-radius: 15px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="hero-gradient"></div>
-
-    <nav class="flex justify-between items-center p-6 lg:px-20 sticky top-0 z-50 glass m-4">
-        <div class="text-2xl font-extrabold tracking-tighter gold-text">DECIPHER CHESS</div>
-        <div class="hidden md:flex space-x-8 font-medium">
-            <a href="book.html" class="nav-link">Workbooks</a>
-            <a href="room.html" class="nav-link">Classroom</a>
-            <a href="tac.html" class="nav-link">Tactics</a>
-            <a href="engine.html" class="nav-link">Analysis</a>
-            <a href="coach.html" class="nav-link">Coaching</a>
+    <nav class="glass-nav sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="brand text-xl font-bold gold-gradient-text tracking-widest">DECIPHER CHESS</div>
+        <div class="hidden lg:flex space-x-8 text-sm uppercase tracking-widest font-semibold">
+            <a href="book.html" class="hover:text-yellow-500 transition">Books</a>
+            <a href="room.html" class="hover:text-yellow-500 transition">Classroom</a>
+            <a href="tac.html" class="hover:text-yellow-500 transition">Tactics</a>
+            <a href="engine.html" class="hover:text-yellow-500 transition">Engine</a>
+            <a href="coach.html" class="hover:text-yellow-500 transition">Coaching</a>
         </div>
-        <a href="tel:+2348026527056" class="bg-yellow-600 hover:bg-yellow-500 text-black px-6 py-2 rounded-full font-bold transition">
-            Call Now
+        <a href="tel:+2348026527056" class="border border-yellow-600 px-5 py-2 rounded-full text-xs font-bold hover:bg-yellow-600 hover:text-black transition">
+            <i class="fas fa-phone-alt mr-2"></i> CONTACT
         </a>
     </nav>
 
-    <section class="px-6 lg:px-20 py-20 text-center">
-        <h1 class="text-5xl lg:text-7xl font-extrabold mb-6">Unlocking Young Minds, <br><span class="gold-text">One Square at a Time.</span></h1>
-        <p class="text-gray-400 max-w-2xl mx-auto text-lg mb-10">Decipher Chess Academy provides elite chess education to schools, blending traditional strategy with modern technology.</p>
+    <header class="relative px-6 py-12 lg:px-20 text-center">
+        <h1 class="text-4xl lg:text-6xl font-bold mb-4 uppercase tracking-tighter">Deciphering the <br><span class="gold-gradient-text">Art of Strategy</span></h1>
+        <p class="text-gray-400 max-w-xl mx-auto mb-10 text-lg font-light">The leading chess academy for modern schools and aspiring grandmasters in Nigeria.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto">
+            <div class="img-container shadow-lg">
+                <img src="1772550640524.jpg" alt="Chess Activity" class="w-full h-full object-cover">
+            </div>
+            <div class="img-container border-2 border-yellow-600/20">
+                <img src="https://images.unsplash.com/photo-1586165368502-1bad197a6461?auto=format&fit=crop&q=80&w=800" alt="Exotic Chess Board" class="w-full h-full object-cover">
+            </div>
+            <div class="img-container shadow-lg">
+                <img src="1772551122640.jpg" alt="Tournament Session" class="w-full h-full object-cover">
+            </div>
+        </div>
+    </header>
+
+    <main class="px-6 lg:px-20 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-            <div class="rounded-2xl overflow-hidden h-80 shadow-2xl">
-                <img src="1772550640524.jpg" alt="Primary Tournament" class="w-full h-full object-cover">
+        <div class="chess-card p-8 rounded-3xl relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition">
+                <i class="fas fa-puzzle-piece text-8xl text-yellow-500"></i>
             </div>
-            <div class="rounded-2xl overflow-hidden h-80 shadow-2xl border-2 border-yellow-600/30">
-                <img src="https://images.unsplash.com/photo-1529699211952-734e80c4d42b?auto=format&fit=crop&q=80&w=800" alt="Chess Strategy" class="w-full h-full object-cover">
-            </div>
-            <div class="rounded-2xl overflow-hidden h-80 shadow-2xl">
-                <img src="1772551122640.jpg" alt="Grand Finals" class="w-full h-full object-cover">
+            <h3 class="text-xl font-bold mb-4 gold-gradient-text">Tactical Mastery</h3>
+            <p class="text-gray-400 text-sm mb-6">Sharpen your vision with world-class training modules.</p>
+            <div class="space-y-3">
+                <a href="https://lichess.org/training" class="block bg-white/5 p-3 rounded-xl hover:bg-white/10 transition text-sm flex justify-between items-center">
+                    Lichess Puzzles (Guest) <i class="fas fa-external-link-alt text-xs"></i>
+                </a>
+                <a href="tac.html" class="block bg-yellow-600/20 p-3 rounded-xl hover:bg-yellow-600/40 transition text-sm text-yellow-500 font-bold flex justify-between items-center border border-yellow-600/30">
+                    Decipher Puzzles <i class="fas fa-chess-knight"></i>
+                </a>
             </div>
         </div>
-    </section>
 
-    <section class="px-6 lg:px-20 pb-20">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            
-            <a href="book.html" class="glass p-8 card-hover block">
-                <i class="fas fa-book-open text-3xl mb-4 gold-text"></i>
-                <h3 class="text-xl font-bold mb-2">Curated Workbooks</h3>
-                <p class="text-gray-400 text-sm">Access our exclusive Decipher curriculum and downloadable worksheets.</p>
+        <a href="engine.html" class="chess-card p-8 rounded-3xl block">
+            <div class="mb-4 text-yellow-500"><i class="fas fa-microchip text-3xl"></i></div>
+            <h3 class="text-xl font-bold mb-2 uppercase tracking-wide">Analysis Engine</h3>
+            <p class="text-gray-400 text-sm">Analyze your games with powerful stockfish integration to find the best moves.</p>
+        </a>
+
+        <a href="room.html" class="chess-card p-8 rounded-3xl block border-l-4 border-yellow-600">
+            <div class="mb-4 text-yellow-500"><i class="fas fa-chalkboard-user text-3xl"></i></div>
+            <h3 class="text-xl font-bold mb-2 uppercase tracking-wide">Virtual Room</h3>
+            <p class="text-gray-400 text-sm">Join live interactive school sessions and group classes from anywhere.</p>
+        </a>
+
+        <a href="book.html" class="chess-card p-8 rounded-3xl block">
+            <div class="mb-4 text-yellow-500"><i class="fas fa-book-journal-whills text-3xl"></i></div>
+            <h3 class="text-xl font-bold mb-2 uppercase tracking-wide">Academy Workbooks</h3>
+            <p class="text-gray-400 text-sm">Step-by-step guides from beginner to advanced tournament levels.</p>
+        </a>
+
+        <a href="coach.html" class="chess-card p-8 rounded-3xl block">
+            <div class="mb-4 text-yellow-500"><i class="fas fa-user-tie text-3xl"></i></div>
+            <h3 class="text-xl font-bold mb-2 uppercase tracking-wide">Private Coaching</h3>
+            <p class="text-gray-400 text-sm">Personalized mentorship to accelerate your progress in the national circuit.</p>
+        </a>
+
+        <div class="chess-card p-8 rounded-3xl flex flex-col justify-center items-center text-center bg-gradient-to-br from-yellow-900/20 to-transparent">
+            <h4 class="text-sm font-bold text-yellow-500 uppercase mb-2">Ready to Start?</h4>
+            <p class="text-2xl font-extrabold mb-4">+234 802 652 7056</p>
+            <a href="https://wa.me/2348026527056" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full text-sm font-bold transition">
+                <i class="fab fa-whatsapp mr-2"></i> WhatsApp Us
             </a>
-
-            <a href="room.html" class="glass p-8 card-hover block">
-                <i class="fas fa-chalkboard-teacher text-3xl mb-4 gold-text"></i>
-                <h3 class="text-xl font-bold mb-2">Virtual Classroom</h3>
-                <p class="text-gray-400 text-sm">Live interactive sessions for schools and private student groups.</p>
-            </a>
-
-            <div class="glass p-8 card-hover">
-                <i class="fas fa-bullseye text-3xl mb-4 gold-text"></i>
-                <h3 class="text-xl font-bold mb-2">Tactics & Puzzles</h3>
-                <div class="flex flex-col space-y-2">
-                    <a href="https://lichess.org/training" target="_blank" class="text-blue-400 hover:underline">Daily Lichess Puzzles →</a>
-                    <a href="tac.html" class="text-blue-400 hover:underline">Decipher Academy Puzzles →</a>
-                </div>
-            </div>
-
-            <a href="engine.html" class="glass p-8 card-hover block">
-                <i class="fas fa-microchip text-3xl mb-4 gold-text"></i>
-                <h3 class="text-xl font-bold mb-2">Engine Analysis</h3>
-                <p class="text-gray-400 text-sm">Deep-dive into your games using high-level Stockfish analysis.</p>
-            </a>
-
-            <a href="coach.html" class="glass p-8 card-hover block">
-                <i class="fas fa-user-tie text-3xl mb-4 gold-text"></i>
-                <h3 class="text-xl font-bold mb-2">Expert Coaching</h3>
-                <p class="text-gray-400 text-sm">Meet our Grandmasters and National Masters ready to mentor you.</p>
-            </a>
-
-            <div class="glass p-8 card-hover bg-yellow-600/10">
-                <i class="fas fa-phone-alt text-3xl mb-4 gold-text"></i>
-                <h3 class="text-xl font-bold mb-2">Get Enrolled</h3>
-                <p class="text-gray-300 font-bold">+234 802 652 7056</p>
-                <p class="text-gray-400 text-xs mt-2">Available for school partnerships and private tutoring.</p>
-            </div>
-
         </div>
-    </section>
+    </main>
 
-    <footer class="border-t border-gray-800 p-10 text-center text-gray-500">
-        <p>&copy; 2024 Decipher Chess Academy. All Rights Reserved.</p>
+    <footer class="py-12 text-center border-t border-white/5">
+        <div class="brand text-lg font-bold gold-gradient-text mb-4">DECIPHER CHESS ACADEMY</div>
+        <p class="text-gray-600 text-xs tracking-widest">&copy; 2026 PREMIUM STRATEGY EDUCATION. LAGOS, NIGERIA.</p>
     </footer>
 
 </body>
