@@ -1,30 +1,36 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Teacher | MCPS</title>
+    <title>Class Teacher Auth | MCPS</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f4f8; }
-        .card { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 15px; }
-        .form-group { margin-bottom: 15px; }
-        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
-        .btn { background: #004d40; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; }
+        body { font-family: sans-serif; background: #15803d; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 320px; }
+        input { width: 100%; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 1.2rem; text-align: center; }
+        button { background: #15803d; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #content { display: none; background: white; padding: 40px; border-radius: 20px; width: 80%; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2 style="color: #004d40;">Teacher's Registry</h2>
-        <p>Update student list for your assigned Arm.</p>
-        <div class="form-group">
-            <label>Student Name</label>
-            <input type="text" id="sn" placeholder="Enter Full Name">
-        </div>
-        <div class="form-group">
-            <label>Assigned Arm</label>
-            <select><option>Grade 4 Blue</option><option>Grade 4 Green</option><option>Grade 4 White</option><option>Grade 4 Red</option></select>
-        </div>
-        <button class="btn" onclick="alert('Student record added to School Master List')">Add Student to Database</button>
+    <div class="login-card" id="lock">
+        <h2>Class Teacher Login</h2>
+        <input type="password" id="pin" maxlength="4" placeholder="Enter PIN">
+        <button onclick="auth()">VERIFY STAFF</button>
     </div>
+
+    <div id="content">
+        <h2>Class Registry: Grade 4 Blue</h2>
+        <input type="text" placeholder="Pupil Name"> <button style="width:auto">Add to Class List</button>
+        <p>Current Count: 42 Students</p>
+    </div>
+
+    <script>
+        function auth() {
+            if(document.getElementById('pin').value === "1111") {
+                document.getElementById('lock').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } else { alert("Invalid Staff PIN"); }
+        }
+    </script>
 </body>
 </html>
