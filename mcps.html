@@ -3,217 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCPS Management System | Decipher Chess</title>
+    <title>Maryland Convent | Elite Management Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        :root { 
-            --mcps-green: #004d40; 
-            --mcps-gold: #ffc107; 
-            --light-bg: #f0f2f5;
-            --white: #ffffff;
-        }
-
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            margin: 0; 
-            background: var(--light-bg); 
-            padding-bottom: 80px; 
-        }
-
-        /* Branding */
-        .header { 
-            background: var(--mcps-green); 
-            color: white; 
-            padding: 20px 15px; 
-            text-align: center; 
-            border-bottom: 5px solid var(--mcps-gold);
-        }
-
-        .header h1 { margin: 0; font-size: 1.1rem; }
-        .header p { margin: 5px 0 0; font-size: 0.75rem; color: var(--mcps-gold); }
+        :root { --emerald: #004d40; --rose-gold: #c5a059; --cream: #fdfbf7; --white: #ffffff; --text: #2d3436; }
+        * { box-sizing: border-box; transition: all 0.2s ease; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--cream); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
         /* Navigation */
-        .bottom-nav { 
-            position: fixed; bottom: 0; width: 100%; 
-            background: var(--white); display: flex; 
-            justify-content: space-around; padding: 10px 0; 
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;
-        }
+        .sidebar { width: 260px; background: var(--emerald); color: white; display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.1); }
+        .logo-area { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .nav-item { padding: 15px 25px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #b2dfdb; font-size: 0.9rem; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.05); color: var(--rose-gold); border-right: 4px solid var(--rose-gold); }
 
-        .nav-item { text-align: center; color: #555; font-size: 0.7rem; flex: 1; cursor: pointer; }
-        .nav-item i { font-size: 1.3rem; color: var(--mcps-green); }
+        /* Main Layout */
+        .main-stage { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .top-nav { background: var(--white); height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; border-bottom: 1px solid #eee; }
+        .scroll-area { flex: 1; overflow-y: auto; padding: 30px; }
+        .page { display: none; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Main UI */
-        .container { padding: 15px; }
-        .card { 
-            background: var(--white); border-radius: 12px; 
-            padding: 15px; margin-bottom: 15px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        /* UI Components */
+        .card { background: var(--white); border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+        .btn-gold { background: var(--rose-gold); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .status { padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; }
+        .paid { background: #dcfce7; color: #166534; } .unpaid { background: #fee2e2; color: #991b1b; }
 
-        .grade-title { font-weight: bold; margin: 15px 0 8px; color: var(--mcps-green); border-left: 4px solid var(--mcps-gold); padding-left: 8px; }
-        .arm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        
-        .btn-arm { 
-            padding: 12px; border: none; border-radius: 6px; 
-            font-weight: bold; color: white; text-align: center;
-        }
-        .blue { background: #1e40af; } .green { background: #15803d; }
-        .white { background: #f8fafc; color: #334155; border: 1px solid #cbd5e1; } .red { background: #dc2626; }
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; padding: 12px; color: #888; border-bottom: 2px solid #eee; font-size: 0.8rem; }
+        td { padding: 12px; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem; }
+        input[type="text"], input[type="number"], select { padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
+        .score-input { width: 50px; text-align: center; font-weight: bold; }
 
-        /* Tables (Subjects & Broadsheet) */
-        .table-wrapper { overflow-x: auto; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { background: #f1f5f9; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; }
-        td { padding: 10px; border-bottom: 1px solid #eee; }
-        
-        input[type="number"] { width: 40px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
-
-        .broadsheet-table { font-size: 0.65rem; }
-        .broadsheet-table th { background: var(--mcps-green); color: white; white-space: nowrap; }
-
-        .btn-action { 
-            width: 100%; padding: 12px; background: var(--mcps-green); 
-            color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 10px;
-        }
-
-        .hidden { display: none; }
-        .badge { padding: 3px 7px; border-radius: 10px; font-size: 0.65rem; font-weight: bold; }
-        .bg-red { background: #fee2e2; color: #991b1b; }
-        .bg-green { background: #dcfce7; color: #166534; }
+        /* Floating Pin Modal */
+        .pin-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .pin-card { background: white; padding: 40px; border-radius: 15px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>MARYLAND CONVENT PRIMARY SCHOOL</h1>
-        <p>Centralized Academic Portal • 1,000 Students</p>
-    </div>
-
-    <div id="page-classes" class="container">
-        <div class="card">
-            <h2 style="font-size: 1rem;"><i class="bi bi-grid-3x3-gap"></i> School Directory</h2>
-            <div id="grades-container"></div>
+    <nav class="sidebar">
+        <div class="logo-area">
+            <h2 style="font-family: 'Playfair Display', serif; color: var(--rose-gold); margin: 0;">MCPS ELITE</h2>
         </div>
-    </div>
+        <div class="nav-menu">
+            <div class="nav-item active" onclick="navTo('records')"><i class="bi bi-person-badge"></i> <span>Student Records</span></div>
+            <div class="nav-item" onclick="navTo('classTeachers')"><i class="bi bi-person-video3"></i> <span>Class Teachers</span></div>
+            <div class="nav-item" onclick="navTo('subjectEntry')"><i class="bi bi-pen"></i> <span>Subject Entry</span></div>
+            <div class="nav-item" onclick="navTo('admin')"><i class="bi bi-safe2"></i> <span>Admin & Finance</span></div>
+        </div>
+    </nav>
 
-    <div id="page-grading" class="container hidden">
-        <div class="card">
-            <h2 id="grading-title" style="font-size: 1rem; margin-bottom: 5px;">Grade Selection</h2>
-            <p style="font-size: 0.8rem; margin-bottom: 15px;">Pupil: <b>Adegoke Temilade</b></p>
+    <div class="main-stage">
+        <header class="top-nav">
+            <div style="font-weight: 600; color: var(--emerald);">MARYLAND CONVENT PRIMARY SCHOOL</div>
+            <div id="authStatus" style="font-size: 0.8rem; color: #666;"><i class="bi bi-circle-fill" style="color: #27ae60; font-size: 0.5rem;"></i> System Live</div>
+        </header>
+
+        <div class="scroll-area">
             
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr><th>Subject</th><th>CA (30)</th><th>Exam (70)</th></tr>
-                    </thead>
-                    <tbody id="subject-rows"></tbody>
-                </table>
+            <div id="records" class="page active">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2>Master Student Registry</h2>
+                        <button class="btn-gold" onclick="navTo('classTeachers')">Add New Student</button>
+                    </div>
+                    <p>Total Records: 1,000 students sorted by Grade & Arm.</p>
+                    <table>
+                        <thead>
+                            <tr><th>Name</th><th>Grade/Arm</th><th>Gender</th><th>Payment Status</th></tr>
+                        </thead>
+                        <tbody id="masterStudentBody">
+                            <tr><td>Abiola Faith</td><td>Grade 4 Blue</td><td>Female</td><td><span class="status paid">PAID</span></td></tr>
+                            <tr><td>Chinedu Emeka</td><td>Grade 4 Green</td><td>Male</td><td><span class="status unpaid">OWING</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <button class="btn-action" onclick="saveDemo('Grading')">SAVE ALL 20 SUBJECTS</button>
-            <button onclick="showPage('page-classes')" style="width:100%; background:none; border:none; color:#666; margin-top:10px;">Back</button>
+
+            <div id="classTeachers" class="page">
+                <div class="card">
+                    <h2>Class Management</h2>
+                    <p>Teachers can update their class lists here. Changes reflect school-wide.</p>
+                    <div style="background: #fdf6e9; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                        <strong>Assign Student to Class:</strong>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <input type="text" id="newName" placeholder="Full Name" style="flex: 2;">
+                            <select id="newGrade" style="flex: 1;"><option>Grade 4</option><option>Grade 5</option></select>
+                            <select id="newArm" style="flex: 1;"><option>Blue</option><option>Green</option><option>White</option><option>Red</option></select>
+                            <button class="btn-gold" onclick="addStudent()">Add Student</button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>Student Name</th><th>Action</th></tr>
+                        </thead>
+                        <tbody id="editableBody">
+                            <tr>
+                                <td><input type="text" value="Abiola Faith" style="width: 80%;"></td>
+                                <td><button style="color: red; border:none; background:none;">Remove</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="subjectEntry" class="page">
+                <div class="card">
+                    <h2>Subject Score Entry</h2>
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <select id="termSelect">
+                            <option>1st Term</option>
+                            <option>2nd Term</option>
+                            <option>3rd Term</option>
+                        </select>
+                        <select id="subjectSelect">
+                            <option>Mathematics</option>
+                            <option>English Language</option>
+                            <option>Basic Science</option>
+                        </select>
+                        <button class="btn-gold" onclick="verifyPin()">Unlock Scoring Sheet</button>
+                    </div>
+
+                    <div id="scoreSheet" style="opacity: 0.3; pointer-events: none;">
+                        <table style="background: #fff; border-radius: 10px;">
+                            <thead>
+                                <tr style="background: #f4f4f4;"><th>Student Name</th><th>Test (30)</th><th>Exam (70)</th><th>Total</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Abiola Faith</td>
+                                    <td><input type="number" class="score-input" value="20"></td>
+                                    <td><input type="number" class="score-input" value="55"></td>
+                                    <td><b>75</b></td>
+                                </tr>
+                                <tr>
+                                    <td>Chinedu Emeka</td>
+                                    <td><input type="number" class="score-input"></td>
+                                    <td><input type="number" class="score-input"></td>
+                                    <td><b>0</b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button class="btn-action" style="width: 100%; padding: 15px; background: var(--emerald); color: white; border:none; border-radius: 10px; margin-top: 20px;" onclick="alert('Scores Synced!')">UPLOAD SCORES</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="admin" class="page">
+                <div class="card">
+                    <h2>Financial Lockdown</h2>
+                    <p>Restrict or grant access to 3rd Term Results based on payment.</p>
+                    <div id="feeList">
+                        </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div id="page-broadsheet" class="container hidden">
-        <div class="card">
-            <h2 style="font-size: 1rem;"><i class="bi bi-table"></i> Class Broadsheet</h2>
-            <p style="font-size: 0.75rem;">Master record for <b>Grade 4 - Blue Arm</b></p>
-            
-            <div class="table-wrapper">
-                <table class="broadsheet-table" border="1">
-                    <thead>
-                        <tr id="broadsheet-head">
-                            <th>Student Name</th>
-                            <th>Total</th>
-                            <th>Avg</th>
-                        </tr>
-                    </thead>
-                    <tbody id="broadsheet-body">
-                        <tr>
-                            <td><b>Bello Amina</b></td>
-                            <td>25</td><td>22</td><td>28</td><td>20</td><td>25</td><td>22</td><td>28</td><td>20</td><td>25</td><td>22</td><td>28</td><td>20</td><td>25</td><td>22</td><td>28</td><td>20</td><td>25</td><td>22</td><td>28</td><td>20</td>
-                            <td style="background:#eee"><b>1640</b></td>
-                            <td style="background:#eee"><b>82.0</b></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <p style="font-size: 0.6rem; color: #888; margin-top: 10px;">* Showing 20 subject columns for promotion analysis.</p>
+    <div class="pin-overlay" id="pinModal">
+        <div class="pin-card">
+            <h3>Subject Teacher Verification</h3>
+            <p>Please enter your unique Teacher PIN to upload scores.</p>
+            <input type="password" id="teacherPin" placeholder="XXXX" maxlength="4" style="font-size: 2rem; width: 120px; text-align: center; letter-spacing: 5px; margin-bottom: 20px;"><br>
+            <button class="btn-gold" onclick="checkPin()">Authorize Access</button>
+            <button onclick="closePin()" style="background: none; border: none; display: block; margin: 10px auto; color: #888;">Cancel</button>
         </div>
-    </div>
-
-    <div id="page-admin" class="container hidden">
-        <div class="card">
-            <h2 style="font-size: 1rem;"><i class="bi bi-wallet2"></i> Fee Management</h2>
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
-                <span><b>Okonkwo Chukwuma</b><br><small>Primary 5 Red</small></span>
-                <span class="badge bg-red">OWING</span>
-                <button onclick="this.innerText='Unlocked'; this.className='badge bg-green';" style="border:none; background:#eee; padding:5px; border-radius:5px;">Unlock Result</button>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
-                <span><b>Adekoya Bose</b><br><small>Primary 5 Red</small></span>
-                <span class="badge bg-green">PAID</span>
-                <i class="bi bi-check-circle-fill" style="color:green"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="bottom-nav">
-        <div class="nav-item" onclick="showPage('page-classes')"><i class="bi bi-people"></i><br>Classes</div>
-        <div class="nav-item" onclick="showPage('page-broadsheet')"><i class="bi bi-file-earmark-spreadsheet"></i><br>Sheet</div>
-        <div class="nav-item" onclick="showPage('page-admin')"><i class="bi bi-shield-lock"></i><br>Finance</div>
     </div>
 
     <script>
-        const subjects = ["MTH", "ENG", "SCI", "SOC", "CIV", "AGR", "HEC", "ICT", "CRS", "PHE", "ART", "FRN", "YOR", "HIS", "LIT", "PHO", "DIC", "HND", "QNT", "VBL"];
+        function navTo(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
 
-        function init() {
-            // Build Grades
-            const container = document.getElementById('grades-container');
-            const arms = ['Blue', 'Green', 'White', 'Red'];
-            for(let i=1; i<=6; i++) {
-                let html = `<div class="grade-title">GRADE ${i}</div><div class="arm-grid">`;
-                arms.forEach(arm => {
-                    html += `<div class="btn-arm ${arm.toLowerCase()}" onclick="openGrading('${i}', '${arm}')">${arm}</div>`;
-                });
-                html += `</div>`;
-                container.innerHTML += html;
+        function verifyPin() {
+            document.getElementById('pinModal').style.display = 'flex';
+        }
+
+        function closePin() {
+            document.getElementById('pinModal').style.display = 'none';
+        }
+
+        function checkPin() {
+            const pin = document.getElementById('teacherPin').value;
+            if(pin === "1234") { // Demo PIN
+                document.getElementById('scoreSheet').style.opacity = "1";
+                document.getElementById('scoreSheet').style.pointer_events = "auto";
+                document.getElementById('pinModal').style.display = 'none';
+                alert("Authorization Successful. You are now grading for " + document.getElementById('termSelect').value);
+            } else {
+                alert("Invalid PIN. Access Denied.");
             }
-
-            // Build Broadsheet Headers (for demo)
-            const bHead = document.getElementById('broadsheet-head');
-            subjects.forEach(s => {
-                let th = document.createElement('th');
-                th.innerText = s;
-                bHead.insertBefore(th, bHead.children[bHead.children.length - 2]);
-            });
         }
 
-        function openGrading(grade, arm) {
-            document.getElementById('grading-title').innerText = `Grade ${grade} ${arm} Arm`;
-            const rows = document.getElementById('subject-rows');
-            rows.innerHTML = "";
-            subjects.forEach(sub => {
-                rows.innerHTML += `<tr><td>${sub}</td><td><input type="number"></td><td><input type="number"></td></tr>`;
-            });
-            showPage('page-grading');
+        function addStudent() {
+            const name = document.getElementById('newName').value;
+            if(!name) return;
+            const table = document.getElementById('masterStudentBody');
+            const row = table.insertRow();
+            row.innerHTML = `<td>${name}</td><td>Grade 4 Blue</td><td>-</td><td><span class="status unpaid">OWING</span></td>`;
+            alert("Record Created for " + name);
         }
-
-        function showPage(id) {
-            ['page-classes', 'page-grading', 'page-broadsheet', 'page-admin'].forEach(p => {
-                document.getElementById(p).classList.add('hidden');
-            });
-            document.getElementById(id).classList.remove('hidden');
-            window.scrollTo(0,0);
-        }
-
-        function saveDemo(type) {
-            alert(type + " successfully synced to Decipher Cloud. System updated for all 1,000 pupils.");
-            showPage('page-classes');
-        }
-
-        init();
     </script>
 </body>
 </html>
