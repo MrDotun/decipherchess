@@ -1,33 +1,42 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | Maryland Convent Private School</title>
+    <title>Admin Auth | MCPS</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
-        .header { background: #004d40; color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        .table-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
-        .badge { padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; }
-        .paid { background: #e8f5e9; color: #2e7d32; }
-        .owing { background: #ffebee; color: #c62828; }
+        body { font-family: sans-serif; background: #004d40; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 320px; }
+        input { width: 100%; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 1.5rem; text-align: center; letter-spacing: 5px; }
+        button { background: #c5a059; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #content { display: none; background: #f4f4f4; width: 100vw; height: 100vh; padding: 40px; box-sizing: border-box; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h2>MD. CONVENT PRIVATE SCHOOL: Admin Terminal</h2>
+    <div class="login-card" id="lock">
+        <h2 style="color:#004d40">Proprietress Login</h2>
+        <p>Enter Master PIN</p>
+        <input type="password" id="pin" maxlength="4" placeholder="****">
+        <button onclick="auth()">ACCESS ADMIN</button>
     </div>
-    <div class="table-card">
-        <h3>Live Enrollment: 1,000 Students</h3>
-        <table>
-            <thead><tr><th>Pupil Name</th><th>Class</th><th>Fees</th><th>Action</th></tr></thead>
-            <tbody>
-                <tr><td>Bello Amina</td><td>Grade 4 Red</td><td><span class="badge owing">OWING</span></td><td><button>Lock Result</button></td></tr>
-                <tr><td>Okonkwo Chidi</td><td>Grade 5 Blue</td><td><span class="badge paid">PAID</span></td><td><button disabled>Unlocked</button></td></tr>
-            </tbody>
-        </table>
+
+    <div id="content">
+        <h1>Admin Command Centre</h1>
+        <div style="background:white; padding:20px; border-radius:10px;">
+            <h3>School Statistics</h3>
+            <p>Total Revenue: <b>₦14.2M</b></p>
+            <p>Unpaid Students: <b>142</b></p>
+            <button onclick="location.reload()" style="width:auto; padding:10px;">Logout</button>
+        </div>
     </div>
+
+    <script>
+        function auth() {
+            if(document.getElementById('pin').value === "0000") {
+                document.getElementById('lock').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                document.body.style.background = "#f4f4f4";
+            } else { alert("Unauthorized Access"); }
+        }
+    </script>
 </body>
 </html>
