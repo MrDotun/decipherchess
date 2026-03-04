@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCPS Management System | Decipher Chess</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root { 
+            --mcps-green: #004d40; 
+            --mcps-gold: #ffc107; 
+            --light-bg: #f0f2f5;
+            --white: #ffffff;
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            background: var(--light-bg); 
+            padding-bottom: 80px; 
+        }
+
+        /* Branding */
+        .header { 
+            background: var(--mcps-green); 
+            color: white; 
+            padding: 20px 15px; 
+            text-align: center; 
+            border-bottom: 5px solid var(--mcps-gold);
+        }
+
+        .header h1 { margin: 0; font-size: 1.1rem; }
+        .header p { margin: 5px 0 0; font-size: 0.75rem; color: var(--mcps-gold); }
+
+        /* Navigation */
+        .bottom-nav { 
+            position: fixed; bottom: 0; width: 100%; 
+            background: var(--white); display: flex; 
+            justify-content: space-around; padding: 10px 0; 
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;
+        }
+
+        .nav-item { text-align: center; color: #555; font-size: 0.7rem; flex: 1; cursor: pointer; }
+        .nav-item i { font-size: 1.3rem; color: var(--mcps-green); }
+
+        /* Main UI */
+        .container { padding: 15px; }
+        .card { 
+            background: var(--white); border-radius: 12px; 
+            padding: 15px; margin-bottom: 15px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .grade-title { font-weight: bold; margin: 15px 0 8px; color: var(--mcps-green); border-left: 4px solid var(--mcps-gold); padding-left: 8px; }
+        .arm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        
+        .btn-arm { 
+            padding: 12px; border: none; border-radius: 6px; 
+            font-weight: bold; color: white; text-align: center;
+        }
+        .blue { background: #1e40af; } .green { background: #15803d; }
+        .white { background: #f8fafc; color: #334155; border: 1px solid #cbd5e1; } .red { background: #dc2626; }
+
+        /* Tables (Subjects & Broadsheet) */
+        .table-wrapper { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: #f1f5f9; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        
+        input[type="number"] { width: 40px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
+
+        .broadsheet-table { font-size: 0.65rem; }
+        .broadsheet-table th { background: var(--mcps-green); color: white; white-space: nowrap; }
+
+        .btn-action { 
+            width: 100%; padding: 12px; background: var(--mcps-green); 
+            color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 10px;
+        }
+
+        .hidden { display: none; }
+        .badge { padding: 3px 7px; border-radius: 10px; font-size: 0.65rem; font-weight: bold; }
+        .bg-red { background: #fee2e2; color: #991b1b; }
+        .bg-green { background: #dcfce7; color: #166534; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>MARYLAND CONVENT PRIMARY SCHOOL</h1>
+        <p>Centralized Academic Portal • 1,000 Students</p>
+    </div>
+
+    <div id="page-classes" class="container">
+        <div class="card">
+            <h2 style="font-size: 1rem;"><i class="bi bi-grid-3x3-gap"></i> School Directory</h2>
+            <div id="grades-container"></div>
+        </div>
+    </div>
+
+    <div id="page-grading" class="container hidden">
+        <div class="card">
+            <h2 id="grading-title" style="font-size: 1rem; margin-bottom: 5px;">Grade Selection</h2>
+            <p style="font-size: 0.8rem; margin-bottom: 15px;">Pupil: <b>Adegoke Temilade</b></p>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>Subject</th><th>CA (30)</th><th>Exam (70)</th></tr>
+                    </thead>
+                    <tbody id="subject-rows"></tbody>
+                </table>
+            </div>
+            <button class="btn-action" onclick="saveDemo('Grading')">SAVE ALL 20 SUBJECTS</button>
+            <button onclick="showPage('page-classes')" style="width:100%; background:none; border:none; color:#666; margin-top:10px;">Back</button>
+        </div>
+    </div>
+
+    <div id="page-broadsheet" class="container hidden">
+        <div class="card">
+            <h2 style="font-size: 1rem;"><i class="bi bi-table"></i> Class Broadsheet</h2>
+            <p style="font-size: 0.75rem;">Master record for <b>Grade 4 - Blue Arm</b></p>
+            
+            <div class="table-wrapper">
+                <table class="broadsheet-table" border="1">
+                    <thead>
+                        <tr id="broadsheet-head">
+                            <th>Student Name</th>
+                            <th>Total</th>
+                            <th>Avg</th>
+                        </tr>
+                    </thead>
+                    <tbody id="broadsheet-body">
+                        <tr>
+                            <td><b>Bello Amina</b></td>
+                            <td>25</td><td>22</td><td>28</td><td>20</td><td>25</td><td>22</td><td>28</td><td>20</td><td>25</td><td>22</td><td>28</td><td>20</td><td>25</td><td>22</td><td>28</td><td>20</td><td>25</td><td>22</td><td>28</td><td>20</td>
+                            <td style="background:#eee"><b>1640</b></td>
+                            <td style="background:#eee"><b>82.0</b></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="font-size: 0.6rem; color: #888; margin-top: 10px;">* Showing 20 subject columns for promotion analysis.</p>
+        </div>
+    </div>
+
+    <div id="page-admin" class="container hidden">
+        <div class="card">
+            <h2 style="font-size: 1rem;"><i class="bi bi-wallet2"></i> Fee Management</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+                <span><b>Okonkwo Chukwuma</b><br><small>Primary 5 Red</small></span>
+                <span class="badge bg-red">OWING</span>
+                <button onclick="this.innerText='Unlocked'; this.className='badge bg-green';" style="border:none; background:#eee; padding:5px; border-radius:5px;">Unlock Result</button>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+                <span><b>Adekoya Bose</b><br><small>Primary 5 Red</small></span>
+                <span class="badge bg-green">PAID</span>
+                <i class="bi bi-check-circle-fill" style="color:green"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="showPage('page-classes')"><i class="bi bi-people"></i><br>Classes</div>
+        <div class="nav-item" onclick="showPage('page-broadsheet')"><i class="bi bi-file-earmark-spreadsheet"></i><br>Sheet</div>
+        <div class="nav-item" onclick="showPage('page-admin')"><i class="bi bi-shield-lock"></i><br>Finance</div>
+    </div>
+
+    <script>
+        const subjects = ["MTH", "ENG", "SCI", "SOC", "CIV", "AGR", "HEC", "ICT", "CRS", "PHE", "ART", "FRN", "YOR", "HIS", "LIT", "PHO", "DIC", "HND", "QNT", "VBL"];
+
+        function init() {
+            // Build Grades
+            const container = document.getElementById('grades-container');
+            const arms = ['Blue', 'Green', 'White', 'Red'];
+            for(let i=1; i<=6; i++) {
+                let html = `<div class="grade-title">GRADE ${i}</div><div class="arm-grid">`;
+                arms.forEach(arm => {
+                    html += `<div class="btn-arm ${arm.toLowerCase()}" onclick="openGrading('${i}', '${arm}')">${arm}</div>`;
+                });
+                html += `</div>`;
+                container.innerHTML += html;
+            }
+
+            // Build Broadsheet Headers (for demo)
+            const bHead = document.getElementById('broadsheet-head');
+            subjects.forEach(s => {
+                let th = document.createElement('th');
+                th.innerText = s;
+                bHead.insertBefore(th, bHead.children[bHead.children.length - 2]);
+            });
+        }
+
+        function openGrading(grade, arm) {
+            document.getElementById('grading-title').innerText = `Grade ${grade} ${arm} Arm`;
+            const rows = document.getElementById('subject-rows');
+            rows.innerHTML = "";
+            subjects.forEach(sub => {
+                rows.innerHTML += `<tr><td>${sub}</td><td><input type="number"></td><td><input type="number"></td></tr>`;
+            });
+            showPage('page-grading');
+        }
+
+        function showPage(id) {
+            ['page-classes', 'page-grading', 'page-broadsheet', 'page-admin'].forEach(p => {
+                document.getElementById(p).classList.add('hidden');
+            });
+            document.getElementById(id).classList.remove('hidden');
+            window.scrollTo(0,0);
+        }
+
+        function saveDemo(type) {
+            alert(type + " successfully synced to Decipher Cloud. System updated for all 1,000 pupils.");
+            showPage('page-classes');
+        }
+
+        init();
+    </script>
+</body>
+</html>
