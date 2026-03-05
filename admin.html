@@ -1,118 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proprietress Master Console | MCPS</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <style>
-        :root { --emerald: #004d40; --gold: #c5a059; --bg: #f0f4f3; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; }
-        
-        /* ADMIN LOGIN OVERLAY */
-        #adminLock { 
-            position: fixed; top:0; left:0; width:100%; height:100%; 
-            background: radial-gradient(circle, #004d40, #002d26); 
-            display: flex; align-items: center; justify-content: center; z-index: 9999; 
-        }
-        .vault-box { 
-            background: white; padding: 40px; border-radius: 20px; text-align: center; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 3px solid var(--gold);
-        }
-        .vault-box input { 
-            font-size: 2.5rem; width: 180px; text-align: center; letter-spacing: 10px; 
-            border: 2px solid #ddd; border-radius: 10px; margin: 20px 0; display: block;
-        }
-
-        .container { display: none; padding: 20px; max-width: 1200px; margin: auto; }
-        .header { background: var(--emerald); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; border-bottom: 6px solid var(--gold); }
-        
-        /* MASTER EDIT MODE STYLES */
-        .master-badge { background: var(--gold); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
-        .edit-row { background: #fffbeb !important; border: 1px solid var(--gold) !important; }
-    </style>
-</head>
-<body>
-
-<div id="adminLock">
-    <div class="vault-box">
-        <i class="bi bi-shield-lock-fill" style="font-size: 4rem; color: var(--emerald);"></i>
-        <h2 style="margin: 10px 0;">Proprietress Vault</h2>
-        <p style="color: #666;">Enter Master PIN to Access School Records</p>
-        <input type="password" id="masterGate" maxlength="4" placeholder="****">
-        <button onclick="unlockVault()" style="background: var(--emerald); color: white; padding: 15px 40px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%;">ACCESS CONSOLE</button>
-    </div>
-</div>
-
-<div class="container" id="adminDashboard">
-    <div class="header">
-        <div>
-            <h1 style="margin:0;">MARYLAND CONVENT <span class="master-badge">MASTER MODE</span></h1>
-            <p style="margin:0; opacity:0.8;">Full Administrative Control & Data Override</p>
-        </div>
-        <button onclick="location.reload()" style="background:var(--gold); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">LOCK CONSOLE</button>
+<div class="card" style="margin-top:30px; border: 2px solid var(--gold); background: white; padding: 25px; border-radius: 15px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: var(--emerald); margin: 0;"><i class="bi bi-person-badge"></i> Staff PIN Distribution</h2>
+        <input type="text" id="staffSearch" placeholder="Search Class (e.g. Grade 4)..." onkeyup="filterStaff()" style="padding: 10px; border-radius: 8px; border: 1px solid #ddd; width: 250px;">
     </div>
 
-    <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; border-top: 5px solid var(--gold);">
-        <h3><i class="bi bi-pencil-square"></i> Master Data Override</h3>
-        <p style="font-size: 0.9rem; color: #666;">As Admin, you can edit <b>ANY</b> student name or score directly here.</p>
-        
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: #f8fafc; text-align: left;">
-                    <th style="padding: 12px;">Student Name</th>
-                    <th>Class/Arm</th>
-                    <th>Annual Avg</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="masterStudentList">
-                </tbody>
-        </table>
-    </div>
-
-    <div id="schoolGrid"></div>
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: var(--emerald); color: white;">
+                <th style="padding: 12px; text-align: left;">Class & Arm</th>
+                <th style="padding: 12px; text-align: left;">Teacher Name</th>
+                <th style="padding: 12px; text-align: center;">Security PIN</th>
+                <th style="padding: 12px; text-align: right;">Action</th>
+            </tr>
+        </thead>
+        <tbody id="staffPinTable">
+            </tbody>
+    </table>
 </div>
 
 <script>
-    // 1. GATEWAY SECURITY
-    function unlockVault() {
-        const pin = document.getElementById('masterGate').value;
-        if(pin === "0000") { // The Admin Portal PIN
-            document.getElementById('adminLock').style.display = 'none';
-            document.getElementById('adminDashboard').style.display = 'block';
-            loadMasterData();
-            initClassGrid();
-        } else {
-            alert("Unauthorized Access. System Lockdown Active.");
+    // Master list of all 24 Class Arms
+    const allGradeLevels = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"];
+    const allArms = ["Blue", "Green", "Red", "White"];
+
+    function loadStaffPins() {
+        const tbody = document.getElementById('staffPinTable');
+        let rows = "";
+        
+        allGradeLevels.forEach(g => {
+            allArms.forEach(a => {
+                // Generate/Retrieve PIN (For demo, we use a consistent pattern)
+                const classID = g.replace(" ", "") + a;
+                const savedPin = localStorage.getItem(`pin_${classID}`) || Math.floor(1000 + Math.random() * 9000);
+                localStorage.setItem(`pin_${classID}`, savedPin); // Save it so it doesn't change on refresh
+
+                rows += `
+                    <tr class="staff-row">
+                        <td style="padding: 12px; border-bottom: 1px solid #eee;"><b>${g} ${a}</b></td>
+                        <td style="padding: 12px; border-bottom: 1px solid #eee;">
+                            <input type="text" placeholder="Assign Teacher..." style="border:none; border-bottom:1px solid #ccc; width:150px;">
+                        </td>
+                        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
+                            <span style="font-family: monospace; font-weight: bold; background: #fff3cd; padding: 5px 10px; border-radius: 5px; color: #856404;">${savedPin}</span>
+                        </td>
+                        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">
+                            <button onclick="copyPin('${savedPin}')" style="background: none; border: 1px solid var(--emerald); color: var(--emerald); padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        });
+        tbody.innerHTML = rows;
+    }
+
+    function filterStaff() {
+        let input = document.getElementById('staffSearch').value.toUpperCase();
+        let rows = document.getElementsByClassName('staff-row');
+        for (let i = 0; i < rows.length; i++) {
+            let text = rows[i].innerText.toUpperCase();
+            rows[i].style.display = text.includes(input) ? "" : "none";
         }
     }
 
-    // 2. MASTER EDIT LOGIC
-    function loadMasterData() {
-        const students = JSON.parse(localStorage.getItem('students') || '[]');
-        const list = document.getElementById('masterStudentList');
-        list.innerHTML = "";
-
-        students.forEach((s, idx) => {
-            list.innerHTML += `
-                <tr class="edit-row">
-                    <td style="padding:10px;"><input type="text" value="${s.name}" onchange="updateName(${idx}, this.value)" style="padding:5px; border:1px solid var(--gold); border-radius:4px; width: 80%;"></td>
-                    <td>${s.grade} ${s.arm}</td>
-                    <td><b>92.4%</b></td>
-                    <td><button onclick="deleteStudent(${idx})" style="color:red; border:none; background:none; cursor:pointer;"><i class="bi bi-trash"></i></button></td>
-                </tr>
-            `;
-        });
+    function copyPin(pin) {
+        navigator.clipboard.writeText(pin);
+        alert("PIN " + pin + " copied! You can now paste this to the teacher.");
     }
 
-    function updateName(index, newName) {
-        let students = JSON.parse(localStorage.getItem('students'));
-        students[index].name = newName;
-        localStorage.setItem('students', JSON.stringify(students));
-        alert("Master Record Updated Successfully.");
-    }
-
-    // (Include the initClassGrid logic from previous version to show all 24 classes)
+    // Call this when the Admin unlocks the vault
+    loadStaffPins();
 </script>
-</body>
-</html>
