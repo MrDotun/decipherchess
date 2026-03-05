@@ -5,58 +5,62 @@
     <title>Teacher Portal | Maryland Convent</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        :root { --emerald: #004d40; --gold: #c5a059; --bg: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; }
+        :root { --emerald: #004d40; --gold: #c5a059; --bg: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; font-size: 0.9rem; } /* Zoomed back */
         
-        /* 1. THE TEACHER'S SECURITY GATE */
         #teacherLock { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: var(--emerald); z-index: 2000; display: flex; 
             flex-direction: column; align-items: center; justify-content: center; color: white;
         }
-        .login-card { background: white; padding: 40px; border-radius: 20px; color: #333; width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .login-card select, .login-card input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 2px solid #ddd; font-size: 1.1rem; }
+        .login-card { background: white; padding: 25px; border-radius: 15px; color: #333; width: 320px; text-align: center; }
+        .login-card select, .login-card input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
         
-        /* 2. THE MAIN WORKSPACE */
-        .container { max-width: 1200px; margin: auto; padding: 20px; display: none; }
-        .header { background: white; padding: 30px; border-radius: 15px; border-left: 8px solid var(--gold); display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .container { max-width: 1100px; margin: auto; padding: 15px; display: none; }
+        .header { background: white; padding: 15px 25px; border-radius: 10px; border-left: 5px solid var(--gold); display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; font-size: 1.1rem; }
-        th { background: #f1f5f9; padding: 20px; text-align: left; color: #475569; border-bottom: 3px solid #e2e8f0; }
-        td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; }
+        /* Compact Student Management Bar */
+        .management-bar { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; border: 1px solid #e2e8f0; }
 
-        .score-input { width: 70px; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.2rem; }
-        .total-pill { background: #f0fdf4; color: #166534; padding: 8px 15px; border-radius: 20px; font-weight: 800; }
-        .rank-badge { background: var(--gold); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; font-size: 0.85rem; }
+        th { background: #f8fafc; padding: 12px; text-align: left; color: #475569; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
+
+        .score-input { width: 50px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; font-weight: bold; }
+        .total-pill { background: #f0fdf4; color: #166534; padding: 4px 10px; border-radius: 12px; font-weight: 700; }
+        .rank-badge { background: var(--gold); color: white; padding: 3px 8px; border-radius: 5px; font-weight: bold; }
         
-        .save-bar { position: fixed; bottom: 30px; right: 30px; background: var(--emerald); color: white; padding: 20px 50px; border-radius: 50px; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 10px 30px rgba(0,77,64,0.4); }
+        .btn-add { background: var(--emerald); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-del { color: #ef4444; border: none; background: none; cursor: pointer; font-size: 1.1rem; }
+        .save-bar { position: fixed; bottom: 20px; right: 20px; background: var(--emerald); color: white; padding: 12px 30px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
 <div id="teacherLock">
     <div class="login-card">
-        <i class="bi bi-person-workspace" style="font-size: 4rem; color: var(--emerald);"></i>
-        <h2 style="margin: 10px 0;">Class Teacher Login</h2>
-        <select id="tGrade">
-            <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
-            <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
-        </select>
-        <select id="tArm">
-            <option>Blue</option><option>Green</option><option>Red</option><option>White</option>
-        </select>
+        <i class="bi bi-person-workspace" style="font-size: 3rem; color: var(--emerald);"></i>
+        <h3>Class Teacher Login</h3>
+        <select id="tGrade"><option>Grade 1</option><option>Grade 2</option><option>Grade 3</option><option>Grade 4</option><option>Grade 5</option><option>Grade 6</option></select>
+        <select id="tArm"><option>Blue</option><option>Green</option><option>Red</option><option>White</option></select>
         <input type="password" id="tPin" placeholder="Enter Class PIN">
-        <button onclick="accessClass()" style="background: var(--emerald); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer;">OPEN MY REGISTER</button>
+        <button onclick="accessClass()" style="background: var(--emerald); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer;">OPEN REGISTER</button>
     </div>
 </div>
 
 <div class="container" id="mainWorkspace">
     <div class="header">
         <div>
-            <h1 id="activeClassName" style="margin:0; color: var(--emerald);">---</h1>
-            <p style="margin:0; color: #64748b;">Subject: <b>Mathematics</b> | Term: <b>3rd Term</b></p>
+            <h2 id="activeClassName" style="margin:0; color: var(--emerald);">---</h2>
+            <p style="margin:0; color: #64748b; font-size: 0.8rem;">Session: 2025/2026 | Termly Assessment Mode</p>
         </div>
-        <button onclick="location.reload()" style="background: #fee2e2; color: #b91c1c; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">LOGOUT</button>
+        <button onclick="location.reload()" style="background: #fee2e2; color: #b91c1c; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">LOGOUT</button>
+    </div>
+
+    <div class="management-bar">
+        <i class="bi bi-person-plus-fill" style="color: var(--emerald)"></i>
+        <input type="text" id="newStudentName" placeholder="Enter New Student Full Name" style="flex:1; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+        <button class="btn-add" onclick="addNewStudent()">Enroll Student</button>
     </div>
 
     <table>
@@ -68,16 +72,16 @@
                 <th style="text-align:center;">Exam (70)</th>
                 <th style="text-align:center;">Total</th>
                 <th style="text-align:center;">Pos.</th>
-                <th>Automatic Remark</th>
+                <th>Remark</th>
+                <th style="text-align:right;">Action</th>
             </tr>
         </thead>
-        <tbody id="teacherStudentList">
-            </tbody>
+        <tbody id="teacherStudentList"></tbody>
     </table>
 </div>
 
 <button class="save-bar" onclick="saveClassData()">
-    <i class="bi bi-cloud-upload"></i> SYNC & UPDATE CLASS RECORDS
+    <i class="bi bi-cloud-upload"></i> SYNC RECORDS
 </button>
 
 <script>
@@ -88,18 +92,16 @@
         const pin = document.getElementById('tPin').value;
         currentGrade = document.getElementById('tGrade').value;
         currentArm = document.getElementById('tArm').value;
-        
-        // Retrieve the PIN that the Admin generated in admin.html
         const classID = currentGrade.replace(" ", "") + currentArm;
         const correctPin = localStorage.getItem(`pin_${classID}`);
 
         if(pin === correctPin) {
             document.getElementById('teacherLock').style.display = 'none';
             document.getElementById('mainWorkspace').style.display = 'block';
-            document.getElementById('activeClassName').innerText = currentGrade + " " + currentArm + " Arm";
+            document.getElementById('activeClassName').innerText = currentGrade + " " + currentArm;
             loadStudents();
         } else {
-            alert("❌ ACCESS DENIED: Invalid PIN for " + currentGrade + " " + currentArm);
+            alert("❌ Access Denied");
         }
     }
 
@@ -107,25 +109,48 @@
         const students = JSON.parse(localStorage.getItem('students') || '[]');
         const filtered = students.filter(s => s.grade === currentGrade && s.arm === currentArm);
         const tbody = document.getElementById('teacherStudentList');
-        
         tbody.innerHTML = "";
+        
         filtered.forEach((s, idx) => {
             tbody.innerHTML += `
                 <tr>
                     <td>${idx + 1}</td>
                     <td><b>${s.name}</b></td>
-                    <td style="text-align:center;"><input type="number" class="score-input" placeholder="0"></td>
-                    <td style="text-align:center;"><input type="number" class="score-input" placeholder="0"></td>
+                    <td style="text-align:center;"><input type="number" class="score-input" value="0"></td>
+                    <td style="text-align:center;"><input type="number" class="score-input" value="0"></td>
                     <td style="text-align:center;"><span class="total-pill">0</span></td>
-                    <td style="text-align:center;"><span class="rank-badge">---</span></td>
-                    <td style="font-size: 0.9rem; color: #64748b; font-style: italic;">Awaiting entry...</td>
+                    <td style="text-align:center;"><span class="rank-badge">--</span></td>
+                    <td style="font-size: 0.75rem; color: #64748b;">Pending...</td>
+                    <td style="text-align:right;">
+                        <button class="btn-del" onclick="removeStudent(${s.id})"><i class="bi bi-person-x"></i></button>
+                    </td>
                 </tr>
             `;
         });
     }
 
+    function addNewStudent() {
+        const name = document.getElementById('newStudentName').value;
+        if(!name) return alert("Enter student name");
+        
+        let students = JSON.parse(localStorage.getItem('students') || '[]');
+        students.push({ id: Date.now(), name: name, grade: currentGrade, arm: currentArm, scores: {} });
+        localStorage.setItem('students', JSON.stringify(students));
+        document.getElementById('newStudentName').value = "";
+        loadStudents();
+    }
+
+    function removeStudent(id) {
+        if(confirm("Permanently delete this student from the register?")) {
+            let students = JSON.parse(localStorage.getItem('students') || '[]');
+            students = students.filter(s => s.id !== id);
+            localStorage.setItem('students', JSON.stringify(students));
+            loadStudents();
+        }
+    }
+
     function saveClassData() {
-        alert("✅ " + currentGrade + " " + currentArm + " Records have been updated and synced with the Proprietress Vault.");
+        alert("✅ Records updated for " + currentGrade + " " + currentArm);
     }
 </script>
 </body>
