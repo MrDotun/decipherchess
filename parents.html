@@ -6,40 +6,51 @@
     <title>Parent Portal | Maryland Convent</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        :root { --emerald: #004d40; --gold: #c5a059; --bg: #f8fafc; }
+        :root { --emerald: #004d40; --gold: #c5a059; --bg: #f8fafc; --danger: #dc2626; --success: #166534; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; color: #1e293b; }
         
         .login-gate { max-width: 400px; margin: 60px auto; background: white; padding: 30px; border-radius: 15px; border-bottom: 5px solid var(--gold); box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
         .input-group { text-align: left; margin-bottom: 15px; }
         label { font-size: 0.75rem; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 5px; display: block; }
         input, select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
-        
         .btn-view { background: var(--emerald); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px; }
         
-        /* REPORT SHEET STYLES */
-        #reportSheet { max-width: 850px; margin: 20px auto; background: white; padding: 40px; border-radius: 10px; display: none; }
-        .report-header { text-align: center; border-bottom: 2px solid var(--emerald); padding-bottom: 20px; margin-bottom: 20px; }
-        .student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; background: #f1f5f9; padding: 15px; border-radius: 8px; }
+        #reportSheet { max-width: 850px; margin: 20px auto; background: white; padding: 40px; border-radius: 10px; display: none; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .report-header { text-align: center; border-bottom: 3px solid var(--emerald); padding-bottom: 15px; margin-bottom: 20px; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: var(--emerald); color: white; padding: 12px; font-size: 0.8rem; }
-        td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-size: 0.85rem; }
-        .sub-name { text-align: left; font-weight: bold; }
-        .pos-box { background: #fff; border: 2px solid var(--gold); padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .pos-card { background: #f1f5f9; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }
+        .pos-card span { display: block; font-size: 0.65rem; color: #64748b; font-weight: bold; }
+        .pos-card b { font-size: 1.1rem; color: var(--emerald); }
 
-        @media print { .no-print { display: none; } #reportSheet { margin: 0; padding: 0; } }
+        .status-box { margin: 15px 0; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 1.2rem; }
+        .pass-style { background: #dcfce7; color: var(--success); border: 2px solid #bcf0da; }
+        .fail-style { background: #fee2e2; color: var(--danger); border: 2px solid #fecaca; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f8fafc; padding: 10px; font-size: 0.75rem; border: 1px solid #e2e8f0; }
+        td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; font-size: 0.85rem; }
+        
+        .remark-box { margin-top: 25px; padding: 15px; border: 1px solid #e2e8f0; background: #fafafa; border-radius: 8px; }
+        .signature-area { margin-top: 40px; display: flex; justify-content: space-between; padding-top: 20px; }
+        .sig-line { border-top: 1px solid #333; width: 200px; text-align: center; font-size: 0.75rem; padding-top: 5px; }
+
+        @media print { 
+            .no-print { display: none !important; } 
+            #reportSheet { box-shadow: none; margin: 0; width: 100%; padding: 20px; }
+            body { background: white; }
+        }
     </style>
 </head>
 <body>
 
 <div class="login-gate no-print" id="loginGate">
-    <img src="https://via.placeholder.com/80" alt="Logo" style="margin-bottom:10px; border-radius:50%;">
     <h2 style="color: var(--emerald); margin: 0;">Parent Portal</h2>
-    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 25px;">Maryland Convent Result Checker</p>
+    <p style="color: #64748b; margin-bottom: 25px;">Maryland Convent Result Checker</p>
 
     <div class="input-group">
         <label>Student's Full Name</label>
-        <input type="text" id="pName" placeholder="Enter as written by teacher">
+        <input type="text" id="pName" placeholder="Enter full name">
     </div>
 
     <div class="input-group">
@@ -50,43 +61,55 @@
         </div>
     </div>
 
-    <div class="input-group">
-        <label>Access Code</label>
-        <input type="password" id="pCode" placeholder="Enter 4-digit code">
-    </div>
-
     <button class="btn-view" onclick="checkResult()">VIEW REPORT SHEET</button>
 </div>
 
 <div id="reportSheet">
     <div class="report-header">
-        <h1 style="color: var(--emerald); margin:0;">MARYLAND CONVENT</h1>
-        <p style="margin:5px 0; color: #64748b;">Academic Performance Report</p>
+        <h1 style="color: var(--emerald); margin:0; font-size: 2rem;">MARYLAND CONVENT</h1>
+        <p style="margin:5px 0; font-weight: bold; letter-spacing: 1px;">OFFICIAL PROGRESS REPORT</p>
     </div>
 
-    <div class="student-info">
-        <div><b>Name:</b> <span id="outName">---</span></div>
-        <div><b>Class:</b> <span id="outClass">---</span></div>
-        <div class="pos-box">1st Term Pos: <span id="pos1">--</span></div>
-        <div class="pos-box">2nd Term Pos: <span id="pos2">--</span></div>
+    <div style="display:flex; justify-content: space-between; margin-bottom: 20px;">
+        <div>
+            <b>NAME:</b> <span id="outName" style="text-transform: uppercase;">---</span><br>
+            <b>CLASS:</b> <span id="outClass">---</span>
+        </div>
+        <div id="statusTag" class="status-box">---</div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="pos-card"><span>1st Term</span><b id="pos1">--</b></div>
+        <div class="pos-card"><span>2nd Term</span><b id="pos2">--</b></div>
+        <div class="pos-card"><span>3rd Term</span><b id="pos3">--</b></div>
+        <div class="pos-card" style="background:#fff7ed;"><span>Annual Pos</span><b id="posA">--</b></div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>SUBJECT</th>
-                <th>1ST TERM</th>
-                <th>2ND TERM</th>
-                <th>3RD TERM</th>
-                <th>ANNUAL AVG</th>
+                <th style="text-align:left;">SUBJECT</th>
+                <th>1ST</th><th>2ND</th><th>3RD</th><th>AVG</th>
             </tr>
         </thead>
         <tbody id="resBody"></tbody>
     </table>
 
+    <div class="remark-box">
+        <b style="font-size: 0.75rem; color: var(--emerald);">TEACHER'S REMARK:</b>
+        <p id="outRemark" style="margin: 5px 0; font-style: italic;">---</p>
+    </div>
+
+    <div class="signature-area">
+        <div class="sig-line">Class Teacher's Signature</div>
+        <div class="sig-line">Principal's Signature</div>
+    </div>
+
     <div style="margin-top:30px; display:flex; justify-content: space-between;" class="no-print">
-        <button onclick="location.reload()" style="padding:10px; border:none; cursor:pointer;">← Back</button>
-        <button onclick="window.print()" style="background:var(--gold); color:white; padding:10px 30px; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">PRINT REPORT</button>
+        <button onclick="location.reload()" style="background:#eee; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">← Logout</button>
+        <button onclick="window.print()" style="background:var(--emerald); color:white; border:none; padding:12px 25px; border-radius:6px; font-weight:bold; cursor:pointer;">
+            <i class="bi bi-printer"></i> PRINT / DOWNLOAD PDF
+        </button>
     </div>
 </div>
 
@@ -103,67 +126,78 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     const subjects = ["Maths", "English", "Science", "Social", "Civic", "Agric", "Home Ec", "PHE", "ICT", "CRK", "Yoruba", "Art", "Verbal", "Quant", "French", "Music", "Handwriting", "Diction", "History", "Literature"];
 
     window.checkResult = async function() {
-        const name = document.getElementById('pName').value.trim();
+        const nameInput = document.getElementById('pName').value.trim().toLowerCase();
         const grade = document.getElementById('pGrade').value;
         const arm = document.getElementById('pArm').value;
-        const code = document.getElementById('pCode').value;
 
-        if(code !== "1122") { alert("Invalid Access Code"); return; }
+        if(!nameInput) return alert("Enter Student Name");
 
-        // 1. Fetch all students in that class to calculate ranking
         const q = query(collection(db, "students"), where("grade", "==", grade), where("arm", "==", arm));
         const snap = await getDocs(q);
         
-        let allStudents = [];
-        let targetStudent = null;
+        let studentsList = [];
+        let target = null;
 
-        snap.forEach(doc => {
-            let data = doc.data();
-            data.t1_tot = 0; data.t2_tot = 0;
-            if(data.scores) {
+        snap.forEach(d => {
+            let data = d.data();
+            data.t1=0; data.t2=0; data.t3=0; data.ann=0;
+            if (data.scores) {
                 Object.values(data.scores).forEach(s => {
-                    data.t1_tot += (Number(s.t1)||0) + (Number(s.e1)||0);
-                    data.t2_tot += (Number(s.t2)||0) + (Number(s.e2)||0);
+                    let s1 = (Number(s.t1)||0)+(Number(s.e1)||0);
+                    let s2 = (Number(s.t2)||0)+(Number(s.e2)||0);
+                    let s3 = (Number(s.t3)||0)+(Number(s.e3)||0);
+                    data.t1 += s1; data.t2 += s2; data.t3 += s3;
+                    data.ann += (s1 + s2 + s3);
                 });
             }
-            allStudents.push(data);
-            if(data.name.toLowerCase() === name.toLowerCase()) targetStudent = data;
+            studentsList.push(data);
+            if(data.name.toLowerCase() === nameInput) target = data;
         });
 
-        if(!targetStudent) { alert("Student record not found. Check spelling."); return; }
+        if(!target) return alert("Student not found.");
 
-        // 2. Ranking Logic
         const getRank = (list, score, key) => {
-            if(score === 0) return "--";
+            if (score === 0) return "--";
             const sorted = [...list].sort((a,b) => b[key] - a[key]);
-            return sorted.findIndex(x => x[key] === score) + 1;
+            const rank = sorted.findIndex(x => x[key] === score) + 1;
+            return rank + (rank==1?"st":rank==2?"nd":rank==3?"rd":"th");
         };
 
-        // 3. Display Data
+        // Show result
         document.getElementById('loginGate').style.display = 'none';
         document.getElementById('reportSheet').style.display = 'block';
-        document.getElementById('outName').innerText = targetStudent.name;
+        
+        document.getElementById('outName').innerText = target.name;
         document.getElementById('outClass').innerText = `${grade} ${arm}`;
-        document.getElementById('pos1').innerText = getRank(allStudents, targetStudent.t1_tot, 't1_tot');
-        document.getElementById('pos2').innerText = getRank(allStudents, targetStudent.t2_tot, 't2_tot');
+        document.getElementById('pos1').innerText = getRank(studentsList, target.t1, 't1');
+        document.getElementById('pos2').innerText = getRank(studentsList, target.t2, 't2');
+        document.getElementById('pos3').innerText = getRank(studentsList, target.t3, 't3');
+        document.getElementById('posA').innerText = getRank(studentsList, target.ann, 'ann');
+        document.getElementById('outRemark').innerText = target.remark || "No remark entered.";
+
+        // Pass/Fail Logic
+        const avgPerc = (target.ann / (subjects.length * 3));
+        const sTag = document.getElementById('statusTag');
+        if(avgPerc >= 50) {
+            sTag.innerText = "PROMOTED";
+            sTag.className = "status-box pass-style";
+        } else {
+            sTag.innerText = "NOT PROMOTED";
+            sTag.className = "status-box fail-style";
+        }
 
         const tbody = document.getElementById('resBody');
         tbody.innerHTML = "";
         subjects.forEach(sub => {
-            const sc = (targetStudent.scores && targetStudent.scores[sub]) || {t1:0,e1:0,t2:0,e2:0,t3:0,e3:0};
-            const annual = ((Number(sc.t1)+Number(sc.e1)+Number(sc.t2)+Number(sc.e2))/2).toFixed(1);
-            tbody.innerHTML += `
-                <tr>
-                    <td class="sub-name">${sub}</td>
-                    <td>${sc.t1 || 0} / ${sc.e1 || 0}</td>
-                    <td>${sc.t2 || 0} / ${sc.e2 || 0}</td>
-                    <td>${sc.t3 || 0} / ${sc.e3 || 0}</td>
-                    <td style="background:#f8fafc; font-weight:bold;">${annual}</td>
-                </tr>`;
+            const s = (target.scores && target.scores[sub]) || {t1:0,e1:0,t2:0,e2:0,t3:0,e3:0};
+            const s1 = (Number(s.t1)||0)+(Number(s.e1)||0);
+            const s2 = (Number(s.t2)||0)+(Number(s.e2)||0);
+            const s3 = (Number(s.t3)||0)+(Number(s.e3)||0);
+            const avg = ((s1+s2+s3)/3).toFixed(1);
+            tbody.innerHTML += `<tr><td style="text-align:left;">${sub}</td><td>${s1}</td><td>${s2}</td><td>${s3}</td><td><b>${avg}</b></td></tr>`;
         });
     }
 </script>
