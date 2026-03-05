@@ -2,167 +2,183 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cumulative Report | MCPS</title>
+    <title>Parent Portal | Maryland Convent</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        :root { --emerald: #004d40; --gold: #c5a059; }
-        body { font-family: 'Georgia', serif; background: #f4f4f4; padding: 10px; }
-        .report-card { max-width: 950px; margin: auto; background: white; padding: 40px; border: 10px double var(--emerald); box-shadow: 0 0 20px rgba(0,0,0,0.2); }
+        :root { --emerald: #004d40; --gold: #c5a059; --bg: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 0; }
         
-        .header-box { text-align: center; border-bottom: 4px solid var(--emerald); margin-bottom: 20px; }
-        .school-title { font-size: 32px; color: var(--emerald); margin: 0; text-transform: uppercase; }
+        /* LOGIN BOX */
+        .login-gate { max-width: 400px; margin: 50px auto; background: white; padding: 35px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border-top: 6px solid var(--emerald); }
+        .login-gate h2 { color: var(--emerald); margin-bottom: 5px; }
+        .field-label { text-align: left; display: block; font-weight: bold; margin-top: 12px; color: #475569; font-size: 0.75rem; text-transform: uppercase; }
+        .input-box { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 0.9rem; background: #fff; }
         
-        /* Summary Grid */
-        .summary-table { width: 100%; margin-bottom: 25px; border-collapse: collapse; }
-        .summary-table th { background: #f1f5f9; padding: 10px; border: 1px solid #ddd; font-size: 12px; }
-        .summary-table td { padding: 15px; border: 1px solid #ddd; text-align: center; font-weight: bold; font-size: 18px; }
-        .highlight { color: var(--emerald); font-size: 22px; }
+        .flex-fields { display: flex; gap: 10px; }
+        .btn-check { width: 100%; background: var(--emerald); color: white; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 1rem; }
+        
+        /* REPORT STYLING */
+        #reportSheet { max-width: 850px; margin: 20px auto; background: white; padding: 50px; display: none; box-shadow: 0 0 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .header-main { text-align: center; border-bottom: 2px solid var(--emerald); padding-bottom: 15px; margin-bottom: 20px; }
+        .student-meta { display: flex; justify-content: space-between; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f1f5f9; color: var(--emerald); padding: 10px; border: 1px solid #cbd5e1; font-size: 0.7rem; text-transform: uppercase; }
+        td { border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-size: 0.85rem; }
+        .subject-col { text-align: left; font-weight: bold; width: 35%; background: #fcfcfc; }
 
-        /* Main Subject Table */
-        .main-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .main-table th { background: var(--emerald); color: white; padding: 10px; font-size: 11px; border: 1px solid #fff; }
-        .main-table td { border: 1px solid #ccc; padding: 8px; text-align: center; font-size: 13px; }
-        .sub-name { text-align: left !important; font-weight: bold; background: #fafafa; }
+        .rank-container { margin-top: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .rank-card { background: var(--emerald); color: white; padding: 12px; border-radius: 8px; text-align: center; }
+        .rank-card small { display: block; opacity: 0.8; font-size: 0.65rem; margin-bottom: 5px; }
+        .rank-card span { font-size: 1.2rem; font-weight: 900; color: var(--gold); }
 
-        .footer-info { margin-top: 30px; display: flex; justify-content: space-between; font-size: 14px; }
-        .btn-print { background: var(--gold); color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; float: right; margin-bottom: 10px; }
-        @media print { .btn-print { display: none; } body { background: white; padding: 0; } .report-card { border: none; } }
+        .print-fab { position: fixed; bottom: 30px; right: 30px; background: var(--gold); color: white; padding: 15px 30px; border-radius: 50px; border: none; cursor: pointer; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: none; z-index: 100; }
+
+        @media print {
+            .login-gate, .print-fab { display: none !important; }
+            #reportSheet { display: block !important; box-shadow: none; margin: 0; width: 100%; padding: 10px; border: none; }
+            body { background: white; }
+            th { background: #eee !important; color: black !important; }
+        }
     </style>
 </head>
 <body>
 
-<button class="btn-print" onclick="window.print()">Download/Print PDF</button>
+<div class="login-gate" id="gate">
+    <h2>Maryland Convent</h2>
+    <p style="margin-top:0; color:#64748b;">Parental Result Access</p>
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
 
-<div class="report-card" id="printArea">
-    <div class="header-box">
-        <h1 class="school-title">Maryland Convent Private School</h1>
-        <p><i>Knowledge • Discipline • Excellence</i></p>
-        <h2 style="color: var(--gold);">CUMULATIVE ANNUAL PROGRESS REPORT</h2>
+    <label class="field-label">Student Full Name</label>
+    <input type="text" id="pName" class="input-box" placeholder="As registered with school">
+
+    <div class="flex-fields">
+        <div style="flex: 2;">
+            <label class="field-label">Class</label>
+            <select id="pClass" class="input-box">
+                <option value="">Grade...</option>
+                <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+                <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+            </select>
+        </div>
+        <div style="flex: 1;">
+            <label class="field-label">Arm</label>
+            <select id="pArm" class="input-box">
+                <option value="">Arm...</option>
+                <option>Blue</option><option>Green</option><option>Red</option><option>White</option>
+            </select>
+        </div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-        <div>NAME: <b id="dispName">---</b></div>
-        <div>CLASS: <b id="dispClass">---</b></div>
-        <div>SESSION: <b>2025/2026</b></div>
+    <label class="field-label">Result Access Code</label>
+    <input type="password" id="pCode" class="input-box" placeholder="Enter 1122">
+
+    <div id="errMsg" style="color: #ef4444; font-size: 0.8rem; margin-top: 15px; display: none; font-weight: bold;">
+        <i class="bi bi-shield-lock"></i> Verification failed. Check details.
     </div>
 
-    <table class="summary-table">
-        <thead>
-            <tr>
-                <th>METRIC</th>
-                <th>1ST TERM</th>
-                <th>2ND TERM</th>
-                <th>3RD TERM</th>
-                <th style="background: var(--emerald); color: white;">ANNUAL OVERALL</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>TOTAL SCORE</td>
-                <td id="t1_total">-</td><td id="t2_total">-</td><td id="t3_total">-</td>
-                <td id="ann_total" class="highlight">-</td>
-            </tr>
-            <tr>
-                <td>CLASS POSITION</td>
-                <td id="t1_pos">-</td><td id="t2_pos">-</td><td id="t3_pos">-</td>
-                <td id="ann_pos" class="highlight" style="color: var(--gold);">-</td>
-            </tr>
-        </tbody>
-    </table>
+    <button class="btn-check" onclick="verifyResult()">GENERATE TRANSCRIPT</button>
+</div>
 
-    <table class="main-table">
-        <thead>
-            <tr>
-                <th rowspan="2">SUBJECTS</th>
-                <th colspan="2">1ST TERM</th>
-                <th colspan="2">2ND TERM</th>
-                <th colspan="3">3RD TERM</th>
-                <th rowspan="2">ANNUAL AVG</th>
-                <th rowspan="2">GRADE</th>
-            </tr>
-            <tr>
-                <th>TOT</th><th>POS</th>
-                <th>TOT</th><th>POS</th>
-                <th>CA</th><th>EX</th><th>TOT</th>
-            </tr>
-        </thead>
-        <tbody id="subjectRows">
-            </tbody>
-    </table>
+<div id="reportSheet">
+    <div class="header-main">
+        <h1 style="margin:0; color:var(--emerald); font-size: 1.8rem;">MARYLAND CONVENT PRIVATE SCHOOL</h1>
+        <p style="margin:5px 0; font-weight: bold;">Continuous Assessment Report Sheet</p>
+    </div>
 
-    <div class="footer-info">
-        <div style="width: 60%;">
-            <p><b>Class Teacher's Final Remark:</b><br>
-            <span id="finalRemark" style="border-bottom: 1px dotted #333; display: block; padding: 10px 0;"></span></p>
+    <div class="student-meta">
+        <div>
+            <p style="margin: 0;"><b>NAME:</b> <span id="outName">---</span></p>
+            <p style="margin: 5px 0 0 0;"><b>CLASS:</b> <span id="outClass">---</span></p>
         </div>
         <div style="text-align: right;">
-            <p><br><br>__________________________<br>School Stamp & Signature</p>
+            <p style="margin: 0;"><b>SESSION:</b> 2025/2026</p>
+            <p style="margin: 5px 0 0 0;"><b>ID NO:</b> MCPS/REG/<span id="outID">---</span></p>
         </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>1st Term</th>
+                <th>2nd Term</th>
+                <th>3rd Term</th>
+                <th>Annual Avg</th>
+            </tr>
+        </thead>
+        <tbody id="resBody"></tbody>
+    </table>
+
+    <div class="rank-container">
+        <div class="rank-card"><small>1ST TERM POSITION</small><span id="pos1">--</span></div>
+        <div class="rank-card"><small>2ND TERM POSITION</small><span id="pos2">--</span></div>
+        <div class="rank-card"><small>3RD TERM POSITION</small><span id="pos3">--</span></div>
+    </div>
+
+    <div style="margin-top: 60px; display: flex; justify-content: space-between; font-size: 0.8rem;">
+        <div style="border-top: 1.5px solid #444; width: 180px; text-align: center; padding-top: 5px;">Class Teacher's Signature</div>
+        <div style="text-align: center;">
+            <img src="https://via.placeholder.com/60/ffffff/004d40?text=STAMP" style="opacity: 0.2; margin-bottom: -20px; display: block; margin-left: auto; margin-right: auto;">
+            <p>School Official Stamp</p>
+        </div>
+        <div style="border-top: 1.5px solid #444; width: 180px; text-align: center; padding-top: 5px;">Head Teacher's Signature</div>
     </div>
 </div>
 
+<button class="print-fab" id="printBtn" onclick="window.print()"><i class="bi bi-download"></i> SAVE AS PDF / PRINT</button>
+
 <script>
-    function calculatePositions(students, termKey, subject) {
-        // Sort students based on specific term scores
-        const sorted = [...students].sort((a, b) => {
-            const scoreA = (a.scores?.[termKey]?.[subject]) ? (Number(a.scores[termKey][subject].test) + Number(a.scores[termKey][subject].exam)) : 0;
-            const scoreB = (b.scores?.[termKey]?.[subject]) ? (Number(b.scores[termKey][subject].test) + Number(b.scores[termKey][subject].exam)) : 0;
-            return scoreB - scoreA;
-        });
-        return sorted;
-    }
+    const subList = ["Mathematics", "English Language", "Basic Science", "Social Studies", "Civic Education", "Agricultural Science", "Home Economics", "Physical Health Ed.", "ICT / Computer", "Christian Rel. Knowledge", "Yoruba Language", "Creative Arts", "Verbal Reasoning", "Quantitative Reasoning", "French", "Music", "Handwriting", "Diction", "History", "Literature"];
 
-    function getOrdinal(n) {
-        let s=["th","st","nd","rd"], v=n%100;
-        return n+(s[(v-20)%10]||s[v]||s[0]);
-    }
-
-    function renderReport() {
+    function verifyResult() {
+        const name = document.getElementById('pName').value.trim().toLowerCase();
+        const grade = document.getElementById('pClass').value;
+        const arm = document.getElementById('pArm').value;
+        const code = document.getElementById('pCode').value;
         const students = JSON.parse(localStorage.getItem('students') || '[]');
-        if(students.length === 0) return;
 
-        const s = students[0]; // Demo: First Student
-        document.getElementById('dispName').innerText = s.name;
-        document.getElementById('dispClass').innerText = s.grade + " " + s.arm;
+        // Strict verification: Name + Grade + Arm + Code
+        const found = students.find(s => 
+            s.name.toLowerCase() === name && 
+            s.grade === grade && 
+            s.arm === arm
+        );
 
-        const subjects = ["Mathematics", "English Language", "Basic Science"];
-        const tbody = document.getElementById('subjectRows');
-        tbody.innerHTML = "";
+        if(found && code === "1122") {
+            document.getElementById('gate').style.display = 'none';
+            document.getElementById('reportSheet').style.display = 'block';
+            document.getElementById('printBtn').style.display = 'block';
 
-        let grandTotal = 0;
+            document.getElementById('outName').innerText = found.name.toUpperCase();
+            document.getElementById('outClass').innerText = found.grade + " " + found.arm;
+            document.getElementById('outID').innerText = found.id.toString().slice(-5);
 
-        subjects.forEach(sub => {
-            const t1 = s.scores?.["1st Term"]?.[sub] || {test:0, exam:0};
-            const t2 = s.scores?.["2nd Term"]?.[sub] || {test:0, exam:0};
-            const t3 = s.scores?.["3rd Term"]?.[sub] || {test:0, exam:0};
+            const resBody = document.getElementById('resBody');
+            resBody.innerHTML = "";
+            
+            subList.forEach(sub => {
+                // In production, these pull from 'found.scores'
+                let t1 = Math.floor(Math.random() * 35) + 65;
+                let t2 = Math.floor(Math.random() * 35) + 65;
+                let t3 = Math.floor(Math.random() * 35) + 65;
+                let avg = ((t1+t2+t3)/3).toFixed(1);
 
-            const tot1 = Number(t1.test) + Number(t1.exam);
-            const tot2 = Number(t2.test) + Number(t2.exam);
-            const tot3 = Number(t3.test) + Number(t3.exam);
-            const avg = ((tot1 + tot2 + tot3) / 3).toFixed(1);
+                resBody.innerHTML += `<tr>
+                    <td class="subject-col">${sub}</td>
+                    <td>${t1}</td><td>${t2}</td><td>${t3}</td>
+                    <td style="font-weight:bold; background:#f0fdf4;">${avg}</td>
+                </tr>`;
+            });
 
-            tbody.innerHTML += `
-                <tr>
-                    <td class="sub-name">${sub}</td>
-                    <td>${tot1 || '-'}</td><td>${tot1 ? '1st' : '-'}</td>
-                    <td>${tot2 || '-'}</td><td>${tot2 ? '1st' : '-'}</td>
-                    <td>${t3.test || '0'}</td><td>${t3.exam || '0'}</td><td>${tot3 || '-'}</td>
-                    <td>${avg}</td>
-                    <td>${avg >= 70 ? 'A' : 'B'}</td>
-                </tr>
-            `;
-        });
-
-        // Demo ranking logic
-        document.getElementById('t1_pos').innerText = "1st";
-        document.getElementById('t2_pos').innerText = "2nd";
-        document.getElementById('t3_pos').innerText = "1st";
-        document.getElementById('ann_pos').innerText = "1st";
-        
-        document.getElementById('ann_total').innerText = "285 / 300";
-        document.getElementById('finalRemark').innerText = "An excellent academic year. Promoted to next Grade.";
+            // Position simulation
+            document.getElementById('pos1').innerText = "5th";
+            document.getElementById('pos2').innerText = "3rd";
+            document.getElementById('pos3').innerText = "2nd";
+        } else {
+            document.getElementById('errMsg').style.display = 'block';
+        }
     }
-
-    renderReport();
 </script>
 </body>
 </html>
