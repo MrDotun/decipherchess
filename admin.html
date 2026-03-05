@@ -1,44 +1,60 @@
-<div id="vaultLock" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 15px;">
-    <i class="bi bi-shield-lock-fill" style="font-size: 3rem; color: var(--emerald);"></i>
-    <h3 style="color: var(--emerald);">Staff Vault Locked</h3>
-    <input type="password" id="adminMasterPin" placeholder="Enter Master PIN" style="padding: 10px; text-align: center; border: 2px solid var(--gold); border-radius: 8px; margin-bottom: 10px;">
-    <button onclick="unlockStaffVault()" style="background: var(--emerald); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">Unlock PIN Directory</button>
+<div id="vaultLock" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #002d26; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+    <i class="bi bi-shield-lock-fill" style="font-size: 6rem; color: #c5a059; margin-bottom: 20px;"></i>
+    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">PROPRIETRESS VAULT</h1>
+    <p style="font-size: 1.2rem; opacity: 0.8; margin-bottom: 30px;">Enter Master Security PIN to reveal Staff Access Codes</p>
+    
+    <input type="password" id="adminMasterPin" placeholder="****" 
+           style="font-size: 3rem; width: 250px; text-align: center; border: 4px solid #c5a059; border-radius: 15px; background: white; color: #004d40; letter-spacing: 15px; padding: 15px; margin-bottom: 30px;">
+    
+    <button onclick="unlockStaffVault()" 
+            style="background: #c5a059; color: white; border: none; padding: 20px 60px; border-radius: 50px; font-size: 1.5rem; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);">
+        UNLOCK DIRECTORY
+    </button>
 </div>
 
-<div class="card" style="margin-top:30px; border: 2px solid var(--gold); background: white; padding: 25px; border-radius: 15px; position: relative; min-height: 200px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="color: var(--emerald); margin: 0;"><i class="bi bi-person-badge"></i> Staff PIN Distribution</h2>
-        <input type="text" id="staffSearch" placeholder="Search Class (e.g. Grade 4)..." onkeyup="filterStaff()" style="padding: 10px; border-radius: 8px; border: 1px solid #ddd; width: 250px;">
+<div class="card" style="max-width: 1100px; margin: 40px auto; border: 3px solid #c5a059; background: white; padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 4px solid #f0f4f3; padding-bottom: 20px;">
+        <h1 style="color: #004d40; font-size: 2.2rem; margin: 0;"><i class="bi bi-people-fill"></i> Staff PIN Directory</h1>
+        
+        <div style="position: relative;">
+            <i class="bi bi-search" style="position: absolute; left: 15px; top: 18px; color: #666;"></i>
+            <input type="text" id="staffSearch" placeholder="Search Class..." onkeyup="filterStaff()" 
+                   style="padding: 15px 15px 15px 45px; border-radius: 12px; border: 2px solid #ddd; width: 350px; font-size: 1.1rem;">
+        </div>
     </div>
 
-    <table style="width: 100%; border-collapse: collapse;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 1.2rem;">
         <thead>
-            <tr style="background: var(--emerald); color: white;">
-                <th style="padding: 12px; text-align: left;">Class & Arm</th>
-                <th style="padding: 12px; text-align: left;">Teacher Name</th>
-                <th style="padding: 12px; text-align: center;">Security PIN</th>
-                <th style="padding: 12px; text-align: right;">Action</th>
+            <tr style="background: #004d40; color: white;">
+                <th style="padding: 20px; text-align: left; border-radius: 12px 0 0 0;">CLASS & ARM</th>
+                <th style="padding: 20px; text-align: left;">ASSIGNED TEACHER</th>
+                <th style="padding: 20px; text-align: center;">ACCESS PIN</th>
+                <th style="padding: 20px; text-align: right; border-radius: 0 12px 0 0;">QUICK ACTION</th>
             </tr>
         </thead>
         <tbody id="staffPinTable">
              </tbody>
     </table>
+    
+    <button onclick="location.reload()" style="margin-top: 30px; background: #f8fafc; border: 2px solid #ddd; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; color: #ef4444;">
+        <i class="bi bi-lock-fill"></i> LOCK VAULT & LOGOUT
+    </button>
 </div>
 
 <script>
     const allGradeLevels = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"];
     const allArms = ["Blue", "Green", "Red", "White"];
 
-    // 2. THE VAULT UNLOCK FUNCTION
     function unlockStaffVault() {
         const pinInput = document.getElementById('adminMasterPin').value;
-        const MASTER_PIN = "0000"; // You can change the Admin Master PIN here
+        const MASTER_PIN = "0000"; 
 
         if (pinInput === MASTER_PIN) {
             document.getElementById('vaultLock').style.display = 'none';
-            loadStaffPins(); // Only load the data if the PIN is correct
+            loadStaffPins();
         } else {
-            alert("Access Denied: Invalid Master PIN");
+            alert("❌ INVALID MASTER PIN");
         }
     }
 
@@ -53,17 +69,17 @@
                 localStorage.setItem(`pin_${classID}`, savedPin);
 
                 rows += `
-                    <tr class="staff-row">
-                        <td style="padding: 12px; border-bottom: 1px solid #eee;"><b>${g} ${a}</b></td>
-                        <td style="padding: 12px; border-bottom: 1px solid #eee;">
-                            <input type="text" placeholder="Assign Teacher..." style="border:none; border-bottom:1px solid #ccc; width:150px;">
+                    <tr class="staff-row" style="border-bottom: 2px solid #f1f5f9;">
+                        <td style="padding: 25px;"><strong>${g} <span style="color:#c5a059">${a}</span></strong></td>
+                        <td style="padding: 25px;">
+                            <input type="text" placeholder="Teacher Name..." style="font-size: 1.1rem; padding: 8px; border: 1px solid #eee; width: 100%;">
                         </td>
-                        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
-                            <span style="font-family: monospace; font-weight: bold; background: #fff3cd; padding: 5px 10px; border-radius: 5px; color: #856404;">${savedPin}</span>
+                        <td style="padding: 25px; text-align: center;">
+                            <span style="font-family: 'Courier New', monospace; font-size: 1.8rem; font-weight: 900; background: #fff8e1; padding: 10px 20px; border-radius: 10px; color: #856404; border: 2px dashed #ffc107;">${savedPin}</span>
                         </td>
-                        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">
-                            <button onclick="copyPin('${savedPin}')" style="background: none; border: 1px solid var(--emerald); color: var(--emerald); padding: 5px 10px; border-radius: 5px; cursor: pointer;">
-                                <i class="bi bi-clipboard"></i> Copy
+                        <td style="padding: 25px; text-align: right;">
+                            <button onclick="copyPin('${savedPin}')" style="background: #004d40; color: white; padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;">
+                                <i class="bi bi-clipboard"></i> COPY PIN
                             </button>
                         </td>
                     </tr>
@@ -84,8 +100,6 @@
 
     function copyPin(pin) {
         navigator.clipboard.writeText(pin);
-        alert("PIN " + pin + " copied! You can now paste this to the teacher.");
+        alert("✅ PIN " + pin + " copied to clipboard!");
     }
-    
-    // REMOVED loadStaffPins() from auto-start to ensure the vault is the only way in.
 </script>
