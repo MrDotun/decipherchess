@@ -1,234 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Portal | Maryland Convent</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         :root { --emerald: #004d40; --gold: #c5a059; --bg: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; font-size: 0.85rem; }
         
+        /* LOGIN PANEL */
         #teacherLock { position: fixed; inset: 0; background: var(--emerald); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .login-card { background: white; padding: 30px; border-radius: 15px; width: 340px; text-align: center; border-bottom: 5px solid var(--gold); }
-        .error-msg { color: #ef4444; font-weight: bold; display: none; margin-top: 10px; background: #fee2e2; padding: 8px; border-radius: 5px; }
-
-        .container { max-width: 1200px; margin: auto; padding: 15px; display: none; }
-        .action-bar { background: #1e293b; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 15px; }
-        .mgmt-panel { background: white; padding: 15px; border-radius: 8px; display: flex; gap: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
-
-        .tab-menu { display: flex; background: white; border-bottom: 2px solid var(--gold); }
-        .tab-btn { flex: 1; padding: 15px; border: none; background: none; font-weight: bold; cursor: pointer; color: #64748b; }
-        .tab-btn.active { color: var(--emerald); border-bottom: 4px solid var(--emerald); background: #f9fdfc; }
-
-        .student-card { background: white; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
-        .card-header { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .btn-del { color: #ef4444; border: none; background: none; cursor: pointer; font-size: 1.1rem; padding: 0 10px; }
-        .btn-save { background: var(--emerald); color: white; border: none; padding: 5px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.75rem; }
-
-        .subject-grid { width: 100%; border-collapse: collapse; display: none; background: #fff; }
-        .subject-grid th, .subject-grid td { border: 1px solid #eee; padding: 6px; text-align: center; }
-        .score-edit { width: 32px; border: 1px solid #ccc; text-align: center; font-weight: bold; border-radius: 3px; }
-        .pos-badge { font-weight: 800; color: #004d40; background: #e6f4ea; padding: 2px 6px; border-radius: 4px; }
+        .login-card { background: white; padding: 35px; border-radius: 15px; width: 350px; text-align: center; border-bottom: 6px solid var(--gold); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        
+        /* WORKSPACE */
+        .container { max-width: 1100px; margin: auto; padding: 20px; display: none; }
+        .header-bar { background: #1e293b; color: white; padding: 15px 25px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .mgmt-panel { background: white; padding: 20px; border-radius: 10px; display: flex; gap: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        
+        /* STUDENT CARDS */
+        .student-card { background: white; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e2e8f0; transition: 0.2s; }
+        .card-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .pos-badge { font-size: 0.75rem; background: #e6f4ea; color: #004d40; padding: 4px 10px; border-radius: 20px; margin-right: 6px; font-weight: 700; border: 1px solid #c3e6cb; }
+        
+        /* TABLE STYLES */
+        .subject-grid { width: 100%; border-collapse: collapse; display: none; background: #fff; border-top: 1px solid #eee; }
+        .subject-grid th, .subject-grid td { border: 1px solid #f1f5f9; padding: 10px; text-align: center; }
+        .score-edit { width: 45px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; border-radius: 4px; padding: 5px; background: #f8fafc; }
+        
+        .btn-save { background: var(--emerald); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-save:hover { background: #00332b; }
+        input[type="text"] { padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; }
     </style>
 </head>
 <body>
 
 <div id="teacherLock">
     <div class="login-card">
-        <h3 style="color: var(--emerald)">Teacher Login</h3>
-        <select id="tGrade" style="width:100%; padding:10px; margin-bottom:10px;">
+        <h2 style="color: var(--emerald); margin-bottom: 5px;">Teacher Login</h2>
+        <p style="color: #64748b; margin-bottom: 25px;">Maryland Convent Portal</p>
+        
+        <label style="display:block; text-align:left; font-size: 0.7rem; font-weight: bold; color: #475569; text-transform: uppercase;">Grade Level</label>
+        <select id="tGrade" style="width:100%; padding:12px; margin-bottom:15px; border-radius: 6px; border: 1px solid #ddd;">
             <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
             <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
         </select>
-        <select id="tArm" style="width:100%; padding:10px; margin-bottom:10px;">
+
+        <label style="display:block; text-align:left; font-size: 0.7rem; font-weight: bold; color: #475569; text-transform: uppercase;">Class Arm</label>
+        <select id="tArm" style="width:100%; padding:12px; margin-bottom:15px; border-radius: 6px; border: 1px solid #ddd;">
             <option>Blue</option><option>Green</option><option>Red</option><option>White</option>
         </select>
-        <input type="password" id="tPin" placeholder="Class PIN" style="width:100%; padding:10px; border: 1px solid #ddd; border-radius: 5px;">
-        <div id="pinError" class="error-msg"><i class="bi bi-x-circle"></i> WRONG PIN</div>
-        <button onclick="accessClass()" style="width:100%; background: var(--emerald); color: white; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:15px;">LOGIN</button>
+
+        <label style="display:block; text-align:left; font-size: 0.7rem; font-weight: bold; color: #475569; text-transform: uppercase;">Access PIN</label>
+        <input type="password" id="tPin" placeholder="Enter PIN" style="width:100%; padding:12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
+        
+        <button onclick="accessClass()" style="width:100%; background: var(--emerald); color: white; padding:15px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:25px; font-size: 1rem;">ACCESS DATABASE</button>
     </div>
 </div>
 
 <div class="container" id="mainWorkspace">
-    <div class="action-bar">
-        <span><b><i class="bi bi-info-circle"></i> Auto-Rank System:</b> Positions update as you type</span>
-        <button onclick="downloadBackup()" style="background:var(--gold); border:none; color:white; padding:8px 15px; border-radius:5px; font-weight:bold; cursor:pointer;">DOWNLOAD DATA</button>
+    <div class="header-bar">
+        <span id="displayClass"><b>Class Workspace</b></span>
+        <span>Maryland Convent Portal v2.0</span>
     </div>
 
-    <div class="tab-menu">
-        <button class="tab-btn active" onclick="showTab('entry')">Score Entry</button>
-        <button class="tab-btn" onclick="showTab('ranking')">Class Sheet</button>
+    <div class="mgmt-panel">
+        <input type="text" id="newStu" placeholder="Type Student's Full Name" style="flex:1;">
+        <button onclick="addStu()" style="background:var(--emerald); color:white; border:none; padding:10px 25px; border-radius:6px; font-weight:bold; cursor:pointer;">+ ADD PUPIL</button>
     </div>
-
-    <div id="entryTab">
-        <div class="mgmt-panel">
-            <input type="text" id="newStu" placeholder="New Student Name" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:5px;">
-            <button onclick="addStu()" style="background:var(--emerald); color:white; border:none; padding:10px 20px; border-radius:5px; font-weight:bold;">ADD PUPIL</button>
+    
+    <div id="studentList">
         </div>
-        <div id="studentList"></div>
-    </div>
 </div>
 
-<script>
-    let activeG = ""; let activeA = "";
-    const subjects = ["Maths", "English", "Science", "Social", "Civic", "Agric", "Home Ec", "PHE", "ICT", "CRK", "Yoruba", "Art", "Verbal", "Quant", "French", "Music", "Handwriting", "Diction", "History", "Literature"];
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    function accessClass() {
+    const firebaseConfig = {
+        apiKey: "AIzaSyBX_ysaY_ShUG1kY-ZR8xnaZ01SlZLUblw",
+        authDomain: "assignments-de95a.firebaseapp.com",
+        databaseURL: "https://assignments-de95a-default-rtdb.firebaseio.com",
+        projectId: "assignments-de95a",
+        storageBucket: "assignments-de95a.firebasestorage.app",
+        messagingSenderId: "1088073398299",
+        appId: "1:1088073398299:web:619884c11554d262dba0be"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const subjects = ["Maths", "English", "Science", "Social", "Civic", "Agric", "Home Ec", "PHE", "ICT", "CRK", "Yoruba", "Art", "Verbal", "Quant", "French", "Music", "Handwriting", "Diction", "History", "Literature"];
+    let activeG = ""; let activeA = "";
+
+    // VERIFY PIN AGAINST CLOUD (PINS Collection)
+    window.accessClass = async function() {
         const pin = document.getElementById('tPin').value;
         const g = document.getElementById('tGrade').value;
         const a = document.getElementById('tArm').value;
-        const classID = g.replace(" ", "") + a;
-        const correct = localStorage.getItem(`pin_${classID}`);
+        const classID = (g + a).replace(" ", "");
 
-        if(pin === correct) {
-            activeG = g; activeA = a;
-            document.getElementById('teacherLock').style.display = 'none';
-            document.getElementById('mainWorkspace').style.display = 'block';
-            render();
+        const pinRef = doc(db, "pins", classID);
+        const pinSnap = await getDoc(pinRef);
+
+        if (pinSnap.exists()) {
+            if (pin === pinSnap.data().code) {
+                activeG = g; activeA = a;
+                document.getElementById('teacherLock').style.display = 'none';
+                document.getElementById('mainWorkspace').style.display = 'block';
+                document.getElementById('displayClass').innerHTML = `<b>${activeG} ${activeA}</b>`;
+                renderTeacherView();
+            } else { alert("Wrong PIN for " + g + " " + a); }
         } else {
-            document.getElementById('pinError').style.display = 'block';
+            alert("No PIN set for this class. Contact the Principal.");
         }
-    }
+    };
 
-    function render() {
-        const all = JSON.parse(localStorage.getItem('students') || '[]');
-        const filtered = all.filter(s => s.grade === activeG && s.arm === activeA);
+    window.addStu = async function() {
+        const name = document.getElementById('newStu').value.trim();
+        if(!name) return;
+        const id = Date.now().toString();
+        await setDoc(doc(db, "students", id), {
+            id, name, grade: activeG, arm: activeA, scores: {}
+        });
+        document.getElementById('newStu').value = "";
+        renderTeacherView();
+    };
+
+    window.saveData = async function(id) {
+        const card = document.getElementById(`card-${id}`);
+        const rows = card.querySelectorAll('tr[data-subject]');
+        let scores = {};
+        
+        rows.forEach(r => {
+            const sub = r.getAttribute('data-subject');
+            scores[sub] = {
+                t1: r.querySelector('.t1').value, e1: r.querySelector('.e1').value,
+                t2: r.querySelector('.t2').value, e2: r.querySelector('.e2').value,
+                t3: r.querySelector('.t3').value, e3: r.querySelector('.e3').value
+            };
+        });
+
+        await setDoc(doc(db, "students", id), { scores }, { merge: true });
+        alert("Cloud Sync Successful!");
+        renderTeacherView(); 
+    };
+
+    async function renderTeacherView() {
+        const q = query(collection(db, "students"), where("grade", "==", activeG), where("arm", "==", activeA));
+        const snap = await getDocs(q);
         const container = document.getElementById('studentList');
-        container.innerHTML = filtered.length === 0 ? "<p style='text-align:center; padding:20px;'>No students.</p>" : "";
+        container.innerHTML = "";
 
-        filtered.forEach(s => {
-            let rows = "";
-            const savedScores = s.scores || {}; // Get scores or empty object
+        let studentsList = [];
+        snap.forEach(d => {
+            let data = d.data();
+            data.dbId = d.id;
+            data.t1_total = 0; data.t2_total = 0; data.t3_total = 0;
             
-            subjects.forEach((sub, i) => {
-                const sc = savedScores[sub] || {t1:'', e1:'', t2:'', e2:'', t3:'', e3:''};
+            if (data.scores) {
+                Object.values(data.scores).forEach(s => {
+                    data.t1_total += (Number(s.t1)||0) + (Number(s.e1)||0);
+                    data.t2_total += (Number(s.t2)||0) + (Number(s.e2)||0);
+                    data.t3_total += (Number(s.t3)||0) + (Number(s.e3)||0);
+                });
+            }
+            studentsList.push(data);
+        });
+
+        const getRank = (list, score, key) => {
+            if (score === 0) return "--";
+            const sorted = [...list].sort((a, b) => b[key] - a[key]);
+            const rank = sorted.findIndex(x => x[key] === score) + 1;
+            const j = rank % 10, k = rank % 100;
+            if (j == 1 && k != 11) return rank + "st";
+            if (j == 2 && k != 12) return rank + "nd";
+            if (j == 3 && k != 13) return rank + "rd";
+            return rank + "th";
+        };
+
+        studentsList.forEach(s => {
+            let rows = "";
+            subjects.forEach(sub => {
+                const sc = (s.scores && s.scores[sub]) || {t1:'',e1:'',t2:'',e2:'',t3:'',e3:''};
                 rows += `<tr data-subject="${sub}">
                     <td style="text-align:left; font-weight:bold;">${sub}</td>
-                    <td><input type="number" class="score-edit t1" value="${sc.t1}" oninput="autoUpdate()"> <input type="number" class="score-edit e1" value="${sc.e1}" oninput="autoUpdate()"></td>
-                    <td><input type="number" class="score-edit t2" value="${sc.t2}" oninput="autoUpdate()"> <input type="number" class="score-edit e2" value="${sc.e2}" oninput="autoUpdate()"></td>
-                    <td><input type="number" class="score-edit t3" value="${sc.t3}" oninput="autoUpdate()"> <input type="number" class="score-edit e3" value="${sc.e3}" oninput="autoUpdate()"></td>
-                    <td style="background:#f9f9f9; font-weight:bold;" class="sub-avg">0</td>
+                    <td><input type="number" class="score-edit t1" value="${sc.t1}"> <input type="number" class="score-edit e1" value="${sc.e1}"></td>
+                    <td><input type="number" class="score-edit t2" value="${sc.t2}"> <input type="number" class="score-edit e2" value="${sc.e2}"></td>
+                    <td><input type="number" class="score-edit t3" value="${sc.t3}"> <input type="number" class="score-edit e3" value="${sc.e3}"></td>
                 </tr>`;
             });
 
             container.innerHTML += `
-                <div class="student-card" id="card-${s.id}">
+                <div class="student-card" id="card-${s.dbId}">
                     <div class="card-header">
-                        <span onclick="toggle(this)"><b>${s.name}</b> <i class="bi bi-chevron-down" style="color:var(--gold)"></i></span>
-                        <div>
-                            <span class="pos-badge" title="Current Rank in Class">Term Pos: <span class="rank-val">--</span></span>
-                            <button class="btn-save" onclick="saveData(${s.id})">SAVE</button>
-                            <button class="btn-del" onclick="delStu(${s.id})"><i class="bi bi-trash3"></i></button>
+                        <div onclick="toggle('${s.dbId}')" style="flex:1">
+                            <b style="font-size:1.1rem; color:var(--emerald);">${s.name}</b>
+                            <div style="margin-top:8px;">
+                                <span class="pos-badge">1st Term: ${getRank(studentsList, s.t1_total, 't1_total')}</span>
+                                <span class="pos-badge">2nd Term: ${getRank(studentsList, s.t2_total, 't2_total')}</span>
+                                <span class="pos-badge">3rd Term: ${getRank(studentsList, s.t3_total, 't3_total')}</span>
+                            </div>
                         </div>
+                        <button class="btn-save" onclick="saveData('${s.dbId}')"><i class="bi bi-cloud-arrow-up"></i> SAVE</button>
                     </div>
-                    <table class="subject-grid">
-                        <tr style="background:#f8fafc">
-                            <th>Subject</th><th>1st Term (T/E)</th><th>2nd Term (T/E)</th><th>3rd Term (T/E)</th><th>Annual</th>
+                    <table class="subject-grid" id="grid-${s.dbId}">
+                        <tr style="background:#f1f5f9; font-size: 0.7rem; color: #475569;">
+                            <th>SUBJECT NAME</th>
+                            <th>1ST TERM (TEST/EXAM)</th>
+                            <th>2ND TERM (TEST/EXAM)</th>
+                            <th>3RD TERM (TEST/EXAM)</th>
                         </tr>
                         ${rows}
                     </table>
                 </div>`;
         });
-        autoUpdate(); // Refresh calculations and ranks on load
     }
 
-    function autoUpdate() {
-        const cards = document.querySelectorAll('.student-card');
-        let rankings = [];
-
-        cards.forEach(card => {
-            let termTotal = 0;
-            const rows = card.querySelectorAll('.subject-grid tr:not(:first-child)');
-            
-            rows.forEach(row => {
-                const t1 = parseFloat(row.querySelector('.t1').value) || 0;
-                const e1 = parseFloat(row.querySelector('.e1').value) || 0;
-                const t2 = parseFloat(row.querySelector('.t2').value) || 0;
-                const e2 = parseFloat(row.querySelector('.e2').value) || 0;
-                const t3 = parseFloat(row.querySelector('.t3').value) || 0;
-                const e3 = parseFloat(row.querySelector('.e3').value) || 0;
-
-                const annual = ((t1+e1) + (t2+e2) + (t3+e3)) / 3;
-                row.querySelector('.sub-avg').innerText = (t1+e1+t2+e2+t3+e3) > 0 ? annual.toFixed(1) : "0";
-                
-                termTotal += (t1 + e1 + t2 + e2 + t3 + e3); 
-            });
-
-            rankings.push({ id: card.id, total: termTotal });
-        });
-
-        rankings.sort((a, b) => b.total - a.total);
-        rankings.forEach((item, index) => {
-            const card = document.getElementById(item.id);
-            if(item.total > 0) {
-                card.querySelector('.rank-val').innerText = (index + 1);
-            }
-        });
-    }
-
-    function toggle(el) {
-        const grid = el.parentElement.nextElementSibling;
-        grid.style.display = (grid.style.display === "table") ? "none" : "table";
-    }
-
-    function addStu() {
-        const name = document.getElementById('newStu').value;
-        if(!name) return;
-        let all = JSON.parse(localStorage.getItem('students') || '[]');
-        all.push({ id: Date.now(), name: name, grade: activeG, arm: activeA, scores: {} });
-        localStorage.setItem('students', JSON.stringify(all));
-        document.getElementById('newStu').value = "";
-        render();
-    }
-
-    function delStu(id) {
-        if(confirm("Delete student?")) {
-            let all = JSON.parse(localStorage.getItem('students') || '[]');
-            all = all.filter(s => s.id !== id);
-            localStorage.setItem('students', JSON.stringify(all));
-            render();
-        }
-    }
-
-    function saveData(id) {
-        let all = JSON.parse(localStorage.getItem('students') || '[]');
-        const studentIndex = all.findIndex(s => s.id === id);
-        if (studentIndex === -1) return;
-
-        const card = document.getElementById(`card-${id}`);
-        const rows = card.querySelectorAll('.subject-grid tr[data-subject]');
-        let studentScores = {};
-
-        rows.forEach(row => {
-            const subName = row.getAttribute('data-subject');
-            studentScores[subName] = {
-                t1: row.querySelector('.t1').value,
-                e1: row.querySelector('.e1').value,
-                t2: row.querySelector('.t2').value,
-                e2: row.querySelector('.e2').value,
-                t3: row.querySelector('.t3').value,
-                e3: row.querySelector('.e3').value
-            };
-        });
-
-        all[studentIndex].scores = studentScores;
-        localStorage.setItem('students', JSON.stringify(all));
-        alert(`Scores for ${all[studentIndex].name} saved to database!`);
-    }
-
-    function downloadBackup() {
-        const data = localStorage.getItem('students');
-        const blob = new Blob([data], {type: 'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `Backup_${activeG}_${activeA}.json`;
-        a.click();
-    }
-
-    function showTab(tab) {
-        document.getElementById('entryTab').style.display = tab === 'entry' ? 'block' : 'none';
-        // Note: rankingTab logic would need to be added similarly
-    }
+    window.toggle = (id) => {
+        const g = document.getElementById('grid-'+id);
+        g.style.display = g.style.display === 'table' ? 'none' : 'table';
+    };
 </script>
 </body>
 </html>
