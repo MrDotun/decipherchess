@@ -98,12 +98,15 @@
 
         filtered.forEach(s => {
             let rows = "";
+            const savedScores = s.scores || {}; // Get scores or empty object
+            
             subjects.forEach((sub, i) => {
-                rows += `<tr>
+                const sc = savedScores[sub] || {t1:'', e1:'', t2:'', e2:'', t3:'', e3:''};
+                rows += `<tr data-subject="${sub}">
                     <td style="text-align:left; font-weight:bold;">${sub}</td>
-                    <td><input type="number" class="score-edit t1" data-stu="${s.id}" oninput="autoUpdate()"> <input type="number" class="score-edit e1" oninput="autoUpdate()"></td>
-                    <td><input type="number" class="score-edit t2" oninput="autoUpdate()"> <input type="number" class="score-edit e2" oninput="autoUpdate()"></td>
-                    <td><input type="number" class="score-edit t3" oninput="autoUpdate()"> <input type="number" class="score-edit e3" oninput="autoUpdate()"></td>
+                    <td><input type="number" class="score-edit t1" value="${sc.t1}" oninput="autoUpdate()"> <input type="number" class="score-edit e1" value="${sc.e1}" oninput="autoUpdate()"></td>
+                    <td><input type="number" class="score-edit t2" value="${sc.t2}" oninput="autoUpdate()"> <input type="number" class="score-edit e2" value="${sc.e2}" oninput="autoUpdate()"></td>
+                    <td><input type="number" class="score-edit t3" value="${sc.t3}" oninput="autoUpdate()"> <input type="number" class="score-edit e3" value="${sc.e3}" oninput="autoUpdate()"></td>
                     <td style="background:#f9f9f9; font-weight:bold;" class="sub-avg">0</td>
                 </tr>`;
             });
@@ -126,9 +129,9 @@
                     </table>
                 </div>`;
         });
+        autoUpdate(); // Refresh calculations and ranks on load
     }
 
-    // THE AUTO-UPDATE LOGIC
     function autoUpdate() {
         const cards = document.querySelectorAll('.student-card');
         let rankings = [];
@@ -146,15 +149,14 @@
                 const e3 = parseFloat(row.querySelector('.e3').value) || 0;
 
                 const annual = ((t1+e1) + (t2+e2) + (t3+e3)) / 3;
-                row.querySelector('.sub-avg').innerText = annual.toFixed(1);
+                row.querySelector('.sub-avg').innerText = (t1+e1+t2+e2+t3+e3) > 0 ? annual.toFixed(1) : "0";
                 
-                termTotal += (t1 + e1); // Calculating for 1st Term Position by default
+                termTotal += (t1 + e1 + t2 + e2 + t3 + e3); 
             });
 
             rankings.push({ id: card.id, total: termTotal });
         });
 
-        // Sort by total and assign rank
         rankings.sort((a, b) => b.total - a.total);
         rankings.forEach((item, index) => {
             const card = document.getElementById(item.id);
@@ -173,7 +175,7 @@
         const name = document.getElementById('newStu').value;
         if(!name) return;
         let all = JSON.parse(localStorage.getItem('students') || '[]');
-        all.push({ id: Date.now(), name: name, grade: activeG, arm: activeA });
+        all.push({ id: Date.now(), name: name, grade: activeG, arm: activeA, scores: {} });
         localStorage.setItem('students', JSON.stringify(all));
         document.getElementById('newStu').value = "";
         render();
@@ -188,7 +190,31 @@
         }
     }
 
-    function saveData(id) { alert("Data saved successfully!"); }
+    function saveData(id) {
+        let all = JSON.parse(localStorage.getItem('students') || '[]');
+        const studentIndex = all.findIndex(s => s.id === id);
+        if (studentIndex === -1) return;
+
+        const card = document.getElementById(`card-${id}`);
+        const rows = card.querySelectorAll('.subject-grid tr[data-subject]');
+        let studentScores = {};
+
+        rows.forEach(row => {
+            const subName = row.getAttribute('data-subject');
+            studentScores[subName] = {
+                t1: row.querySelector('.t1').value,
+                e1: row.querySelector('.e1').value,
+                t2: row.querySelector('.t2').value,
+                e2: row.querySelector('.e2').value,
+                t3: row.querySelector('.t3').value,
+                e3: row.querySelector('.e3').value
+            };
+        });
+
+        all[studentIndex].scores = studentScores;
+        localStorage.setItem('students', JSON.stringify(all));
+        alert(`Scores for ${all[studentIndex].name} saved to database!`);
+    }
 
     function downloadBackup() {
         const data = localStorage.getItem('students');
@@ -201,7 +227,7 @@
 
     function showTab(tab) {
         document.getElementById('entryTab').style.display = tab === 'entry' ? 'block' : 'none';
-        document.getElementById('rankingTab').style.display = tab === 'ranking' ? 'block' : 'none';
+        // Note: rankingTab logic would need to be added similarly
     }
 </script>
 </body>
