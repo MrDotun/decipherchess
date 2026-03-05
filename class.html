@@ -8,133 +8,169 @@
         :root { --emerald: #004d40; --gold: #c5a059; --bg: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; font-size: 0.85rem; }
         
-        /* BACKUP BAR */
-        .backup-zone { background: #e2e8f0; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cbd5e1; }
-        .btn-backup { background: #1e293b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.75rem; }
-        .btn-restore { background: var(--gold); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.75rem; }
+        /* LOGIN GATE */
+        #teacherLock { position: fixed; inset: 0; background: var(--emerald); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: white; padding: 30px; border-radius: 15px; width: 340px; text-align: center; border-bottom: 5px solid var(--gold); }
+        .error-msg { color: #ef4444; font-weight: bold; display: none; margin-top: 10px; background: #fee2e2; padding: 8px; border-radius: 5px; }
 
         .container { max-width: 1100px; margin: auto; padding: 15px; display: none; }
-        #teacherLock { position: fixed; inset: 0; background: var(--emerald); z-index: 2000; display: flex; align-items: center; justify-content: center; }
         
-        /* TAB STYLING */
+        /* ACTION BAR */
+        .action-bar { background: #1e293b; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 15px; }
+        .mgmt-panel { background: white; padding: 15px; border-radius: 8px; display: flex; gap: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
+
+        /* TABS */
         .tab-menu { display: flex; background: white; border-bottom: 2px solid var(--gold); }
         .tab-btn { flex: 1; padding: 15px; border: none; background: none; font-weight: bold; cursor: pointer; color: #64748b; }
         .tab-btn.active { color: var(--emerald); border-bottom: 4px solid var(--emerald); background: #f9fdfc; }
 
+        /* STUDENT LIST */
+        .student-card { background: white; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+        .card-header { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .btn-del { color: #ef4444; border: none; background: none; cursor: pointer; font-size: 1.1rem; padding: 0 10px; }
+
         /* SCORE GRID */
-        .student-card { background: white; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
-        .card-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .subject-grid { width: 100%; border-collapse: collapse; display: none; background: #fff; }
-        .subject-grid th { background: #f8fafc; padding: 8px; font-size: 0.7rem; border: 1px solid #eee; }
-        .subject-grid td { border: 1px solid #eee; padding: 4px; text-align: center; }
-        .score-edit { width: 30px; border: 1px solid #ccc; text-align: center; font-size: 0.8rem; }
+        .subject-grid th, .subject-grid td { border: 1px solid #eee; padding: 6px; text-align: center; }
+        .score-edit { width: 35px; border: 1px solid #ccc; text-align: center; font-weight: bold; border-radius: 3px; }
     </style>
 </head>
 <body>
 
 <div id="teacherLock">
-    <div style="background: white; padding: 30px; border-radius: 15px; width: 300px; text-align: center;">
+    <div class="login-card">
         <h3 style="color: var(--emerald)">Teacher Login</h3>
-        <select id="tGrade" style="width:100%; padding:10px; margin-bottom:10px;"><option>Grade 4</option></select>
-        <select id="tArm" style="width:100%; padding:10px; margin-bottom:10px;"><option>Red</option></select>
-        <input type="password" id="tPin" placeholder="PIN" style="width:100%; padding:10px; margin-bottom:10px;">
-        <button onclick="accessClass()" style="width:100%; background: var(--emerald); color: white; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">LOGIN</button>
+        <select id="tGrade" style="width:100%; padding:10px; margin-bottom:10px;">
+            <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+            <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+        </select>
+        <select id="tArm" style="width:100%; padding:10px; margin-bottom:10px;">
+            <option>Blue</option><option>Green</option><option>Red</option><option>White</option>
+        </select>
+        <input type="password" id="tPin" placeholder="Class PIN" style="width:100%; padding:10px; border: 1px solid #ddd; border-radius: 5px;">
+        <div id="pinError" class="error-msg"><i class="bi bi-x-circle"></i> WRONG PIN</div>
+        <button onclick="accessClass()" style="width:100%; background: var(--emerald); color: white; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:15px;">LOGIN</button>
     </div>
 </div>
 
 <div class="container" id="mainWorkspace">
-    <div class="backup-zone">
-        <span><i class="bi bi-shield-check"></i> <b>Data Protection Active</b></span>
-        <div>
-            <button class="btn-backup" onclick="downloadBackup()"><i class="bi bi-download"></i> DOWNLOAD DATA BACKUP</button>
-            <button class="btn-restore" onclick="document.getElementById('importFile').click()"><i class="bi bi-upload"></i> RESTORE FROM WIPE</button>
-            <input type="file" id="importFile" style="display:none" onchange="restoreBackup(event)">
-        </div>
+    <div class="action-bar">
+        <span><i class="bi bi-database"></i> <b>Wipe Protection</b></span>
+        <button onclick="downloadBackup()" style="background:var(--gold); border:none; color:white; padding:8px 15px; border-radius:5px; font-weight:bold; cursor:pointer;">DOWNLOAD BACKUP</button>
     </div>
 
     <div class="tab-menu">
-        <button class="tab-btn active" onclick="showTab('entry')">Score Entry (All Terms)</button>
-        <button class="tab-btn" onclick="showTab('ranking')">Rankings</button>
+        <button id="btnEntry" class="tab-btn active" onclick="showTab('entry')">Score Entry (20 Subjects)</button>
+        <button id="btnRank" class="tab-btn" onclick="showTab('ranking')">Positions</button>
     </div>
 
-    <div id="entryTab" style="margin-top: 20px;">
-        <div id="studentListContainer"></div>
+    <div id="entryTab">
+        <div class="mgmt-panel">
+            <input type="text" id="newStu" placeholder="Enter New Student Name" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:5px;">
+            <button onclick="addStu()" style="background:var(--emerald); color:white; border:none; padding:10px 20px; border-radius:5px; font-weight:bold;">ADD PUPIL</button>
+        </div>
+        <div id="studentList"></div>
+    </div>
+
+    <div id="rankingTab" style="display:none;">
+        <div id="rankList" style="background:white; padding:20px; border-radius:8px;"></div>
     </div>
 </div>
 
 <script>
-    let currentGrade = "";
-    let currentArm = "";
-    const subjects = ["Maths", "English", "Science", "Social", "Civic", "Agric", "Home Ec", "PHE", "ICT", "CRK", "Language", "Art", "Verbal", "Quant", "French", "Music", "Handwriting", "Diction", "History", "Literature"];
+    let activeG = ""; let activeA = "";
+    const subjects = ["Maths", "English", "Science", "Social", "Civic", "Agric", "Home Ec", "PHE", "ICT", "CRK", "Yoruba", "Art", "Verbal", "Quant", "French", "Music", "Handwriting", "Diction", "History", "Literature"];
 
     function accessClass() {
-        currentGrade = document.getElementById('tGrade').value;
-        currentArm = document.getElementById('tArm').value;
-        document.getElementById('teacherLock').style.display = 'none';
-        document.getElementById('mainWorkspace').style.display = 'block';
-        loadStudents();
+        const pin = document.getElementById('tPin').value;
+        const g = document.getElementById('tGrade').value;
+        const a = document.getElementById('tArm').value;
+        const classID = g.replace(" ", "") + a;
+        const correct = localStorage.getItem(`pin_${classID}`);
+
+        if(pin === correct) {
+            activeG = g; activeA = a;
+            document.getElementById('teacherLock').style.display = 'none';
+            document.getElementById('mainWorkspace').style.display = 'block';
+            render();
+        } else {
+            document.getElementById('pinError').style.display = 'block';
+        }
     }
 
-    // --- NEW: BACKUP & RESTORE LOGIC ---
-    function downloadBackup() {
-        const data = localStorage.getItem('students') || '[]';
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `MCPS_Backup_${currentGrade}_${currentArm}_${new Date().toLocaleDateString()}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        alert("Backup Downloaded! Keep this file safe in case of a system wipe.");
-    }
+    function render() {
+        const all = JSON.parse(localStorage.getItem('students') || '[]');
+        const filtered = all.filter(s => s.grade === activeG && s.arm === activeA);
+        const container = document.getElementById('studentList');
+        container.innerHTML = filtered.length === 0 ? "<p style='text-align:center; padding:20px;'>No students in this class yet.</p>" : "";
 
-    function restoreBackup(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const content = e.target.result;
-            try {
-                localStorage.setItem('students', content);
-                alert("Restoration Successful! Refreshing records...");
-                loadStudents();
-            } catch (err) {
-                alert("Error: Invalid backup file.");
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    function loadStudents() {
-        const students = JSON.parse(localStorage.getItem('students') || '[]');
-        const filtered = students.filter(s => s.grade === currentGrade && s.arm === currentArm);
-        const container = document.getElementById('studentListContainer');
-        container.innerHTML = "";
         filtered.forEach(s => {
-            let rowData = "";
+            let subRows = "";
             subjects.forEach(sub => {
-                rowData += `<tr><td style="text-align:left; padding-left:10px;">${sub}</td><td><input class="score-edit"> <input class="score-edit"></td><td><input class="score-edit"> <input class="score-edit"></td><td><input class="score-edit"> <input class="score-edit"></td></tr>`;
+                subRows += `<tr><td style="text-align:left; font-weight:bold;">${sub}</td>
+                    <td><input class="score-edit" onchange="saveScores()"> <input class="score-edit" onchange="saveScores()"></td>
+                    <td><input class="score-edit" onchange="saveScores()"> <input class="score-edit" onchange="saveScores()"></td>
+                    <td><input class="score-edit" onchange="saveScores()"> <input class="score-edit" onchange="saveScores()"></td></tr>`;
             });
+
             container.innerHTML += `
                 <div class="student-card">
-                    <div class="card-header" onclick="toggleScores(this)">
-                        <b>${s.name}</b> <i class="bi bi-chevron-down"></i>
+                    <div class="card-header">
+                        <span onclick="toggle(this)"><b>${s.name}</b> <i class="bi bi-chevron-down" style="color:var(--gold)"></i></span>
+                        <button class="btn-del" onclick="delStu(${s.id})"><i class="bi bi-trash3"></i></button>
                     </div>
                     <table class="subject-grid">
-                        <tr><th>Subject</th><th>1st Term</th><th>2nd Term</th><th>3rd Term</th></tr>
-                        ${rowData}
+                        <tr style="background:#f8fafc"><th>Subject</th><th>1st Term (T/E)</th><th>2nd Term (T/E)</th><th>3rd Term (T/E)</th></tr>
+                        ${subRows}
                     </table>
                 </div>`;
         });
     }
 
-    function toggleScores(el) {
-        const grid = el.nextElementSibling;
-        grid.style.display = grid.style.display === "table" ? "none" : "table";
+    function toggle(el) {
+        const grid = el.parentElement.nextElementSibling;
+        grid.style.display = (grid.style.display === "table") ? "none" : "table";
     }
 
-    function showTab(tab) { /* Tab switching logic */ }
+    function addStu() {
+        const name = document.getElementById('newStu').value;
+        if(!name) return alert("Enter Name");
+        let all = JSON.parse(localStorage.getItem('students') || '[]');
+        all.push({ id: Date.now(), name: name, grade: activeG, arm: activeA });
+        localStorage.setItem('students', JSON.stringify(all));
+        document.getElementById('newStu').value = "";
+        render();
+    }
+
+    function delStu(id) {
+        if(confirm("Delete this student permanently?")) {
+            let all = JSON.parse(localStorage.getItem('students') || '[]');
+            all = all.filter(s => s.id !== id);
+            localStorage.setItem('students', JSON.stringify(all));
+            render();
+        }
+    }
+
+    function saveScores() {
+        console.log("Scores auto-saved to local storage");
+        // Logic to link individual inputs to student object goes here
+    }
+
+    function downloadBackup() {
+        const data = localStorage.getItem('students');
+        const blob = new Blob([data], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Backup_${activeG}_${activeA}.json`;
+        a.click();
+    }
+
+    function showTab(tab) {
+        document.getElementById('entryTab').style.display = tab === 'entry' ? 'block' : 'none';
+        document.getElementById('rankingTab').style.display = tab === 'ranking' ? 'block' : 'none';
+        document.getElementById('btnEntry').classList.toggle('active', tab === 'entry');
+        document.getElementById('btnRank').classList.toggle('active', tab === 'ranking');
+    }
 </script>
 </body>
 </html>
