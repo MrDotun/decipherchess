@@ -16,15 +16,22 @@
         .vault-input { width: 100%; padding: 15px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: var(--accent); text-align: center; font-size: 1.5rem; letter-spacing: 5px; margin-bottom: 20px; box-sizing: border-box;}
 
         /* ADMIN CONTENT */
-        .admin-card { max-width: 700px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 5px solid var(--accent); display: none; }
+        .admin-card { max-width: 750px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 5px solid var(--accent); display: none; }
         .row-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-bottom: 1px solid #f1f5f9; }
         .btn-save { background: #004d40; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-print { background: #1e293b; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+        .btn-del { color: #dc2626; border: none; background: none; cursor: pointer; font-size: 1.1rem; padding: 5px; }
         .status-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: #e2e8f0; color: #475569; }
+
+        @media print {
+            .no-print { display: none !important; }
+            .admin-card { box-shadow: none; border: none; margin: 0; width: 100%; max-width: 100%; }
+        }
     </style>
 </head>
 <body>
 
-<div id="vaultLock">
+<div id="vaultLock" class="no-print">
     <div class="vault-box">
         <div class="vault-icon"><i class="bi bi-safe2"></i></div>
         <h2 style="margin: 0 0 10px 0;">ADMIN VAULT</h2>
@@ -35,22 +42,26 @@
 </div>
 
 <div class="admin-card" id="adminContent">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;" class="no-print">
         <div>
             <h2 style="color: var(--primary); margin: 0;">Principal's Office</h2>
             <p style="color: #64748b; font-size: 0.9rem;">Class Access PIN Manager</p>
         </div>
-        <button onclick="location.reload()" style="background: #f1f5f9; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;"><i class="bi bi-door-closed"></i> Exit</button>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="window.print()" class="btn-print"><i class="bi bi-printer"></i> Print List</button>
+            <button onclick="location.reload()" style="background: #f1f5f9; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;"><i class="bi bi-door-closed"></i> Exit</button>
+        </div>
     </div>
 
-    <div class="row-item" style="background: #f8fafc; font-weight: bold; font-size: 0.75rem;">
+    <h3 style="font-size: 1rem; border-bottom: 2px solid var(--accent); padding-bottom: 8px;" class="no-print">Set or Change Class PIN</h3>
+    <div class="row-item no-print" style="background: #f8fafc; font-weight: bold; font-size: 0.75rem;">
         <div style="flex: 1;">CLASS LEVEL</div>
         <div style="flex: 1;">ARM</div>
         <div style="flex: 1;">ACCESS PIN</div>
-        <div style="width: 80px;">ACTION</div>
+        <div style="width: 80px; text-align: center;">ACTION</div>
     </div>
     
-    <div class="row-item">
+    <div class="row-item no-print">
         <select id="newGrade" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
             <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
             <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
@@ -58,7 +69,7 @@
         <select id="newArm" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
             <option>Blue</option><option>Green</option><option>Red</option><option>White</option>
         </select>
-        <input type="text" id="newCode" placeholder="PIN" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        <input type="text" id="newCode" placeholder="Enter PIN" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
         <button class="btn-save" onclick="updatePin()">SAVE</button>
     </div>
 
@@ -69,7 +80,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBX_ysaY_ShUG1kY-ZR8xnaZ01SlZLUblw",
@@ -81,7 +92,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const MASTER_KEY = "1960"; // CHANGE THIS CODE TO YOUR SECRET KEY
+    const MASTER_KEY = "1960"; 
 
     window.unlockVault = function() {
         const input = document.getElementById('vaultCode').value;
@@ -98,31 +109,46 @@
         const grade = document.getElementById('newGrade').value;
         const arm = document.getElementById('newArm').value;
         const code = document.getElementById('newCode').value.trim();
-        const classID = (grade + arm).replace(" ", "");
+        const classID = (grade + arm).replace(/\s+/g, "");
 
         if(!code) return alert("Enter a PIN");
 
         await setDoc(doc(db, "pins", classID), { grade, arm, code });
-        alert(`Access granted for ${grade} ${arm}`);
+        alert(`PIN updated for ${grade} ${arm}`);
         document.getElementById('newCode').value = "";
         loadPins();
+    };
+
+    window.deletePin = async function(id, name) {
+        if(confirm(`Remove access for ${name}?`)) {
+            await deleteDoc(doc(db, "pins", id));
+            loadPins();
+        }
     };
 
     async function loadPins() {
         const pinContainer = document.getElementById('activePins');
         const snap = await getDocs(collection(db, "pins"));
         
-        let html = '<h4 style="color:#64748b; font-size:0.7rem; border-bottom:1px solid #eee; padding-bottom:5px;">ACTIVE CLASS PINS</h4>';
-        snap.forEach((doc) => {
-            const data = doc.data();
-            html += `
-                <div class="row-item">
-                    <div style="flex: 1;">${data.grade}</div>
-                    <div style="flex: 1;">${data.arm}</div>
-                    <div style="flex: 1;"><b>${data.code}</b></div>
-                    <div style="width: 80px;"><span class="status-badge">ACTIVE</span></div>
-                </div>`;
-        });
+        let html = '<h4 style="color:#64748b; font-size:0.7rem; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase;">Registered Access Directory</h4>';
+        
+        if (snap.empty) {
+            html += '<p style="text-align:center; padding:20px; color:#94a3b8;">No active PINs found.</p>';
+        } else {
+            snap.forEach((doc) => {
+                const data = doc.data();
+                const id = doc.id;
+                html += `
+                    <div class="row-item">
+                        <div style="flex: 1; font-weight:bold;">${data.grade}</div>
+                        <div style="flex: 1;">${data.arm}</div>
+                        <div style="flex: 1; color: var(--accent); font-family: monospace; font-size: 1.1rem; font-weight: bold;">${data.code}</div>
+                        <div style="width: 80px; text-align: right;" class="no-print">
+                            <button class="btn-del" onclick="deletePin('${id}', '${data.grade} ${data.arm}')"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </div>`;
+            });
+        }
         pinContainer.innerHTML = html;
     }
 </script>
