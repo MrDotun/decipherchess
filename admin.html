@@ -1,105 +1,69 @@
-<div id="vaultLock" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #002d26; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
-    <i class="bi bi-shield-lock-fill" style="font-size: 6rem; color: #c5a059; margin-bottom: 20px;"></i>
-    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">PROPRIETRESS VAULT</h1>
-    <p style="font-size: 1.2rem; opacity: 0.8; margin-bottom: 30px;">Enter Master Security PIN to reveal Staff Access Codes</p>
-    
-    <input type="password" id="adminMasterPin" placeholder="****" 
-           style="font-size: 3rem; width: 250px; text-align: center; border: 4px solid #c5a059; border-radius: 15px; background: white; color: #004d40; letter-spacing: 15px; padding: 15px; margin-bottom: 30px;">
-    
-    <button onclick="unlockStaffVault()" 
-            style="background: #c5a059; color: white; border: none; padding: 20px 60px; border-radius: 50px; font-size: 1.5rem; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);">
-        UNLOCK DIRECTORY
-    </button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Principal Admin | Maryland Convent</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root { --emerald: #004d40; --gold: #c5a059; --bg: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); padding: 20px; }
+        .admin-box { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .class-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        input { padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 80px; text-align: center; }
+        button { background: var(--emerald); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="admin-box">
+    <h2 style="color:var(--emerald)"><i class="bi bi-shield-lock"></i> Master PIN Manager</h2>
+    <p>Set the access codes for each class teacher below.</p>
+    <div id="classList"></div>
+    <button onclick="saveAllPins()" style="width:100%; margin-top:20px; background:var(--gold)">SAVE ALL PINS TO CLOUD</button>
 </div>
 
-<div class="card" style="max-width: 1100px; margin: 40px auto; border: 3px solid #c5a059; background: white; padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 4px solid #f0f4f3; padding-bottom: 20px;">
-        <h1 style="color: #004d40; font-size: 2.2rem; margin: 0;"><i class="bi bi-people-fill"></i> Staff PIN Directory</h1>
-        
-        <div style="position: relative;">
-            <i class="bi bi-search" style="position: absolute; left: 15px; top: 18px; color: #666;"></i>
-            <input type="text" id="staffSearch" placeholder="Search Class..." onkeyup="filterStaff()" 
-                   style="padding: 15px 15px 15px 45px; border-radius: 12px; border: 2px solid #ddd; width: 350px; font-size: 1.1rem;">
-        </div>
-    </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <table style="width: 100%; border-collapse: collapse; font-size: 1.2rem;">
-        <thead>
-            <tr style="background: #004d40; color: white;">
-                <th style="padding: 20px; text-align: left; border-radius: 12px 0 0 0;">CLASS & ARM</th>
-                <th style="padding: 20px; text-align: left;">ASSIGNED TEACHER</th>
-                <th style="padding: 20px; text-align: center;">ACCESS PIN</th>
-                <th style="padding: 20px; text-align: right; border-radius: 0 12px 0 0;">QUICK ACTION</th>
-            </tr>
-        </thead>
-        <tbody id="staffPinTable">
-             </tbody>
-    </table>
-    
-    <button onclick="location.reload()" style="margin-top: 30px; background: #f8fafc; border: 2px solid #ddd; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; color: #ef4444;">
-        <i class="bi bi-lock-fill"></i> LOCK VAULT & LOGOUT
-    </button>
-</div>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBX_ysaY_ShUG1kY-ZR8xnaZ01SlZLUblw",
+        authDomain: "assignments-de95a.firebaseapp.com",
+        projectId: "assignments-de95a",
+        appId: "1:1088073398299:web:619884c11554d262dba0be"
+    };
 
-<script>
-    const allGradeLevels = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"];
-    const allArms = ["Blue", "Green", "Red", "White"];
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    function unlockStaffVault() {
-        const pinInput = document.getElementById('adminMasterPin').value;
-        const MASTER_PIN = "0000"; 
+    const grades = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"];
+    const arms = ["Blue", "Green", "Red", "White"];
 
-        if (pinInput === MASTER_PIN) {
-            document.getElementById('vaultLock').style.display = 'none';
-            loadStaffPins();
-        } else {
-            alert("❌ INVALID MASTER PIN");
-        }
-    }
-
-    function loadStaffPins() {
-        const tbody = document.getElementById('staffPinTable');
-        let rows = "";
-        
-        allGradeLevels.forEach(g => {
-            allArms.forEach(a => {
-                const classID = g.replace(" ", "") + a;
-                const savedPin = localStorage.getItem(`pin_${classID}`) || Math.floor(1000 + Math.random() * 9000);
-                localStorage.setItem(`pin_${classID}`, savedPin);
-
-                rows += `
-                    <tr class="staff-row" style="border-bottom: 2px solid #f1f5f9;">
-                        <td style="padding: 25px;"><strong>${g} <span style="color:#c5a059">${a}</span></strong></td>
-                        <td style="padding: 25px;">
-                            <input type="text" placeholder="Teacher Name..." style="font-size: 1.1rem; padding: 8px; border: 1px solid #eee; width: 100%;">
-                        </td>
-                        <td style="padding: 25px; text-align: center;">
-                            <span style="font-family: 'Courier New', monospace; font-size: 1.8rem; font-weight: 900; background: #fff8e1; padding: 10px 20px; border-radius: 10px; color: #856404; border: 2px dashed #ffc107;">${savedPin}</span>
-                        </td>
-                        <td style="padding: 25px; text-align: right;">
-                            <button onclick="copyPin('${savedPin}')" style="background: #004d40; color: white; padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;">
-                                <i class="bi bi-clipboard"></i> COPY PIN
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
+    // Generate the list of all possible classes
+    const listDiv = document.getElementById('classList');
+    let html = "";
+    grades.forEach(g => {
+        arms.forEach(a => {
+            const id = (g + a).replace(" ", "");
+            html += `<div class="class-row">
+                <span><b>${g} ${a}</b></span>
+                <input type="text" id="pin-${id}" placeholder="PIN" maxlength="4">
+            </div>`;
         });
-        tbody.innerHTML = rows;
-    }
+    });
+    listDiv.innerHTML = html;
 
-    function filterStaff() {
-        let input = document.getElementById('staffSearch').value.toUpperCase();
-        let rows = document.getElementsByClassName('staff-row');
-        for (let i = 0; i < rows.length; i++) {
-            let text = rows[i].innerText.toUpperCase();
-            rows[i].style.display = text.includes(input) ? "" : "none";
+    window.saveAllPins = async function() {
+        for (const g of grades) {
+            for (const a of arms) {
+                const id = (g + a).replace(" ", "");
+                const val = document.getElementById(`pin-${id}`).value;
+                if(val) {
+                    await setDoc(doc(db, "pins", id), { code: val });
+                }
+            }
         }
-    }
-
-    function copyPin(pin) {
-        navigator.clipboard.writeText(pin);
-        alert("✅ PIN " + pin + " copied to clipboard!");
+        alert("All Class PINs updated in Cloud!");
     }
 </script>
+</body>
+</html>
