@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maryland Convent | Premium Portal</title>
+    <title>Maryland Convent | Digital Gateway</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Outfit:wght@400;700&display=swap');
         
         :root {
-            --gold: #D4AF37;
-            --dark-blue: #020617;
-            --glass: rgba(15, 23, 42, 0.7);
+            --emerald: #004d40; /* Very dark green for high-contrast reading */
+            --gold-border: #c5a059;
+            --bg-ivory: #fcfcfc;
         }
 
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: var(--dark-blue);
-            color: #f8fafc;
+            background-color: var(--bg-ivory);
+            color: var(--emerald);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -26,13 +26,7 @@
             margin: 0;
         }
 
-        h1, h2, .brand { font-family: 'Cinzel', serif; }
-
-        .gold-gradient-text {
-            background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        h1, h2 { font-family: 'Cinzel', serif; }
 
         .portal-container {
             width: 100%;
@@ -41,88 +35,104 @@
         }
 
         .portal-card {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(212, 175, 55, 0.1);
-            border-radius: 40px;
-            padding: 60px 40px;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: white;
+            /* Bold borders so the edges are very clear to the eye */
+            border: 2px solid #eeeeee;
+            border-radius: 30px;
+            padding: 50px 30px;
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
+            text-decoration: none;
+            color: inherit;
         }
 
         .portal-card:hover {
-            border-color: var(--gold);
-            transform: translateY(-15px);
-            background: rgba(30, 41, 59, 0.7);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            border-color: var(--gold-border);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: #fdfaf3; /* Soft highlight on hover */
         }
 
         .icon-circle {
-            width: 90px;
-            height: 90px;
-            background: rgba(212, 175, 55, 0.1);
+            width: 80px;
+            height: 80px;
+            background: #f0f4f3;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 30px;
-            color: var(--gold);
-            font-size: 2.5rem;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            transition: 0.4s;
+            margin-bottom: 25px;
+            color: var(--emerald);
+            font-size: 2.2rem;
+            border: 1px solid #e0e0e0;
         }
 
         .portal-card:hover .icon-circle {
-            background: var(--gold);
-            color: var(--dark-blue);
-            transform: rotateY(180deg);
+            background: var(--emerald);
+            color: white;
+        }
+
+        /* Large, Clear Typography for Reading */
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--emerald);
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .card-desc {
+            font-size: 0.95rem;
+            color: #475569; /* Clear grey-black */
+            line-height: 1.6;
+            font-weight: 400;
         }
 
         .motto {
-            letter-spacing: 0.6em;
-            font-size: 0.7rem;
-            color: var(--gold);
+            letter-spacing: 0.5em;
+            font-size: 0.8rem;
+            color: var(--gold-border);
             margin-top: 60px;
-            font-weight: 800;
-            opacity: 0.8;
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
 
     <div class="portal-container text-center">
-        <div class="mb-12">
-             <i class="fas fa-cross text-yellow-600/30 text-2xl mb-4"></i>
-             <h1 class="text-4xl lg:text-5xl font-extrabold tracking-widest gold-gradient-text mb-2">MARYLAND CONVENT</h1>
-             <p class="text-gray-500 uppercase tracking-[0.4em] text-[10px] font-bold">Private School • Digital Gateway</p>
+        <div class="mb-16">
+             <i class="fas fa-cross text-emerald-900/20 text-3xl mb-4"></i>
+             <h1 class="text-4xl lg:text-6xl font-bold tracking-tight text-emerald-900 mb-2">MARYLAND CONVENT</h1>
+             <p class="text-yellow-700 uppercase tracking-[0.3em] text-xs font-bold">Private School • Digital Records Gateway</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
             
             <a href="admin.html" class="portal-card">
                 <div class="icon-circle">
-                    <i class="fas fa-shield-halved"></i>
+                    <i class="fas fa-user-shield"></i>
                 </div>
-                <h2 class="text-xl font-bold mb-4 tracking-wider">MANAGEMENT</h2>
-                <p class="text-gray-400 text-sm font-light leading-relaxed">Secure terminal for Principal oversight and system management.</p>
+                <h2 class="card-title">MANAGEMENT</h2>
+                <p class="card-desc">Principal's Office: <br>Administrative control and secure PIN codes.</p>
             </a>
 
-            <a href="class.html" class="portal-card" style="border-top: 2px solid var(--gold);">
+            <a href="class.html" class="portal-card" style="border-top: 6px solid var(--emerald);">
                 <div class="icon-circle">
-                    <i class="fas fa-chess-knight"></i>
+                    <i class="fas fa-book-reader"></i>
                 </div>
-                <h2 class="text-xl font-bold mb-4 tracking-wider gold-gradient-text">ACADEMIC</h2>
-                <p class="text-gray-400 text-sm font-light leading-relaxed">Instructor workspace for result processing and student assessment.</p>
+                <h2 class="card-title">ACADEMIC</h2>
+                <p class="card-desc">Staff Terminal: <br>Entry of student results and behavioral remarks.</p>
             </a>
 
             <a href="parents.html" class="portal-card">
                 <div class="icon-circle">
-                    <i class="fas fa-users-viewfinder"></i>
+                    <i class="fas fa-family"></i>
                 </div>
-                <h2 class="text-xl font-bold mb-4 tracking-wider">PARENTS</h2>
-                <p class="text-gray-400 text-sm font-light leading-relaxed">Family access to review and download official student reports.</p>
+                <h2 class="card-title">PARENTS</h2>
+                <p class="card-desc">Result Portal: <br>Families can view and download progress reports.</p>
             </a>
 
         </div>
