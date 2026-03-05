@@ -1,4 +1,11 @@
-<div class="card" style="margin-top:30px; border: 2px solid var(--gold); background: white; padding: 25px; border-radius: 15px;">
+<div id="vaultLock" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 15px;">
+    <i class="bi bi-shield-lock-fill" style="font-size: 3rem; color: var(--emerald);"></i>
+    <h3 style="color: var(--emerald);">Staff Vault Locked</h3>
+    <input type="password" id="adminMasterPin" placeholder="Enter Master PIN" style="padding: 10px; text-align: center; border: 2px solid var(--gold); border-radius: 8px; margin-bottom: 10px;">
+    <button onclick="unlockStaffVault()" style="background: var(--emerald); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">Unlock PIN Directory</button>
+</div>
+
+<div class="card" style="margin-top:30px; border: 2px solid var(--gold); background: white; padding: 25px; border-radius: 15px; position: relative; min-height: 200px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="color: var(--emerald); margin: 0;"><i class="bi bi-person-badge"></i> Staff PIN Distribution</h2>
         <input type="text" id="staffSearch" placeholder="Search Class (e.g. Grade 4)..." onkeyup="filterStaff()" style="padding: 10px; border-radius: 8px; border: 1px solid #ddd; width: 250px;">
@@ -14,14 +21,26 @@
             </tr>
         </thead>
         <tbody id="staffPinTable">
-            </tbody>
+             </tbody>
     </table>
 </div>
 
 <script>
-    // Master list of all 24 Class Arms
     const allGradeLevels = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"];
     const allArms = ["Blue", "Green", "Red", "White"];
+
+    // 2. THE VAULT UNLOCK FUNCTION
+    function unlockStaffVault() {
+        const pinInput = document.getElementById('adminMasterPin').value;
+        const MASTER_PIN = "0000"; // You can change the Admin Master PIN here
+
+        if (pinInput === MASTER_PIN) {
+            document.getElementById('vaultLock').style.display = 'none';
+            loadStaffPins(); // Only load the data if the PIN is correct
+        } else {
+            alert("Access Denied: Invalid Master PIN");
+        }
+    }
 
     function loadStaffPins() {
         const tbody = document.getElementById('staffPinTable');
@@ -29,10 +48,9 @@
         
         allGradeLevels.forEach(g => {
             allArms.forEach(a => {
-                // Generate/Retrieve PIN (For demo, we use a consistent pattern)
                 const classID = g.replace(" ", "") + a;
                 const savedPin = localStorage.getItem(`pin_${classID}`) || Math.floor(1000 + Math.random() * 9000);
-                localStorage.setItem(`pin_${classID}`, savedPin); // Save it so it doesn't change on refresh
+                localStorage.setItem(`pin_${classID}`, savedPin);
 
                 rows += `
                     <tr class="staff-row">
@@ -68,7 +86,6 @@
         navigator.clipboard.writeText(pin);
         alert("PIN " + pin + " copied! You can now paste this to the teacher.");
     }
-
-    // Call this when the Admin unlocks the vault
-    loadStaffPins();
+    
+    // REMOVED loadStaffPins() from auto-start to ensure the vault is the only way in.
 </script>
