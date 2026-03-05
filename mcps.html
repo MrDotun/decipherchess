@@ -1,32 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gateway | Maryland Convent Private School</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --emerald: #004d40; --gold: #c5a059; --bg: #fdfbf7; }
-        body { font-family: 'Playfair Display', serif; background: var(--bg); margin: 0; text-align: center; }
-        .hero { background: var(--emerald); color: white; padding: 50px 20px; border-bottom: 8px solid var(--gold); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 40px; max-width: 1100px; margin: auto; }
-        .portal-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); cursor: pointer; text-decoration: none; color: inherit; border: 1px solid transparent; transition: 0.3s; }
-        .portal-card:hover { border-color: var(--gold); transform: translateY(-5px); }
-        .portal-card i { font-size: 2.5rem; color: var(--emerald); }
-        h2 { margin: 15px 0 5px; color: var(--emerald); font-size: 1.1rem; }
-        p { font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #666; }
+        :root { 
+            --emerald: #004d40; 
+            --gold: #c5a059; 
+            --bg: #fdfbf7; 
+            --glass: rgba(255, 255, 255, 0.9);
+        }
+        
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            color: #1e293b;
+        }
+
+        /* Institutional Motto Bar */
+        .motto-bar {
+            background: #fff;
+            color: var(--emerald);
+            padding: 10px 0;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 700;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        .hero { 
+            background: var(--emerald); 
+            background-image: linear-gradient(rgba(0, 77, 64, 0.9), rgba(0, 77, 64, 0.9)), url('https://www.transparenttextures.com/patterns/cross-stripes.png');
+            color: white; 
+            padding: 100px 20px; 
+            position: relative;
+        }
+
+        .hero h1 { 
+            font-family: 'Cinzel', serif; 
+            font-size: 2.8rem; 
+            margin: 0; 
+            letter-spacing: 2px;
+        }
+
+        .hero p { 
+            font-size: 0.9rem; 
+            opacity: 0.9; 
+            letter-spacing: 2px; 
+            margin-top: 10px; 
+        }
+
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 25px; 
+            padding: 0 20px 60px; 
+            max-width: 1200px; 
+            margin: -60px auto 0; 
+        }
+
+        .portal-card { 
+            background: var(--glass); 
+            backdrop-filter: blur(10px);
+            padding: 35px 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            text-decoration: none; 
+            color: inherit; 
+            border: 1px solid rgba(197, 160, 89, 0.2); 
+            transition: 0.3s; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .portal-card:hover { 
+            transform: translateY(-10px); 
+            background: white;
+            border-color: var(--gold);
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            background: #f1f5f1;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: var(--emerald);
+            font-size: 1.8rem;
+        }
+
+        h2 { 
+            font-family: 'Cinzel', serif;
+            margin: 10px 0; 
+            color: var(--emerald); 
+            font-size: 1.1rem; 
+        }
+
+        .desc { 
+            font-size: 0.8rem; 
+            color: #64748b; 
+            line-height: 1.5;
+        }
+
+        /* Catholic/Values Section */
+        .values-section {
+            padding: 60px 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .mission-tag {
+            background: var(--gold);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
+
+    <div class="motto-bar">
+        Faith &bull; Virtue &bull; Excellence
+    </div>
+
     <div class="hero">
-        <h1 style="margin: 0;">MARYLAND CONVENT</h1>
-        <h2 style="color: var(--gold); margin: 0;">PRIVATE SCHOOL</h2>
-        <p style="color: white; opacity: 0.7; font-family: sans-serif; margin-top: 10px;">SECURE DIGITAL PORTAL SYSTEM</p>
+        <h1 style="font-size: 1.2rem; opacity: 0.8; font-family: 'Outfit'; margin-bottom: 10px;">WELCOME TO</h1>
+        <h1>MARYLAND CONVENT</h1>
+        <p>PRIVATE SCHOOL PORTAL</p>
     </div>
+
     <div class="grid">
-        <a href="admin.html" class="portal-card"><i class="bi bi-shield-lock-fill"></i><h2>Admin</h2><p>Proprietress Access</p></a>
-        <a href="class.html" class="portal-card"><i class="bi bi-people-fill"></i><h2>Class Teachers</h2><p>Registry & Arms</p></a>
-        <a href="subject.html" class="portal-card"><i class="bi bi-pen-fill"></i><h2>Subject Teachers</h2><p>Score Entry</p></a>
-        <a href="parents.html" class="portal-card"><i class="bi bi-house-heart-fill"></i><h2>Parents</h2><p>Check Results</p></a>
+        <a href="admin.html" class="portal-card">
+            <div class="icon-box"><i class="bi bi-shield-lock"></i></div>
+            <h2>Management Vault</h2>
+            <p class="desc">Principal's office for administrative oversight and secure PIN management.</p>
+        </a>
+
+        <a href="class.html" class="portal-card" style="border-top: 4px solid var(--gold);">
+            <div class="icon-box"><i class="bi bi-journal-check"></i></div>
+            <h2>Academic Terminal</h2>
+            <p class="desc">Class teachers only. Record academic scores and student behavioral assessments.</p>
+        </a>
+
+        <a href="parents.html" class="portal-card">
+            <div class="icon-box"><i class="bi bi-house-door"></i></div>
+            <h2>Parental Portal</h2>
+            <p class="desc">Check results and download termly progress reports for students.</p>
+        </a>
+
+        <a href="#" class="portal-card">
+            <div class="icon-box" style="color: var(--gold);"><i class="bi bi-brightness-high"></i></div>
+            <h2>Spiritual Corner</h2>
+            <p class="desc">Daily prayers, liturgical calendar, and character-building materials.</p>
+        </a>
     </div>
+
+    <div class="values-section text-center">
+        <span class="mission-tag">OUR MISSION</span>
+        <h3 class="brand text-emerald-900 text-xl font-bold italic" style="color: var(--emerald)">
+            "To provide a qualitative and holistic education based on Catholic values, <br>producing students of high character and strategic intelligence."
+        </h3>
+    </div>
+
+    <footer style="padding: 40px; text-align: center; font-size: 0.65rem; color: #94a3b8; letter-spacing: 2px;">
+        &copy; 2026 MARYLAND CONVENT PRIVATE SCHOOL | LAGOS, NIGERIA
+    </footer>
+
 </body>
 </html>
