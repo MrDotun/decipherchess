@@ -1,36 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Teacher Auth | MCPS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Teacher Registry | MCPS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        body { font-family: sans-serif; background: #15803d; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .login-card { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 320px; }
-        input { width: 100%; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 1.2rem; text-align: center; }
-        button { background: #15803d; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        #content { display: none; background: white; padding: 40px; border-radius: 20px; width: 80%; }
+        :root { --emerald: #004d40; --gold: #c5a059; --light: #f4f7f6; }
+        body { font-family: 'Inter', sans-serif; background: var(--light); margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 5px solid var(--emerald); }
+        
+        .setup-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 10px; }
+        label { display: block; font-size: 0.8rem; font-weight: bold; color: var(--emerald); margin-bottom: 5px; }
+        select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; outline: none; }
+        select:focus, input:focus { border-color: var(--gold); }
+
+        .btn-add { background: var(--emerald); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-add:hover { background: #00332b; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+        th { text-align: left; padding: 12px; background: #eee; font-size: 0.8rem; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        
+        .delete-btn { color: #dc2626; cursor: pointer; border: none; background: none; font-size: 1.2rem; }
+        .badge-arm { padding: 4px 8px; border-radius: 4px; color: white; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        .blue { background: #1e40af; } .green { background: #15803d; } .red { background: #b91c1c; } .white { background: #94a3b8; }
     </style>
 </head>
 <body>
-    <div class="login-card" id="lock">
-        <h2>Class Teacher Login</h2>
-        <input type="password" id="pin" maxlength="4" placeholder="Enter PIN">
-        <button onclick="auth()">VERIFY STAFF</button>
-    </div>
 
-    <div id="content">
-        <h2>Class Registry: Grade 4 Blue</h2>
-        <input type="text" placeholder="Pupil Name"> <button style="width:auto">Add to Class List</button>
-        <p>Current Count: 42 Students</p>
-    </div>
+<div class="container">
+    <div class="card">
+        <h2 style="margin-top:0; color: var(--emerald);"><i class="bi bi-people-fill"></i> Student Registry</h2>
+        <p style="font-size: 0.9rem; color: #666;">Maryland Convent Private School - Teacher's Enrollment Portal</p>
+        
+        <div class="setup-section">
+            <div>
+                <label>Select Grade</label>
+                <select id="gradeSelect">
+                    <option value="Grade 1">Grade 1</option>
+                    <option value="Grade 2">Grade 2</option>
+                    <option value="Grade 3">Grade 3</option>
+                    <option value="Grade 4">Grade 4</option>
+                    <option value="Grade 5">Grade 5</option>
+                    <option value="Grade 6">Grade 6</option>
+                </select>
+            </div>
+            <div>
+                <label>Select Arm (Sub-Class)</label>
+                <select id="armSelect">
+                    <option value="Blue">Blue Arm</option>
+                    <option value="Green">Green Arm</option>
+                    <option value="Red">Red Arm</option>
+                    <option value="White">White Arm</option>
+                </select>
+            </div>
+        </div>
 
-    <script>
-        function auth() {
-            if(document.getElementById('pin').value === "1111") {
-                document.getElementById('lock').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-            } else { alert("Invalid Staff PIN"); }
+        <label>Full Name of Pupil</label>
+        <input type="text" id="studentName" placeholder="e.g. Adebayo Oluchi">
+        
+        <button class="btn-add" onclick="registerStudent()">
+            <i class="bi bi-person-plus-fill"></i> ADD TO OFFICIAL LIST
+        </button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>S/N</th>
+                    <th>Pupil Name</th>
+                    <th>Class Assignment</th>
+                    <th style="text-align:right">Action</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function registerStudent() {
+        const name = document.getElementById('studentName').value;
+        const grade = document.getElementById('gradeSelect').value;
+        const arm = document.getElementById('armSelect').value;
+
+        if(!name) { alert("Please enter a name"); return; }
+
+        // Get existing data from storage
+        let students = JSON.parse(localStorage.getItem('students') || '[]');
+        
+        // Add new record
+        const newStudent = {
+            id: Date.now(),
+            name: name,
+            grade: grade,
+            arm: arm,
+            locked: true, // Default to locked until Admin verifies payment
+            scores: {}
+        };
+
+        students.push(newStudent);
+        localStorage.setItem('students', JSON.stringify(students));
+        
+        // Clear input and refresh
+        document.getElementById('studentName').value = "";
+        renderTable();
+    }
+
+    function renderTable() {
+        const students = JSON.parse(localStorage.getItem('students') || '[]');
+        const tableBody = document.getElementById('studentTableBody');
+        tableBody.innerHTML = "";
+
+        students.forEach((s, index) => {
+            tableBody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${s.name}</strong></td>
+                    <td>${s.grade} <span class="badge-arm ${s.arm.toLowerCase()}">${s.arm}</span></td>
+                    <td style="text-align:right">
+                        <button class="delete-btn" onclick="deleteStudent(${s.id})"><i class="bi bi-trash3"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function deleteStudent(id) {
+        if(confirm("Are you sure you want to remove this student?")) {
+            let students = JSON.parse(localStorage.getItem('students') || '[]');
+            students = students.filter(s => s.id !== id);
+            localStorage.setItem('students', JSON.stringify(students));
+            renderTable();
         }
-    </script>
+    }
+
+    // Load table on startup
+    renderTable();
+</script>
+
 </body>
 </html>
