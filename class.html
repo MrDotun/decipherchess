@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --emerald: #004d40; --gold: #c5a059; --bg: #f1f5f9; --danger: #dc2626; }
+        :root { --emerald: #004d40; --gold: #c5a059; --bg: #f1f5f9; --danger: #dc2626; --success: #166534; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; font-size: 0.85rem; }
         
         /* LOGIN PANEL */
@@ -20,10 +20,15 @@
         .mgmt-panel { background: white; padding: 20px; border-radius: 10px; display: flex; gap: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0; align-items: center; }
         
         /* STUDENT CARDS */
-        .student-card { background: white; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e2e8f0; transition: 0.2s; }
+        .student-card { background: white; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e2e8f0; transition: 0.2s; overflow: hidden; }
         .card-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .pos-badge { font-size: 0.75rem; background: #e6f4ea; color: #004d40; padding: 4px 10px; border-radius: 20px; margin-right: 6px; font-weight: 700; border: 1px solid #c3e6cb; }
         .pos-annual { background: #fff7ed; color: #c2410c; border: 1px solid #fdba74; }
+        
+        /* PASS/FAIL TAGS */
+        .status-tag { font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; margin-left: 10px; }
+        .pass { background: #dcfce7; color: var(--success); }
+        .fail { background: #fee2e2; color: var(--danger); }
         
         /* TABLE STYLES */
         .subject-grid { width: 100%; border-collapse: collapse; display: none; background: #fff; border-top: 1px solid #eee; }
@@ -33,7 +38,8 @@
         .btn-save { background: var(--emerald); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-excel { background: #166534; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-delete { background: none; color: var(--danger); border: 1px solid #fecaca; padding: 8px; border-radius: 6px; cursor: pointer; margin-left: 10px; transition: 0.2s; }
-        .btn-delete:hover { background: #fef2f2; }
+        
+        .remark-section { padding: 12px 20px; background: #f8fafc; border-top: 1px solid #eee; display: flex; flex-direction: column; gap: 8px; }
         input[type="text"] { padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; }
     </style>
 </head>
@@ -43,21 +49,17 @@
     <div class="login-card">
         <h2 style="color: var(--emerald); margin-bottom: 5px;">Teacher Login</h2>
         <p style="color: #64748b; margin-bottom: 25px;">Maryland Convent Portal</p>
-        
         <label>Grade Level</label>
         <select id="tGrade" style="width:100%; padding:12px; margin-bottom:15px; border-radius: 6px; border: 1px solid #ddd;">
             <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
             <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
         </select>
-
         <label>Class Arm</label>
         <select id="tArm" style="width:100%; padding:12px; margin-bottom:15px; border-radius: 6px; border: 1px solid #ddd;">
             <option>Blue</option><option>Green</option><option>Red</option><option>White</option>
         </select>
-
         <label>Access PIN</label>
         <input type="password" id="tPin" placeholder="Enter PIN" style="width:100%; padding:12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
-        
         <button onclick="accessClass()" style="width:100%; background: var(--emerald); color: white; padding:15px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:25px; font-size: 1rem;">ACCESS DATABASE</button>
     </div>
 </div>
@@ -73,7 +75,6 @@
         <button onclick="addStu()" style="background:var(--emerald); color:white; border:none; padding:10px 25px; border-radius:6px; font-weight:bold; cursor:pointer;">+ ADD PUPIL</button>
         <button onclick="exportToExcel()" class="btn-excel"><i class="bi bi-file-earmark-spreadsheet"></i> EXPORT TO EXCEL</button>
     </div>
-    
     <div id="studentList"></div>
 </div>
 
@@ -84,10 +85,7 @@
     const firebaseConfig = {
         apiKey: "AIzaSyBX_ysaY_ShUG1kY-ZR8xnaZ01SlZLUblw",
         authDomain: "assignments-de95a.firebaseapp.com",
-        databaseURL: "https://assignments-de95a-default-rtdb.firebaseio.com",
         projectId: "assignments-de95a",
-        storageBucket: "assignments-de95a.firebasestorage.app",
-        messagingSenderId: "1088073398299",
         appId: "1:1088073398299:web:619884c11554d262dba0be"
     };
 
@@ -96,37 +94,30 @@
 
     const subjects = ["Maths", "English", "Science", "Social", "Civic", "Agric", "Home Ec", "PHE", "ICT", "CRK", "Yoruba", "Art", "Verbal", "Quant", "French", "Music", "Handwriting", "Diction", "History", "Literature"];
     let activeG = ""; let activeA = "";
-    let currentStudentsData = []; // Store data for Excel export
+    let currentStudentsData = [];
 
     window.accessClass = async function() {
         const pin = document.getElementById('tPin').value;
         const g = document.getElementById('tGrade').value;
         const a = document.getElementById('tArm').value;
         const classID = (g + a).replace(" ", "");
-
         const pinRef = doc(db, "pins", classID);
         const pinSnap = await getDoc(pinRef);
 
-        if (pinSnap.exists()) {
-            if (pin === pinSnap.data().code) {
-                activeG = g; activeA = a;
-                document.getElementById('teacherLock').style.display = 'none';
-                document.getElementById('mainWorkspace').style.display = 'block';
-                document.getElementById('displayClass').innerHTML = `<b>${activeG} ${activeA}</b>`;
-                renderTeacherView();
-            } else { alert("Wrong PIN for " + g + " " + a); }
-        } else {
-            alert("No PIN set for this class. Contact the Principal.");
-        }
+        if (pinSnap.exists() && pin === pinSnap.data().code) {
+            activeG = g; activeA = a;
+            document.getElementById('teacherLock').style.display = 'none';
+            document.getElementById('mainWorkspace').style.display = 'block';
+            document.getElementById('displayClass').innerHTML = `<b>${activeG} ${activeA}</b>`;
+            renderTeacherView();
+        } else { alert("Invalid Credentials"); }
     };
 
     window.addStu = async function() {
         const name = document.getElementById('newStu').value.trim();
         if(!name) return;
         const id = Date.now().toString();
-        await setDoc(doc(db, "students", id), {
-            id, name, grade: activeG, arm: activeA, scores: {}
-        });
+        await setDoc(doc(db, "students", id), { id, name, grade: activeG, arm: activeA, scores: {}, remark: "" });
         document.getElementById('newStu').value = "";
         renderTeacherView();
     };
@@ -144,33 +135,28 @@
             };
         });
         await setDoc(doc(db, "students", id), { scores }, { merge: true });
-        alert("Cloud Sync Successful!");
+        alert("Scores Saved!");
         renderTeacherView(); 
     };
 
-    window.deleteStu = async function(id, name) {
-        if(confirm(`Delete ${name} permanently?`)) {
-            await deleteDoc(doc(db, "students", id));
-            renderTeacherView();
-        }
+    window.saveRemark = async function(id) {
+        const remarkVal = document.getElementById(`remark-${id}`).value;
+        await setDoc(doc(db, "students", id), { remark: remarkVal }, { merge: true });
+        alert("Remark Saved!");
     };
 
-    // EXCEL EXPORT FUNCTION
-    window.exportToExcel = function() {
-        if(currentStudentsData.length === 0) return alert("No data to export");
-        
-        const worksheetData = currentStudentsData.map(s => ({
-            "Student Name": s.name,
-            "1st Term Total": s.t1_total,
-            "2nd Term Total": s.t2_total,
-            "3rd Term Total": s.t3_total,
-            "Annual Total": s.annual_total
-        }));
+    window.deleteStu = async function(id, name) {
+        if(confirm(`Delete ${name}?`)) { await deleteDoc(doc(db, "students", id)); renderTeacherView(); }
+    };
 
+    window.exportToExcel = function() {
+        const worksheetData = currentStudentsData.map(s => ({
+            "Name": s.name, "Annual Total": s.annual_total, "Status": s.status, "Remark": s.remark || ""
+        }));
         const ws = XLSX.utils.json_to_sheet(worksheetData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Class Records");
-        XLSX.writeFile(wb, `${activeG}_${activeA}_Records.xlsx`);
+        XLSX.utils.book_append_sheet(wb, ws, "Records");
+        XLSX.writeFile(wb, `${activeG}_${activeA}.xlsx`);
     };
 
     async function renderTeacherView() {
@@ -178,8 +164,8 @@
         const snap = await getDocs(q);
         const container = document.getElementById('studentList');
         container.innerHTML = "";
-
         let studentsList = [];
+
         snap.forEach(d => {
             let data = d.data();
             data.dbId = d.id;
@@ -193,20 +179,20 @@
                     data.annual_total += (s1 + s2 + s3);
                 });
             }
+            // Pass/Fail Logic (Based on 50% of total possible marks)
+            const maxPossible = subjects.length * 100 * 3; 
+            data.avg = (data.annual_total / (subjects.length * 3)).toFixed(1);
+            data.status = data.avg >= 50 ? "PASS" : "FAIL";
             studentsList.push(data);
         });
 
-        currentStudentsData = studentsList; // Sync for export
+        currentStudentsData = studentsList;
 
         const getRank = (list, score, key) => {
             if (score === 0) return "--";
-            const sorted = [...list].sort((a, b) => b[key] - a[key]);
+            const sorted = [...list].sort((a,b) => b[key]-a[key]);
             const rank = sorted.findIndex(x => x[key] === score) + 1;
-            const j = rank % 10, k = rank % 100;
-            if (j == 1 && k != 11) return rank + "st";
-            if (j == 2 && k != 12) return rank + "nd";
-            if (j == 3 && k != 13) return rank + "rd";
-            return rank + "th";
+            return rank + (rank==1?"st":rank==2?"nd":rank==3?"rd":"th");
         };
 
         studentsList.forEach(s => {
@@ -226,6 +212,7 @@
                     <div class="card-header">
                         <div onclick="toggle('${s.dbId}')" style="flex:1">
                             <b style="font-size:1.1rem; color:var(--emerald);">${s.name}</b>
+                            <span class="status-tag ${s.status.toLowerCase()}">${s.status} (${s.avg}%)</span>
                             <div style="margin-top:8px;">
                                 <span class="pos-badge">1st: ${getRank(studentsList, s.t1_total, 't1_total')}</span>
                                 <span class="pos-badge">2nd: ${getRank(studentsList, s.t2_total, 't2_total')}</span>
@@ -233,18 +220,25 @@
                                 <span class="pos-badge pos-annual">Annual: ${getRank(studentsList, s.annual_total, 'annual_total')}</span>
                             </div>
                         </div>
-                        <div style="display:flex; align-items:center;">
-                            <button class="btn-save" onclick="saveData('${s.dbId}')">SAVE</button>
-                            <button class="btn-delete" onclick="deleteStu('${s.dbId}', '${s.name}')"><i class="bi bi-trash"></i></button>
-                        </div>
+                        <button class="btn-save" onclick="saveData('${s.dbId}')">SAVE SCORES</button>
+                        <button class="btn-delete" onclick="deleteStu('${s.dbId}', '${s.name}')"><i class="bi bi-trash"></i></button>
                     </div>
                     <table class="subject-grid" id="grid-${s.dbId}">
-                        <tr style="background:#f1f5f9; font-size: 0.7rem; color: #475569;">
-                            <th>SUBJECT NAME</th>
-                            <th>1ST TERM (T/E)</th><th>2ND TERM (T/E)</th><th>3RD TERM (T/E)</th>
+                        <tr style="background:#f1f5f9; font-size:0.7rem; color:#475569;">
+                            <th>SUBJECT</th><th>TERM 1</th><th>TERM 2</th><th>TERM 3</th>
                         </tr>
                         ${rows}
                     </table>
+                    <div class="remark-section">
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="remark-${s.dbId}" placeholder="Teacher's Remark..." value="${s.remark || ''}" style="flex:1;">
+                            <button onclick="saveRemark('${s.dbId}')" style="background:var(--gold); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer;">SET REMARK</button>
+                        </div>
+                        <div style="margin-top:10px; border-top:1px dashed #ccc; padding-top:10px; font-size:0.7rem; color:#94a3b8; display:flex; justify-content:space-between;">
+                           <span>VERIFIED BY: ____________________</span>
+                           <span>DATE: ${new Date().toLocaleDateString()}</span>
+                        </div>
+                    </div>
                 </div>`;
         });
     }
