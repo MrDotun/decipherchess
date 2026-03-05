@@ -2,183 +2,180 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parent Portal | Maryland Convent</title>
+    <title>Maryland Convent | Integrated Portal</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         :root { --emerald: #004d40; --gold: #c5a059; --bg: #f1f5f9; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; font-size: 0.85rem; }
+        .container { max-width: 1200px; margin: auto; padding: 15px; }
         
-        /* LOGIN BOX */
-        .login-gate { max-width: 400px; margin: 50px auto; background: white; padding: 35px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border-top: 6px solid var(--emerald); }
-        .login-gate h2 { color: var(--emerald); margin-bottom: 5px; }
-        .field-label { text-align: left; display: block; font-weight: bold; margin-top: 12px; color: #475569; font-size: 0.75rem; text-transform: uppercase; }
-        .input-box { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 0.9rem; background: #fff; }
-        
-        .flex-fields { display: flex; gap: 10px; }
-        .btn-check { width: 100%; background: var(--emerald); color: white; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 1rem; }
-        
-        /* REPORT STYLING */
-        #reportSheet { max-width: 850px; margin: 20px auto; background: white; padding: 50px; display: none; box-shadow: 0 0 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .header-main { text-align: center; border-bottom: 2px solid var(--emerald); padding-bottom: 15px; margin-bottom: 20px; }
-        .student-meta { display: flex; justify-content: space-between; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
-        
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f1f5f9; color: var(--emerald); padding: 10px; border: 1px solid #cbd5e1; font-size: 0.7rem; text-transform: uppercase; }
-        td { border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-size: 0.85rem; }
-        .subject-col { text-align: left; font-weight: bold; width: 35%; background: #fcfcfc; }
+        /* LOGIN GATES */
+        #teacherLock, #parentGate { background: white; padding: 30px; border-radius: 15px; width: 340px; margin: 50px auto; text-align: center; border-bottom: 5px solid var(--gold); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
 
-        .rank-container { margin-top: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .rank-card { background: var(--emerald); color: white; padding: 12px; border-radius: 8px; text-align: center; }
-        .rank-card small { display: block; opacity: 0.8; font-size: 0.65rem; margin-bottom: 5px; }
-        .rank-card span { font-size: 1.2rem; font-weight: 900; color: var(--gold); }
-
-        .print-fab { position: fixed; bottom: 30px; right: 30px; background: var(--gold); color: white; padding: 15px 30px; border-radius: 50px; border: none; cursor: pointer; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: none; z-index: 100; }
-
-        @media print {
-            .login-gate, .print-fab { display: none !important; }
-            #reportSheet { display: block !important; box-shadow: none; margin: 0; width: 100%; padding: 10px; border: none; }
-            body { background: white; }
-            th { background: #eee !important; color: black !important; }
-        }
+        /* INTERFACE */
+        .student-card { background: white; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; overflow: hidden; }
+        .card-header { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; }
+        .subject-grid { width: 100%; border-collapse: collapse; display: none; background: #fff; }
+        .subject-grid th, .subject-grid td { border: 1px solid #eee; padding: 6px; text-align: center; }
+        .score-edit { width: 35px; border: 1px solid #ccc; text-align: center; border-radius: 3px; }
+        
+        .btn-main { background: var(--emerald); color: white; border: none; padding: 10px; border-radius: 5px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn-save { background: var(--emerald); color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+        
+        /* REPORT VIEW */
+        #reportSheet { background: white; padding: 40px; max-width: 800px; margin: auto; border: 1px solid #ddd; }
+        @media print { .no-print { display: none; } #reportSheet { border: none; padding: 0; } }
     </style>
 </head>
 <body>
 
-<div class="login-gate" id="gate">
-    <h2>Maryland Convent</h2>
-    <p style="margin-top:0; color:#64748b;">Parental Result Access</p>
-    <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-
-    <label class="field-label">Student Full Name</label>
-    <input type="text" id="pName" class="input-box" placeholder="As registered with school">
-
-    <div class="flex-fields">
-        <div style="flex: 2;">
-            <label class="field-label">Class</label>
-            <select id="pClass" class="input-box">
-                <option value="">Grade...</option>
-                <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
-                <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
-            </select>
-        </div>
-        <div style="flex: 1;">
-            <label class="field-label">Arm</label>
-            <select id="pArm" class="input-box">
-                <option value="">Arm...</option>
-                <option>Blue</option><option>Green</option><option>Red</option><option>White</option>
-            </select>
-        </div>
-    </div>
-
-    <label class="field-label">Result Access Code</label>
-    <input type="password" id="pCode" class="input-box" placeholder="Enter 1122">
-
-    <div id="errMsg" style="color: #ef4444; font-size: 0.8rem; margin-top: 15px; display: none; font-weight: bold;">
-        <i class="bi bi-shield-lock"></i> Verification failed. Check details.
-    </div>
-
-    <button class="btn-check" onclick="verifyResult()">GENERATE TRANSCRIPT</button>
+<div id="teacherLock" class="no-print">
+    <h3 style="color: var(--emerald)">Teacher Access</h3>
+    <select id="tGrade" style="width:100%; padding:8px; margin-bottom:10px;">
+        <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+    </select>
+    <select id="tArm" style="width:100%; padding:8px; margin-bottom:10px;">
+        <option>Blue</option><option>Green</option><option>Red</option>
+    </select>
+    <input type="password" id="tPin" placeholder="Class PIN" style="width:100%; padding:8px; border:1px solid #ddd;">
+    <button class="btn-main" onclick="accessClass()">OPEN TEACHER PORTAL</button>
 </div>
 
-<div id="reportSheet">
-    <div class="header-main">
-        <h1 style="margin:0; color:var(--emerald); font-size: 1.8rem;">MARYLAND CONVENT PRIVATE SCHOOL</h1>
-        <p style="margin:5px 0; font-weight: bold;">Continuous Assessment Report Sheet</p>
+<div class="container hidden" id="mainWorkspace">
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+        <input type="text" id="newStu" placeholder="Full Student Name" style="flex:1; padding:10px;">
+        <button onclick="addStu()" style="background:var(--emerald); color:white; border:none; padding:10px 20px; border-radius:5px;">ADD STUDENT</button>
     </div>
+    <div id="studentList"></div>
+</div>
 
-    <div class="student-meta">
-        <div>
-            <p style="margin: 0;"><b>NAME:</b> <span id="outName">---</span></p>
-            <p style="margin: 5px 0 0 0;"><b>CLASS:</b> <span id="outClass">---</span></p>
-        </div>
-        <div style="text-align: right;">
-            <p style="margin: 0;"><b>SESSION:</b> 2025/2026</p>
-            <p style="margin: 5px 0 0 0;"><b>ID NO:</b> MCPS/REG/<span id="outID">---</span></p>
-        </div>
-    </div>
+<div id="parentGate" class="no-print hidden">
+    <h3 style="color: var(--emerald)">Parent Portal</h3>
+    <input type="text" id="pName" placeholder="Student's Name" style="width:100%; padding:8px; margin-bottom:10px;">
+    <input type="password" id="pCode" placeholder="Code (1122)" style="width:100%; padding:8px; margin-bottom:10px;">
+    <button class="btn-main" onclick="verifyResult()">VIEW RESULT</button>
+</div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Subject</th>
-                <th>1st Term</th>
-                <th>2nd Term</th>
-                <th>3rd Term</th>
-                <th>Annual Avg</th>
-            </tr>
-        </thead>
-        <tbody id="resBody"></tbody>
+<div id="reportSheet" class="hidden">
+    <h2 style="text-align:center; color:var(--emerald);">Maryland Convent Report Sheet</h2>
+    <p><b>Student:</b> <span id="outName"></span></p>
+    <table id="pResultTable" style="width:100%; border-collapse:collapse;">
+        <thead><tr style="background:#f1f1f1;"><th>Subject</th><th>T1</th><th>T2</th><th>T3</th><th>Avg</th></tr></thead>
+        <tbody id="pResBody"></tbody>
     </table>
-
-    <div class="rank-container">
-        <div class="rank-card"><small>1ST TERM POSITION</small><span id="pos1">--</span></div>
-        <div class="rank-card"><small>2ND TERM POSITION</small><span id="pos2">--</span></div>
-        <div class="rank-card"><small>3RD TERM POSITION</small><span id="pos3">--</span></div>
-    </div>
-
-    <div style="margin-top: 60px; display: flex; justify-content: space-between; font-size: 0.8rem;">
-        <div style="border-top: 1.5px solid #444; width: 180px; text-align: center; padding-top: 5px;">Class Teacher's Signature</div>
-        <div style="text-align: center;">
-            <img src="https://via.placeholder.com/60/ffffff/004d40?text=STAMP" style="opacity: 0.2; margin-bottom: -20px; display: block; margin-left: auto; margin-right: auto;">
-            <p>School Official Stamp</p>
-        </div>
-        <div style="border-top: 1.5px solid #444; width: 180px; text-align: center; padding-top: 5px;">Head Teacher's Signature</div>
-    </div>
+    <button class="no-print btn-main" style="background:var(--gold)" onclick="window.print()">PRINT/PDF</button>
 </div>
 
-<button class="print-fab" id="printBtn" onclick="window.print()"><i class="bi bi-download"></i> SAVE AS PDF / PRINT</button>
+<script type="module">
+    // 1. Firebase Setup
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-<script>
-    const subList = ["Mathematics", "English Language", "Basic Science", "Social Studies", "Civic Education", "Agricultural Science", "Home Economics", "Physical Health Ed.", "ICT / Computer", "Christian Rel. Knowledge", "Yoruba Language", "Creative Arts", "Verbal Reasoning", "Quantitative Reasoning", "French", "Music", "Handwriting", "Diction", "History", "Literature"];
+    const firebaseConfig = {
+        apiKey: "AIzaSyBX_ysaY_ShUG1kY-ZR8xnaZ01SlZLUblw",
+        authDomain: "assignments-de95a.firebaseapp.com",
+        databaseURL: "https://assignments-de95a-default-rtdb.firebaseio.com",
+        projectId: "assignments-de95a",
+        storageBucket: "assignments-de95a.firebasestorage.app",
+        messagingSenderId: "1088073398299",
+        appId: "1:1088073398299:web:619884c11554d262dba0be"
+    };
 
-    function verifyResult() {
-        const name = document.getElementById('pName').value.trim().toLowerCase();
-        const grade = document.getElementById('pClass').value;
-        const arm = document.getElementById('pArm').value;
-        const code = document.getElementById('pCode').value;
-        const students = JSON.parse(localStorage.getItem('students') || '[]');
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        // Strict verification: Name + Grade + Arm + Code
-        const found = students.find(s => 
-            s.name.toLowerCase() === name && 
-            s.grade === grade && 
-            s.arm === arm
-        );
+    const subjects = ["Maths", "English", "Science", "Social", "Civic", "Agric", "Home Ec", "PHE", "ICT", "CRK", "Yoruba", "Art", "Verbal", "Quant", "French", "Music", "Handwriting", "Diction", "History", "Literature"];
+    let activeG = ""; let activeA = "";
 
-        if(found && code === "1122") {
-            document.getElementById('gate').style.display = 'none';
-            document.getElementById('reportSheet').style.display = 'block';
-            document.getElementById('printBtn').style.display = 'block';
+    // 2. TEACHER FUNCTIONS
+    window.accessClass = function() {
+        const pin = document.getElementById('tPin').value;
+        if(pin === "1234") { // Replace with your logic
+            activeG = document.getElementById('tGrade').value;
+            activeA = document.getElementById('tArm').value;
+            document.getElementById('teacherLock').classList.add('hidden');
+            document.getElementById('mainWorkspace').classList.remove('hidden');
+            renderTeacherView();
+        } else { alert("Wrong PIN"); }
+    };
 
-            document.getElementById('outName').innerText = found.name.toUpperCase();
-            document.getElementById('outClass').innerText = found.grade + " " + found.arm;
-            document.getElementById('outID').innerText = found.id.toString().slice(-5);
+    window.addStu = async function() {
+        const name = document.getElementById('newStu').value;
+        if(!name) return;
+        const id = Date.now().toString();
+        await setDoc(doc(db, "students", id), { name, grade: activeG, arm: activeA, scores: {} });
+        document.getElementById('newStu').value = "";
+        renderTeacherView();
+    };
 
-            const resBody = document.getElementById('resBody');
-            resBody.innerHTML = "";
-            
-            subList.forEach(sub => {
-                // In production, these pull from 'found.scores'
-                let t1 = Math.floor(Math.random() * 35) + 65;
-                let t2 = Math.floor(Math.random() * 35) + 65;
-                let t3 = Math.floor(Math.random() * 35) + 65;
-                let avg = ((t1+t2+t3)/3).toFixed(1);
+    window.saveData = async function(id) {
+        const card = document.getElementById(`card-${id}`);
+        const rows = card.querySelectorAll('tr[data-subject]');
+        let scores = {};
+        rows.forEach(r => {
+            const sub = r.getAttribute('data-subject');
+            scores[sub] = {
+                t1: r.querySelector('.t1').value, e1: r.querySelector('.e1').value,
+                t2: r.querySelector('.t2').value, e2: r.querySelector('.e2').value,
+                t3: r.querySelector('.t3').value, e3: r.querySelector('.e3').value
+            };
+        });
+        await setDoc(doc(db, "students", id), { scores }, { merge: true });
+        alert("Saved to Cloud!");
+    };
 
-                resBody.innerHTML += `<tr>
-                    <td class="subject-col">${sub}</td>
-                    <td>${t1}</td><td>${t2}</td><td>${t3}</td>
-                    <td style="font-weight:bold; background:#f0fdf4;">${avg}</td>
+    async function renderTeacherView() {
+        const q = query(collection(db, "students"), where("grade", "==", activeG), where("arm", "==", activeA));
+        const snap = await getDocs(q);
+        const container = document.getElementById('studentList');
+        container.innerHTML = "";
+        snap.forEach(d => {
+            const s = d.data();
+            let rows = "";
+            subjects.forEach(sub => {
+                const sc = (s.scores && s.scores[sub]) || {t1:'',e1:'',t2:'',e2:'',t3:'',e3:''};
+                rows += `<tr data-subject="${sub}">
+                    <td style="text-align:left;">${sub}</td>
+                    <td><input type="number" class="score-edit t1" value="${sc.t1}"> <input type="number" class="score-edit e1" value="${sc.e1}"></td>
+                    <td><input type="number" class="score-edit t2" value="${sc.t2}"> <input type="number" class="score-edit e2" value="${sc.e2}"></td>
+                    <td><input type="number" class="score-edit t3" value="${sc.t3}"> <input type="number" class="score-edit e3" value="${sc.e3}"></td>
                 </tr>`;
             });
-
-            // Position simulation
-            document.getElementById('pos1').innerText = "5th";
-            document.getElementById('pos2').innerText = "3rd";
-            document.getElementById('pos3').innerText = "2nd";
-        } else {
-            document.getElementById('errMsg').style.display = 'block';
-        }
+            container.innerHTML += `<div class="student-card" id="card-${d.id}">
+                <div class="card-header" onclick="toggle('${d.id}')"><b>${s.name}</b> <button class="btn-save" onclick="saveData('${d.id}')">SAVE</button></div>
+                <table class="subject-grid" id="grid-${d.id}">${rows}</table>
+            </div>`;
+        });
     }
+
+    // 3. PARENT FUNCTIONS
+    window.verifyResult = async function() {
+        const name = document.getElementById('pName').value.trim();
+        const code = document.getElementById('pCode').value;
+        if(code !== "1122") { alert("Wrong Code"); return; }
+        
+        const q = query(collection(db, "students"), where("name", "==", name));
+        const snap = await getDocs(q);
+        if(!snap.empty) {
+            const data = snap.docs[0].data();
+            document.getElementById('parentGate').classList.add('hidden');
+            document.getElementById('reportSheet').classList.remove('hidden');
+            document.getElementById('outName').innerText = data.name;
+            const resBody = document.getElementById('pResBody');
+            resBody.innerHTML = "";
+            subjects.forEach(sub => {
+                const sc = (data.scores && data.scores[sub]) || {t1:0,e1:0,t2:0,e2:0,t3:0,e3:0};
+                const avg = ((Number(sc.t1)+Number(sc.e1)+Number(sc.t2)+Number(sc.e2)+Number(sc.t3)+Number(sc.e3))/3).toFixed(1);
+                resBody.innerHTML += `<tr><td>${sub}</td><td>${sc.t1}/${sc.e1}</td><td>${sc.t2}/${sc.e2}</td><td>${sc.t3}/${sc.e3}</td><td>${avg}</td></tr>`;
+            });
+        } else { alert("Student not found"); }
+    };
+
+    window.toggle = (id) => {
+        const g = document.getElementById('grid-'+id);
+        g.style.display = g.style.display === 'table' ? 'none' : 'table';
+    };
 </script>
 </body>
 </html>
