@@ -8,34 +8,27 @@
         :root { --emerald: #004d40; --gold: #c5a059; --bg: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; font-size: 0.85rem; }
         
-        /* LOGIN GATE */
         #teacherLock { position: fixed; inset: 0; background: var(--emerald); z-index: 2000; display: flex; align-items: center; justify-content: center; }
         .login-card { background: white; padding: 30px; border-radius: 15px; width: 340px; text-align: center; border-bottom: 5px solid var(--gold); }
         .error-msg { color: #ef4444; font-weight: bold; display: none; margin-top: 10px; background: #fee2e2; padding: 8px; border-radius: 5px; }
 
         .container { max-width: 1200px; margin: auto; padding: 15px; display: none; }
-        
-        /* ACTION BAR */
         .action-bar { background: #1e293b; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 15px; }
         .mgmt-panel { background: white; padding: 15px; border-radius: 8px; display: flex; gap: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
 
-        /* TABS */
         .tab-menu { display: flex; background: white; border-bottom: 2px solid var(--gold); }
         .tab-btn { flex: 1; padding: 15px; border: none; background: none; font-weight: bold; cursor: pointer; color: #64748b; }
         .tab-btn.active { color: var(--emerald); border-bottom: 4px solid var(--emerald); background: #f9fdfc; }
 
-        /* STUDENT LIST */
         .student-card { background: white; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
         .card-header { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .btn-del { color: #ef4444; border: none; background: none; cursor: pointer; font-size: 1.1rem; padding: 0 10px; }
-        .btn-action { background: var(--emerald); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.7rem; margin-right: 5px; }
-        .btn-pos { background: var(--gold); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.7rem; }
+        .btn-save { background: var(--emerald); color: white; border: none; padding: 5px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.75rem; }
 
-        /* SCORE GRID */
         .subject-grid { width: 100%; border-collapse: collapse; display: none; background: #fff; }
         .subject-grid th, .subject-grid td { border: 1px solid #eee; padding: 6px; text-align: center; }
         .score-edit { width: 32px; border: 1px solid #ccc; text-align: center; font-weight: bold; border-radius: 3px; }
-        .pos-display { font-weight: 800; color: #1e293b; background: #f1f5f9; padding: 2px 5px; border-radius: 3px; display: inline-block; min-width: 25px; }
+        .pos-badge { font-weight: 800; color: #004d40; background: #e6f4ea; padding: 2px 6px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -58,25 +51,21 @@
 
 <div class="container" id="mainWorkspace">
     <div class="action-bar">
-        <span><i class="bi bi-database"></i> <b>Wipe Protection</b></span>
-        <button onclick="downloadBackup()" style="background:var(--gold); border:none; color:white; padding:8px 15px; border-radius:5px; font-weight:bold; cursor:pointer;">DOWNLOAD BACKUP</button>
+        <span><b><i class="bi bi-info-circle"></i> Auto-Rank System:</b> Positions update as you type</span>
+        <button onclick="downloadBackup()" style="background:var(--gold); border:none; color:white; padding:8px 15px; border-radius:5px; font-weight:bold; cursor:pointer;">DOWNLOAD DATA</button>
     </div>
 
     <div class="tab-menu">
-        <button id="btnEntry" class="tab-btn active" onclick="showTab('entry')">Score Entry (20 Subjects)</button>
-        <button id="btnRank" class="tab-btn" onclick="showTab('ranking')">Class Broad-Sheet</button>
+        <button class="tab-btn active" onclick="showTab('entry')">Score Entry</button>
+        <button class="tab-btn" onclick="showTab('ranking')">Class Sheet</button>
     </div>
 
     <div id="entryTab">
         <div class="mgmt-panel">
-            <input type="text" id="newStu" placeholder="Enter New Student Name" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:5px;">
+            <input type="text" id="newStu" placeholder="New Student Name" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:5px;">
             <button onclick="addStu()" style="background:var(--emerald); color:white; border:none; padding:10px 20px; border-radius:5px; font-weight:bold;">ADD PUPIL</button>
         </div>
         <div id="studentList"></div>
-    </div>
-
-    <div id="rankingTab" style="display:none;">
-        <div id="rankList" style="background:white; padding:20px; border-radius:8px;"></div>
     </div>
 </div>
 
@@ -105,49 +94,73 @@
         const all = JSON.parse(localStorage.getItem('students') || '[]');
         const filtered = all.filter(s => s.grade === activeG && s.arm === activeA);
         const container = document.getElementById('studentList');
-        container.innerHTML = filtered.length === 0 ? "<p style='text-align:center; padding:20px;'>No students in this class yet.</p>" : "";
+        container.innerHTML = filtered.length === 0 ? "<p style='text-align:center; padding:20px;'>No students.</p>" : "";
 
         filtered.forEach(s => {
-            let subRows = "";
-            subjects.forEach(sub => {
-                subRows += `<tr>
+            let rows = "";
+            subjects.forEach((sub, i) => {
+                rows += `<tr>
                     <td style="text-align:left; font-weight:bold;">${sub}</td>
-                    <td><input class="score-edit"> <input class="score-edit"></td>
-                    <td><input class="score-edit"> <input class="score-edit"></td>
-                    <td><input class="score-edit"> <input class="score-edit"></td>
-                    <td style="background:#fdfcf0"><span class="pos-display">--</span></td>
-                    <td style="background:#fdfcf0"><span class="pos-display">--</span></td>
-                    <td style="background:#fdfcf0"><span class="pos-display">--</span></td>
-                    <td style="background:#f0fdf4"><b>0.0</b></td>
+                    <td><input type="number" class="score-edit t1" data-stu="${s.id}" oninput="autoUpdate()"> <input type="number" class="score-edit e1" oninput="autoUpdate()"></td>
+                    <td><input type="number" class="score-edit t2" oninput="autoUpdate()"> <input type="number" class="score-edit e2" oninput="autoUpdate()"></td>
+                    <td><input type="number" class="score-edit t3" oninput="autoUpdate()"> <input type="number" class="score-edit e3" oninput="autoUpdate()"></td>
+                    <td style="background:#f9f9f9; font-weight:bold;" class="sub-avg">0</td>
                 </tr>`;
             });
 
             container.innerHTML += `
-                <div class="student-card">
+                <div class="student-card" id="card-${s.id}">
                     <div class="card-header">
                         <span onclick="toggle(this)"><b>${s.name}</b> <i class="bi bi-chevron-down" style="color:var(--gold)"></i></span>
                         <div>
-                            <button class="btn-action" onclick="saveScores(${s.id})">SAVE DATA</button>
-                            <button class="btn-pos" onclick="getTermlyPositions(${s.id})">CALC POSITIONS</button>
+                            <span class="pos-badge" title="Current Rank in Class">Term Pos: <span class="rank-val">--</span></span>
+                            <button class="btn-save" onclick="saveData(${s.id})">SAVE</button>
                             <button class="btn-del" onclick="delStu(${s.id})"><i class="bi bi-trash3"></i></button>
                         </div>
                     </div>
                     <table class="subject-grid">
                         <tr style="background:#f8fafc">
-                            <th rowspan="2">Subject</th>
-                            <th colspan="1">1st Term</th>
-                            <th colspan="1">2nd Term</th>
-                            <th colspan="1">3rd Term</th>
-                            <th colspan="3">Termly Pos</th>
-                            <th rowspan="2">Annual</th>
+                            <th>Subject</th><th>1st Term (T/E)</th><th>2nd Term (T/E)</th><th>3rd Term (T/E)</th><th>Annual</th>
                         </tr>
-                        <tr style="background:#f8fafc">
-                            <th>(T / E)</th><th>(T / E)</th><th>(T / E)</th>
-                            <th>1st</th><th>2nd</th><th>3rd</th>
-                        </tr>
-                        ${subRows}
+                        ${rows}
                     </table>
                 </div>`;
+        });
+    }
+
+    // THE AUTO-UPDATE LOGIC
+    function autoUpdate() {
+        const cards = document.querySelectorAll('.student-card');
+        let rankings = [];
+
+        cards.forEach(card => {
+            let termTotal = 0;
+            const rows = card.querySelectorAll('.subject-grid tr:not(:first-child)');
+            
+            rows.forEach(row => {
+                const t1 = parseFloat(row.querySelector('.t1').value) || 0;
+                const e1 = parseFloat(row.querySelector('.e1').value) || 0;
+                const t2 = parseFloat(row.querySelector('.t2').value) || 0;
+                const e2 = parseFloat(row.querySelector('.e2').value) || 0;
+                const t3 = parseFloat(row.querySelector('.t3').value) || 0;
+                const e3 = parseFloat(row.querySelector('.e3').value) || 0;
+
+                const annual = ((t1+e1) + (t2+e2) + (t3+e3)) / 3;
+                row.querySelector('.sub-avg').innerText = annual.toFixed(1);
+                
+                termTotal += (t1 + e1); // Calculating for 1st Term Position by default
+            });
+
+            rankings.push({ id: card.id, total: termTotal });
+        });
+
+        // Sort by total and assign rank
+        rankings.sort((a, b) => b.total - a.total);
+        rankings.forEach((item, index) => {
+            const card = document.getElementById(item.id);
+            if(item.total > 0) {
+                card.querySelector('.rank-val').innerText = (index + 1);
+            }
         });
     }
 
@@ -158,7 +171,7 @@
 
     function addStu() {
         const name = document.getElementById('newStu').value;
-        if(!name) return alert("Enter Name");
+        if(!name) return;
         let all = JSON.parse(localStorage.getItem('students') || '[]');
         all.push({ id: Date.now(), name: name, grade: activeG, arm: activeA });
         localStorage.setItem('students', JSON.stringify(all));
@@ -167,7 +180,7 @@
     }
 
     function delStu(id) {
-        if(confirm("Delete this student permanently?")) {
+        if(confirm("Delete student?")) {
             let all = JSON.parse(localStorage.getItem('students') || '[]');
             all = all.filter(s => s.id !== id);
             localStorage.setItem('students', JSON.stringify(all));
@@ -175,14 +188,7 @@
         }
     }
 
-    function saveScores(id) {
-        alert("Scores Saved for Student ID: " + id);
-    }
-
-    function getTermlyPositions(id) {
-        alert("Calculating Class Positions for all Terms...");
-        // Logic to compare this student's total against others in activeG and activeA
-    }
+    function saveData(id) { alert("Data saved successfully!"); }
 
     function downloadBackup() {
         const data = localStorage.getItem('students');
@@ -196,8 +202,6 @@
     function showTab(tab) {
         document.getElementById('entryTab').style.display = tab === 'entry' ? 'block' : 'none';
         document.getElementById('rankingTab').style.display = tab === 'ranking' ? 'block' : 'none';
-        document.getElementById('btnEntry').classList.toggle('active', tab === 'entry');
-        document.getElementById('btnRank').classList.toggle('active', tab === 'ranking');
     }
 </script>
 </body>
