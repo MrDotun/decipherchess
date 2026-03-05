@@ -1,29 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Principal Admin | Maryland Convent</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Vault | Maryland Convent</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        :root { --emerald: #004d40; --gold: #c5a059; --bg: #f1f5f9; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); padding: 20px; }
-        .admin-box { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .class-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        input { padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 80px; text-align: center; }
-        button { background: var(--emerald); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        :root { --primary: #1e293b; --accent: #c5a059; --bg: #f8fafc; --vault: #0f172a; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; }
+        
+        /* VAULT LOCK SCREEN */
+        #vaultLock { position: fixed; inset: 0; background: var(--vault); z-index: 9999; display: flex; align-items: center; justify-content: center; color: white; }
+        .vault-box { background: #1e293b; padding: 40px; border-radius: 20px; text-align: center; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 320px; }
+        .vault-icon { font-size: 3rem; color: var(--accent); margin-bottom: 20px; }
+        .vault-input { width: 100%; padding: 15px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: var(--accent); text-align: center; font-size: 1.5rem; letter-spacing: 5px; margin-bottom: 20px; box-sizing: border-box;}
+
+        /* ADMIN CONTENT */
+        .admin-card { max-width: 700px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 5px solid var(--accent); display: none; }
+        .row-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-bottom: 1px solid #f1f5f9; }
+        .btn-save { background: #004d40; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .status-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: #e2e8f0; color: #475569; }
     </style>
 </head>
 <body>
 
-<div class="admin-box">
-    <h2 style="color:var(--emerald)"><i class="bi bi-shield-lock"></i> Master PIN Manager</h2>
-    <p>Set the access codes for each class teacher below.</p>
-    <div id="classList"></div>
-    <button onclick="saveAllPins()" style="width:100%; margin-top:20px; background:var(--gold)">SAVE ALL PINS TO CLOUD</button>
+<div id="vaultLock">
+    <div class="vault-box">
+        <div class="vault-icon"><i class="bi bi-safe2"></i></div>
+        <h2 style="margin: 0 0 10px 0;">ADMIN VAULT</h2>
+        <p style="color: #94a3b8; font-size: 0.8rem; margin-bottom: 20px;">Enter Master Authorization Code</p>
+        <input type="password" id="vaultCode" class="vault-input" maxlength="4" placeholder="****">
+        <button onclick="unlockVault()" style="width: 100%; background: var(--accent); color: var(--vault); border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">ACCESS VAULT</button>
+    </div>
+</div>
+
+<div class="admin-card" id="adminContent">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div>
+            <h2 style="color: var(--primary); margin: 0;">Principal's Office</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Class Access PIN Manager</p>
+        </div>
+        <button onclick="location.reload()" style="background: #f1f5f9; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;"><i class="bi bi-door-closed"></i> Exit</button>
+    </div>
+
+    <div class="row-item" style="background: #f8fafc; font-weight: bold; font-size: 0.75rem;">
+        <div style="flex: 1;">CLASS LEVEL</div>
+        <div style="flex: 1;">ARM</div>
+        <div style="flex: 1;">ACCESS PIN</div>
+        <div style="width: 80px;">ACTION</div>
+    </div>
+    
+    <div class="row-item">
+        <select id="newGrade" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+            <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+        </select>
+        <select id="newArm" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option>Blue</option><option>Green</option><option>Red</option><option>White</option>
+        </select>
+        <input type="text" id="newCode" placeholder="PIN" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        <button class="btn-save" onclick="updatePin()">SAVE</button>
+    </div>
+
+    <div id="activePins" style="margin-top: 30px; font-size: 0.85rem;">
+        <p style="text-align: center; color: #cbd5e1;">Loading Class Records...</p>
+    </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBX_ysaY_ShUG1kY-ZR8xnaZ01SlZLUblw",
@@ -35,34 +81,49 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const grades = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"];
-    const arms = ["Blue", "Green", "Red", "White"];
+    const MASTER_KEY = "1960"; // CHANGE THIS CODE TO YOUR SECRET KEY
 
-    // Generate the list of all possible classes
-    const listDiv = document.getElementById('classList');
-    let html = "";
-    grades.forEach(g => {
-        arms.forEach(a => {
-            const id = (g + a).replace(" ", "");
-            html += `<div class="class-row">
-                <span><b>${g} ${a}</b></span>
-                <input type="text" id="pin-${id}" placeholder="PIN" maxlength="4">
-            </div>`;
-        });
-    });
-    listDiv.innerHTML = html;
-
-    window.saveAllPins = async function() {
-        for (const g of grades) {
-            for (const a of arms) {
-                const id = (g + a).replace(" ", "");
-                const val = document.getElementById(`pin-${id}`).value;
-                if(val) {
-                    await setDoc(doc(db, "pins", id), { code: val });
-                }
-            }
+    window.unlockVault = function() {
+        const input = document.getElementById('vaultCode').value;
+        if(input === MASTER_KEY) {
+            document.getElementById('vaultLock').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+            loadPins();
+        } else {
+            alert("Unauthorized Access. Incorrect Vault Code.");
         }
-        alert("All Class PINs updated in Cloud!");
+    };
+
+    window.updatePin = async function() {
+        const grade = document.getElementById('newGrade').value;
+        const arm = document.getElementById('newArm').value;
+        const code = document.getElementById('newCode').value.trim();
+        const classID = (grade + arm).replace(" ", "");
+
+        if(!code) return alert("Enter a PIN");
+
+        await setDoc(doc(db, "pins", classID), { grade, arm, code });
+        alert(`Access granted for ${grade} ${arm}`);
+        document.getElementById('newCode').value = "";
+        loadPins();
+    };
+
+    async function loadPins() {
+        const pinContainer = document.getElementById('activePins');
+        const snap = await getDocs(collection(db, "pins"));
+        
+        let html = '<h4 style="color:#64748b; font-size:0.7rem; border-bottom:1px solid #eee; padding-bottom:5px;">ACTIVE CLASS PINS</h4>';
+        snap.forEach((doc) => {
+            const data = doc.data();
+            html += `
+                <div class="row-item">
+                    <div style="flex: 1;">${data.grade}</div>
+                    <div style="flex: 1;">${data.arm}</div>
+                    <div style="flex: 1;"><b>${data.code}</b></div>
+                    <div style="width: 80px;"><span class="status-badge">ACTIVE</span></div>
+                </div>`;
+        });
+        pinContainer.innerHTML = html;
     }
 </script>
 </body>
