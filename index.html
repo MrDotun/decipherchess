@@ -55,25 +55,30 @@
             border-radius: 15px;
         }
 
-        /* ENHANCED LOGO VISIBILITY */
+        /* NEW CIRCULAR & ENLARGED LOGO STYLES */
         .nav-logo {
-            height: 55px; /* Increased size slightly */
-            width: auto;
-            object-fit: contain;
-            filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)) brightness(1.1);
+            height: 60px; /* Increased size */
+            width: 60px;  /* Square aspect for perfect circle */
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4)) brightness(1.1);
             transition: transform 0.3s ease;
         }
         
         .nav-logo:hover {
-            transform: scale(1.05);
+            transform: scale(1.1) rotate(5deg);
         }
         
         .footer-logo {
-            height: 100px; /* Increased size */
-            width: auto;
+            height: 120px; /* Large focal point */
+            width: 120px;  /* Square aspect for perfect circle */
             margin: 0 auto 1.5rem;
             display: block;
-            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.5)) brightness(1.2);
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid var(--gold);
+            filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.5)) brightness(1.2);
         }
 
         /* Mobile Menu Animation */
