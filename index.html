@@ -3,214 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decipher Chess Academy | Premium Chess Excellence</title>
+    <title>Decipher Chess | Elite Academy Portal</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; background-color: #ffffff; }
+        .brand-font { font-family: 'Cinzel', serif; }
         
-        :root {
-            --gold: #D4AF37;
-            --dark-blue: #020617;
-            --glass: rgba(15, 23, 42, 0.7);
+        /* Dynamic Background */
+        .mesh-gradient {
+            background-color: #ffffff;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(254, 226, 226, 0.5) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(254, 249, 195, 0.5) 0px, transparent 50%);
         }
 
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--dark-blue);
-            color: #f8fafc;
-            overflow-x: hidden;
-        }
-
-        h1, h2, .brand { font-family: 'Cinzel', serif; }
-
-        .glass-nav {
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-        }
-
-        .gold-gradient-text {
-            background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .chess-card {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            height: 100%;
-        }
-
-        .chess-card:hover {
-            border-color: var(--gold);
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .img-container {
-            height: 200px; 
-            overflow: hidden;
-            border-radius: 15px;
-        }
-
-        .nav-logo {
-            height: 60px; 
-            width: 60px;  
-            object-fit: cover;
-            border-radius: 50%;
-            border: 2px solid var(--gold);
-            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4)) brightness(1.1);
-            transition: transform 0.3s ease;
-        }
-        
-        .nav-logo:hover {
-            transform: scale(1.1) rotate(5deg);
-        }
-        
-        .footer-logo {
-            height: 120px; 
-            width: 120px;  
-            margin: 0 auto 1.5rem;
-            display: block;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 3px solid var(--gold);
-            filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.5)) brightness(1.2);
-        }
-
-        #mobile-menu {
-            transition: all 0.3s ease-in-out;
-            max-height: 0;
+        /* Interactive Bento Cards */
+        .bento-item {
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
             overflow: hidden;
         }
-
-        #mobile-menu.active {
-            max-height: 400px;
-            padding-bottom: 1rem;
+        .bento-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px -12px rgba(220, 38, 38, 0.15);
         }
+
+        /* Button Shine Effect */
+        .btn-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-shine::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            transition: 0.5s;
+        }
+        .btn-shine:hover::after {
+            left: 120%;
+        }
+
+        /* Animated Progress Bar (for that 'Active' feel) */
+        .live-bar {
+            height: 4px;
+            background: #dc2626;
+            width: 0%;
+            animation: loading 2s infinite;
+        }
+        @keyframes loading {
+            0% { width: 0%; left: 0; }
+            50% { width: 100%; left: 0; }
+            100% { width: 0%; left: 100%; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 10px; }
     </style>
 </head>
-<body>
+<body class="text-slate-900 mesh-gradient">
 
-    <nav class="glass-nav sticky top-0 z-50 px-6 py-3">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <img src="Gemini_Generated_Image_yl963nyl963nyl96.png" alt="Decipher Logo" class="nav-logo">
-                <div class="brand text-lg font-bold gold-gradient-text tracking-widest hidden sm:block">DECIPHER CHESS</div>
-            </div>
-            
-            <div class="hidden lg:flex space-x-8 text-sm uppercase tracking-widest font-semibold">
-                <a href="book.html" class="hover:text-yellow-500 transition">Books</a>
-                <a href="room.html" class="hover:text-yellow-500 transition">Classroom</a>
-                <a href="tac.html" class="hover:text-yellow-500 transition">Tactics</a>
-                <a href="engine.html" class="hover:text-yellow-500 transition">Engine</a>
-                <a href="coach.html" class="hover:text-yellow-500 transition">Coaching</a>
+    <nav class="fixed w-full z-[100] px-6 py-6">
+        <div class="max-w-6xl mx-auto flex justify-between items-center bg-white/70 backdrop-blur-xl px-6 py-3 rounded-2xl border border-slate-100 shadow-sm">
+            <div class="flex items-center gap-3">
+                <img src="Gemini_Generated_Image_yl963nyl963nyl96.png" class="w-10 h-10 rounded-full shadow-md border-2 border-yellow-400">
+                <div class="flex flex-col">
+                    <span class="brand-font font-bold text-red-600 leading-none tracking-tighter">DECIPHER</span>
+                    <span class="text-[8px] font-black uppercase tracking-[0.3em] text-slate-400">Academy</span>
+                </div>
             </div>
 
-            <div class="flex items-center space-x-4">
-                <a href="tel:+2348026527056" class="border border-yellow-600 px-5 py-2 rounded-full text-xs font-bold hover:bg-yellow-600 hover:text-black transition">
-                    <i class="fas fa-phone-alt mr-2"></i> CONTACT
-                </a>
-                <button id="menu-toggle" class="lg:hidden text-yellow-500 text-2xl">
-                    <i class="fas fa-bars"></i>
-                </button>
+            <div class="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest">
+                <a href="book.html" class="hover:text-red-600 transition">Workbooks</a>
+                <a href="room.html" class="hover:text-red-600 transition">Curriculum</a>
+                <a href="https://wa.me/2348026527056" class="bg-red-600 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-red-200 hover:bg-red-700 transition">Support</a>
             </div>
-        </div>
-
-        <div id="mobile-menu" class="lg:hidden flex flex-col space-y-4 mt-4 text-center text-sm uppercase tracking-widest font-semibold">
-            <a href="book.html" class="hover:text-yellow-500 transition py-2 border-b border-white/5">Books</a>
-            <a href="room.html" class="hover:text-yellow-500 transition py-2 border-b border-white/5">Classroom</a>
-            <a href="tac.html" class="hover:text-yellow-500 transition py-2 border-b border-white/5">Tactics</a>
-            <a href="engine.html" class="hover:text-yellow-500 transition py-2 border-b border-white/5">Engine</a>
-            <a href="coach.html" class="hover:text-yellow-500 transition py-2">Coaching</a>
         </div>
     </nav>
 
-    <header class="relative px-6 py-12 lg:px-20 text-center">
-        <h1 class="text-4xl lg:text-6xl font-bold mb-4 uppercase tracking-tighter">Deciphering the <br><span class="gold-gradient-text">Art of Strategy</span></h1>
-        <p class="text-gray-400 max-w-xl mx-auto mb-10 text-lg font-light">The leading chess academy for modern schools and aspiring grandmasters in Nigeria.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto">
-            <div class="img-container shadow-lg">
-                <img src="1772550640524.jpg" alt="Chess Activity" class="w-full h-full object-cover">
+    <header class="pt-48 pb-16 px-6 relative">
+        <div class="max-w-5xl mx-auto">
+            <div data-aos="fade-down" class="flex items-center gap-2 mb-6 justify-center md:justify-start">
+                <span class="h-[1px] w-8 bg-red-600"></span>
+                <span class="text-red-600 text-[10px] font-black uppercase tracking-[0.4em]">Est. 2026</span>
             </div>
-            <div class="img-container border-2 border-yellow-600/20">
-                <img src="https://images.unsplash.com/photo-1586165368502-1bad197a6461?auto=format&fit=crop&q=80&w=800" alt="Exotic Chess Board" class="w-full h-full object-cover">
-            </div>
-            <div class="img-container shadow-lg">
-                <img src="1772551122640.jpg" alt="Tournament Session" class="w-full h-full object-cover">
+            <h1 data-aos="fade-right" class="text-6xl md:text-[92px] font-extrabold tracking-tighter leading-[0.9] mb-8">
+                Mastering the <br><span class="italic text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-yellow-500">Ultimate Game.</span>
+            </h1>
+            <div class="flex flex-col md:flex-row items-center gap-8 mt-12">
+                <a href="room.html" class="btn-shine bg-red-600 text-white px-10 py-5 rounded-2xl font-bold text-sm uppercase tracking-widest shadow-2xl shadow-red-200">
+                    Join Live Session
+                </a>
+                <div class="flex -space-x-3">
+                    <div class="w-10 h-10 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold">GM</div>
+                    <div class="w-10 h-10 rounded-full border-2 border-white bg-slate-300 flex items-center justify-center text-[10px] font-bold">IM</div>
+                    <div class="w-10 h-10 rounded-full border-2 border-white bg-red-600 text-white flex items-center justify-center text-[10px] font-bold">+50</div>
+                </div>
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-widest">Students Online</p>
             </div>
         </div>
     </header>
 
-    <main class="px-6 lg:px-20 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        <a href="http://mrdotun.name.ng/chess/school.html" class="chess-card p-8 rounded-3xl block border-l-4 border-yellow-600">
-            <div class="mb-4 text-yellow-500"><i class="fas fa-trophy text-3xl"></i></div>
-            <h4 class="text-xs font-bold text-yellow-500 uppercase mb-1">Decipher Chess Challenge 2026</h4>
-            <h3 class="text-xl font-bold mb-2 uppercase tracking-wide">Masters League</h3>
-            <p class="text-gray-400 text-sm">For the best students. Face elite competition and prove your tactical mastery.</p>
-        </a>
+    <main class="px-6 max-w-6xl mx-auto pb-32">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            
+            <div data-aos="fade-up" class="md:col-span-8 bento-item bg-slate-900 rounded-[2.5rem] p-10 text-white flex flex-col justify-between min-h-[400px]">
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                        <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">Daily Challenge</span>
+                    </div>
+                    <h2 class="text-4xl font-extrabold italic uppercase tracking-tighter mb-4 leading-none">Mikhail Tal <br>Tactical Quest</h2>
+                    <p class="text-slate-400 text-sm max-w-xs mb-8">Solve the legendary "Magician of Riga" puzzles to unlock elite academy badges.</p>
+                </div>
+                <div class="flex justify-between items-end relative z-10">
+                    <a href="quests.html" class="bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-yellow-400 transition">Enter Lab</a>
+                    <i class="fas fa-chess-knight text-8xl text-white/5 absolute -right-4 bottom-0"></i>
+                </div>
+            </div>
 
-        <a href="engine.html" class="chess-card p-8 rounded-3xl block border-l-4 border-blue-400">
-            <div class="mb-4 text-blue-400"><i class="fas fa-chess-pawn text-3xl"></i></div>
-            <h4 class="text-xs font-bold text-blue-400 uppercase mb-1">Decipher Chess Challenge 2026</h4>
-            <h3 class="text-xl font-bold mb-2 uppercase tracking-wide">Beginners League</h3>
-            <p class="text-gray-400 text-sm">(Junior Section) Build your foundation and sharpen your skills in a friendly arena.</p>
-        </a>
+            <div data-aos="fade-up" data-aos-delay="100" class="md:col-span-4 bento-item bg-white border border-slate-100 rounded-[2.5rem] p-8 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-black text-[10px] uppercase tracking-widest text-red-600 mb-6">Masters League</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                            <span class="text-[10px] font-bold">1. Chidi K.</span>
+                            <span class="text-[10px] font-black">2450</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl opacity-60">
+                            <span class="text-[10px] font-bold">2. Tunde W.</span>
+                            <span class="text-[10px] font-black">2310</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="http://mrdotun.name.ng/chess/school.html" class="w-full py-4 border-2 border-slate-900 text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center hover:bg-slate-900 hover:text-white transition">Full Leaderboard</a>
+            </div>
 
-        <a href="tourney.html" class="chess-card p-8 rounded-3xl block">
-            <div class="mb-4 text-yellow-500"><i class="fas fa-crown text-3xl"></i></div>
-            <h3 class="text-xl font-bold mb-2 uppercase tracking-wide">Nigerian Masters</h3>
-            <p class="text-gray-400 text-sm">The ultimate test: play against the best Nigerian Masters in our exclusive tournament arena.</p>
-        </a>
-
-        <a href="lab.html" class="chess-card p-8 rounded-3xl block">
-            <div class="mb-4 text-yellow-500"><i class="fas fa-stopwatch-20 text-3xl"></i></div>
-            <h3 class="text-xl font-bold mb-2 uppercase tracking-wide">Speed & Accuracy</h3>
-            <p class="text-gray-400 text-sm">How fast can you calculate? Test your vision and precision in the Decipher Lab.</p>
-        </a>
-
-        <a href="quests.html" class="chess-card p-8 rounded-3xl block border-r-4 border-yellow-600">
-            <div class="mb-4 text-yellow-500"><i class="fas fa-shield-heart text-3xl"></i></div>
-            <h3 class="text-xl font-bold mb-2 uppercase tracking-wide">Rescue Mikhail Tal</h3>
-            <p class="text-gray-400 text-sm">Solve complex tactical quests to "rescue" the Magician of Riga in this immersive challenge.</p>
-        </a>
-
-        <a href="book.html" class="chess-card p-8 rounded-3xl block">
-            <div class="mb-4 text-yellow-500"><i class="fas fa-book-open text-3xl"></i></div>
-            <h3 class="text-xl font-bold mb-2 uppercase tracking-wide">Academy Workbooks</h3>
-            <p class="text-gray-400 text-sm">Access our signature step-by-step curriculum from beginner to advanced tournament levels.</p>
-        </a>
-
-        <div class="chess-card p-8 rounded-3xl flex flex-col justify-center items-center text-center bg-gradient-to-br from-yellow-900/20 to-transparent">
-            <h4 class="text-sm font-bold text-yellow-500 uppercase mb-2">Join the Academy</h4>
-            <p class="text-2xl font-extrabold mb-4">+234 802 652 7056</p>
-            <a href="https://wa.me/2348026527056" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full text-sm font-bold transition">
-                <i class="fab fa-whatsapp mr-2"></i> WhatsApp Us
+            <a href="book.html" data-aos="fade-up" class="md:col-span-4 bento-item bg-yellow-400 rounded-[2.5rem] p-8 group">
+                <div class="flex flex-col h-full justify-between">
+                    <div class="text-4xl group-hover:scale-110 transition duration-500">📚</div>
+                    <div>
+                        <h3 class="text-xl font-extrabold uppercase tracking-tighter text-slate-900">Workbooks</h3>
+                        <p class="text-[10px] font-bold uppercase text-slate-700 mt-2">Digital Library</p>
+                    </div>
+                </div>
             </a>
+
+            <a href="engine.html" data-aos="fade-up" data-aos-delay="100" class="md:col-span-4 bento-item bg-white border border-slate-100 rounded-[2.5rem] p-8 group">
+                <div class="flex flex-col h-full justify-between">
+                    <div class="text-4xl group-hover:rotate-12 transition duration-500">⚙️</div>
+                    <div>
+                        <h3 class="text-xl font-extrabold uppercase tracking-tighter text-slate-900">Analysis</h3>
+                        <p class="text-[10px] font-bold uppercase text-slate-400 mt-2">Engine Review</p>
+                    </div>
+                </div>
+            </a>
+
+            <div data-aos="fade-up" data-aos-delay="200" class="md:col-span-4 bento-item bg-red-600 rounded-[2.5rem] p-8 text-white">
+                <div class="flex flex-col h-full justify-between">
+                    <h3 class="text-lg font-bold leading-tight">Need 1-on-1 <br>Coaching?</h3>
+                    <a href="https://wa.me/2348026527056" class="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                        WhatsApp Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
         </div>
     </main>
 
-    <footer class="py-12 text-center border-t border-white/5">
-        <img src="Gemini_Generated_Image_yl963nyl963nyl96.png" alt="Decipher Logo" class="footer-logo">
-        <div class="brand text-lg font-bold gold-gradient-text mb-4">DECIPHER CHESS ACADEMY</div>
-        <p class="text-gray-600 text-xs tracking-widest">&copy; 2026 PREMIUM STRATEGY EDUCATION. LAGOS, NIGERIA.</p>
+    <footer class="py-24 bg-white border-t border-slate-50 text-center relative overflow-hidden">
+        <div class="relative z-10">
+            <h2 class="brand-font text-3xl font-bold text-red-600 mb-2 uppercase">Decipher</h2>
+            <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.6em] mb-12">Elite Strategy Education</p>
+            
+            <div class="flex justify-center gap-12 mb-16">
+                <a href="#" class="text-slate-300 hover:text-red-600 transition"><i class="fab fa-instagram text-xl"></i></a>
+                <a href="#" class="text-slate-300 hover:text-red-600 transition"><i class="fab fa-youtube text-xl"></i></a>
+                <a href="#" class="text-slate-300 hover:text-red-600 transition"><i class="fab fa-twitter text-xl"></i></a>
+            </div>
+            
+            <p class="text-[9px] font-bold text-slate-300 uppercase tracking-widest italic">&copy; 2026 Decipher Chess Academy | Premium Branding by Elite</p>
+        </div>
     </footer>
 
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
-        const btn = document.getElementById('menu-toggle');
-        const menu = document.getElementById('mobile-menu');
-
-        btn.addEventListener('click', () => {
-            menu.classList.toggle('active');
-            const icon = btn.querySelector('i');
-            icon.classList.toggle('fa-bars');
-            icon.classList.toggle('fa-times');
+        AOS.init({
+            duration: 800,
+            once: true,
+            easing: 'ease-out-quad'
         });
     </script>
-
 </body>
 </html>
