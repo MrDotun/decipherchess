@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decipher Chess | Elite Academy Portal</title>
+    <title>Decipher Chess Academy | Elite Portal</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
@@ -17,8 +17,8 @@
         .mesh-gradient {
             background-color: #ffffff;
             background-image: 
-                radial-gradient(at 0% 0%, rgba(254, 226, 226, 0.5) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(254, 249, 195, 0.5) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(254, 226, 226, 0.4) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(254, 249, 195, 0.4) 0px, transparent 50%);
         }
 
         .bento-item {
@@ -29,8 +29,8 @@
         }
         .bento-item:hover {
             transform: translateY(-8px);
-            box-shadow: 0 30px 60px -12px rgba(220, 38, 38, 0.12);
-            border-color: #fee2e2;
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.08);
+            border-color: #e2e8f0;
         }
 
         .btn-shine {
@@ -44,149 +44,193 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.4), transparent);
             transform: rotate(45deg);
-            transition: 0.5s;
+            transition: 0.6s;
         }
         .btn-shine:hover::after { left: 120%; }
 
         /* Custom Alert Style for Password */
         #password-modal {
             display: none;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(12px);
         }
     </style>
 </head>
 <body class="text-slate-900 mesh-gradient overflow-x-hidden">
 
-    <div id="password-modal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-6">
-        <div class="bg-white rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl text-center">
-            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
-                <i class="fas fa-lock"></i>
+    <div id="password-modal" class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 p-6 transition-all">
+        <div class="bg-white rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl text-center border border-slate-100">
+            <div class="w-16 h-16 bg-blue-50 text-blue-700 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl shadow-inner">
+                <i class="fas fa-shield-alt"></i>
             </div>
-            <h3 class="text-2xl font-black uppercase tracking-tighter mb-2">Restricted Access</h3>
+            <h3 class="text-2xl font-black uppercase tracking-tighter mb-2 text-slate-900">Secure Access</h3>
             <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-8">Enter Academy Password</p>
-            <input type="password" id="session-pass" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 mb-4 text-center focus:outline-none focus:ring-2 focus:ring-red-600 font-bold" placeholder="••••••••">
-            <div id="pass-error" class="text-red-600 text-[10px] font-bold uppercase mb-4 hidden">Incorrect Password</div>
-            <button onclick="checkPassword()" class="w-full bg-red-600 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-200">Verify & Enter</button>
-            <button onclick="closeModal()" class="mt-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">Cancel</button>
+            <input type="password" id="session-pass" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 mb-4 text-center focus:outline-none focus:ring-2 focus:ring-blue-600 font-bold text-lg tracking-widest" placeholder="••••••••">
+            <div id="pass-error" class="text-red-600 text-[10px] font-bold uppercase mb-4 hidden bg-red-50 py-2 rounded-lg">Incorrect Password</div>
+            <button onclick="checkPassword()" class="w-full bg-blue-700 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-800 transition">Verify & Enter</button>
+            <button onclick="closeModal()" class="mt-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:text-slate-700 transition">Cancel</button>
         </div>
     </div>
 
     <nav class="fixed w-full z-[100] px-6 py-6">
-        <div class="max-w-6xl mx-auto flex justify-between items-center bg-white/70 backdrop-blur-xl px-6 py-3 rounded-2xl border border-slate-100 shadow-sm">
+        <div class="max-w-6xl mx-auto flex justify-between items-center bg-white/80 backdrop-blur-xl px-6 py-3 rounded-2xl border border-slate-100 shadow-sm">
             <div class="flex items-center gap-3">
-                <img src="Gemini_Generated_Image_yl963nyl963nyl96.png" class="w-10 h-10 rounded-full border-2 border-yellow-400 shadow-sm">
+                <img src="Screenshot_20260319-202756.jpg" alt="Decipher Logo" class="w-11 h-11 rounded-full object-cover border-2 border-yellow-400 shadow-sm">
                 <div class="flex flex-col">
-                    <span class="brand-font font-bold text-red-600 leading-none tracking-tighter">DECIPHER</span>
-                    <span class="text-[8px] font-black uppercase tracking-[0.3em] text-slate-400">Academy</span>
+                    <span class="brand-font font-bold text-slate-900 text-lg leading-none tracking-tighter">DECIPHER CHESS</span>
+                    <span class="text-[8px] font-black uppercase tracking-[0.3em] text-red-600">Academy</span>
                 </div>
             </div>
             <div class="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-slate-500">
                 <a href="book.html" class="hover:text-red-600 transition">Library</a>
                 <a href="http://mrdotun.name.ng/chess/school.html" class="hover:text-red-600 transition">League</a>
-                <a href="https://wa.me/2348026527056" class="bg-red-600 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-red-100 hover:bg-red-700 transition">Support</a>
+                <a href="https://wa.me/2348026527056" class="bg-red-600 text-white px-6 py-2.5 rounded-xl shadow-lg shadow-red-100 hover:bg-red-700 transition">Support</a>
             </div>
         </div>
     </nav>
 
-    <header class="pt-48 pb-16 px-6">
-        <div class="max-w-5xl mx-auto text-center md:text-left">
-            <div data-aos="fade-down" class="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-red-50 border border-red-100">
-                <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                <span class="text-red-600 text-[9px] font-black uppercase tracking-[0.3em]">Elite Training Portal</span>
+    <header class="pt-40 pb-16 px-6 relative overflow-hidden">
+        <div class="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-8 pt-10">
+            <div class="flex-1 text-center lg:text-left z-10">
+                <div data-aos="fade-down" class="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-red-50 border border-red-100">
+                    <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                    <span class="text-red-600 text-[9px] font-black uppercase tracking-[0.3em]">Elite Training Portal</span>
+                </div>
+                <h1 data-aos="fade-right" class="text-5xl md:text-7xl lg:text-[80px] font-extrabold tracking-tighter leading-[0.95] mb-6 text-slate-900">
+                    Decipher <br><span class="italic text-red-600">Chess Academy.</span>
+                </h1>
+                <p data-aos="fade-up" class="text-slate-500 font-medium text-lg max-w-lg mx-auto lg:mx-0 mb-10 leading-relaxed">
+                    Professional instruction, engine-assisted learning, and premier tactical training for aspiring champions.
+                </p>
+                <div data-aos="fade-up" data-aos-delay="100" class="flex items-center justify-center lg:justify-start gap-4">
+                    <button onclick="openModal()" class="btn-shine bg-slate-900 text-white px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-slate-200">
+                        Join Class
+                    </button>
+                    <a href="#explore" class="px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-widest text-slate-500 border border-slate-200 hover:bg-slate-50 transition">
+                        Explore Portal
+                    </a>
+                </div>
             </div>
-            <h1 data-aos="fade-right" class="text-6xl md:text-[88px] font-extrabold tracking-tighter leading-[0.9] mb-8">
-                The Science of <br><span class="italic text-red-600">Grandmastery.</span>
-            </h1>
-            <p data-aos="fade-up" class="text-slate-400 font-medium text-lg max-w-xl mb-12">
-                Professional instruction and engine-assisted learning for aspiring champions.
-            </p>
+
+            <div class="flex-1 relative z-10 w-full" data-aos="zoom-in" data-aos-delay="200">
+                <div class="relative w-full aspect-square max-w-md mx-auto lg:ml-auto">
+                    <div class="absolute inset-0 bg-yellow-400 rounded-full blur-[80px] opacity-20"></div>
+                    
+                    <img src="https://images.unsplash.com/photo-1586165368502-1bad197a6461?auto=format&fit=crop&q=80&w=800" alt="Premium Chess Board" class="rounded-[2.5rem] shadow-2xl relative z-10 object-cover w-full h-full border-4 border-white">
+                    
+                    <div class="absolute -bottom-6 -left-6 lg:-left-12 bg-white p-5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4 z-20 hover:-translate-y-2 transition-transform">
+                        <div class="w-12 h-12 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center text-xl">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Master Level</p>
+                            <p class="text-sm font-black text-slate-900 uppercase">Curriculum</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
-    <main class="px-6 max-w-6xl mx-auto pb-32">
+    <main id="explore" class="px-6 max-w-6xl mx-auto pb-32 mt-10">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
             
-            <div data-aos="fade-up" class="md:col-span-8 bento-item bg-red-600 rounded-[3rem] p-10 text-white flex flex-col justify-between min-h-[420px] shadow-2xl shadow-red-200">
+            <div data-aos="fade-up" class="md:col-span-8 bento-item bg-blue-700 rounded-[3rem] p-10 text-white flex flex-col justify-between min-h-[420px] shadow-2xl shadow-blue-200">
                 <div class="relative z-10">
                     <div class="flex items-center gap-3 mb-8">
-                        <span class="px-3 py-1 rounded-full bg-white/20 text-[9px] font-black uppercase tracking-widest">Restricted</span>
+                        <span class="px-3 py-1 rounded-full bg-white/20 text-[9px] font-black uppercase tracking-widest border border-white/10">Restricted</span>
                         <div class="w-2 h-2 rounded-full bg-yellow-400 animate-ping"></div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-blue-100">Live Now</span>
                     </div>
                     <h2 class="text-5xl font-extrabold italic uppercase tracking-tighter leading-none mb-4">Academy <br>Live Room</h2>
-                    <p class="text-red-100 text-sm max-w-xs opacity-90">Secure access for registered students only. Password required to join.</p>
+                    <p class="text-blue-100 text-sm max-w-xs opacity-90 leading-relaxed">Secure access for registered students only. Join the interactive masterclass.</p>
                 </div>
-                <div class="relative z-10">
-                    <button onclick="openModal()" class="btn-shine bg-white text-red-600 px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Enter Session</button>
+                <div class="relative z-10 mt-8">
+                    <button onclick="openModal()" class="btn-shine bg-white text-blue-800 px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-yellow-400 hover:text-slate-900 transition-colors">Enter Session</button>
                 </div>
-                <i class="fas fa-chess-queen absolute -right-10 -bottom-10 text-[18rem] text-black/10"></i>
+                <i class="fas fa-chess-knight absolute -right-6 -bottom-6 text-[18rem] text-blue-900/30 rotate-12"></i>
             </div>
 
             <a href="engine.html" data-aos="fade-up" data-aos-delay="100" class="md:col-span-4 bento-item bg-white rounded-[3rem] p-8 flex flex-col justify-between group">
-                <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition duration-500">⚙️</div>
-                <div>
+                <div class="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 group-hover:bg-red-50 transition duration-500">⚙️</div>
+                <div class="mt-12">
                     <h3 class="text-2xl font-extrabold uppercase tracking-tighter text-slate-900 leading-none mb-2">Decipher <br>Engine</h3>
                     <p class="text-[10px] font-black uppercase tracking-widest text-red-600">Beginner Level Training</p>
                 </div>
-                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Launch Analysis <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i></div>
+                <div class="mt-8 text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-900 transition-colors">Launch Match <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i></div>
             </a>
 
             <a href="https://lichess.org/training/daily" target="_blank" data-aos="fade-up" class="md:col-span-5 bento-item bg-slate-900 rounded-[3rem] p-10 text-white group overflow-hidden">
                 <div class="relative z-10">
-                    <h3 class="font-black text-[10px] uppercase tracking-[0.3em] text-yellow-400 mb-6">Lichess Daily</h3>
-                    <h2 class="text-3xl font-extrabold italic uppercase tracking-tighter mb-4">Tactical <br>Vision Quest</h2>
-                    <p class="text-slate-400 text-xs mb-8">Sharpen your pattern recognition without signing in.</p>
+                    <h3 class="font-black text-[10px] uppercase tracking-[0.3em] text-yellow-400 mb-6 flex items-center gap-2">
+                        <i class="fas fa-bolt"></i> Lichess Daily
+                    </h3>
+                    <h2 class="text-3xl font-extrabold italic uppercase tracking-tighter mb-4 leading-none">Tactical <br>Vision Quest</h2>
+                    <p class="text-slate-400 text-xs mb-8 max-w-[200px]">Sharpen your pattern recognition without signing in.</p>
                     <span class="inline-block border border-white/20 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest group-hover:bg-white group-hover:text-black transition">Solve Puzzle</span>
                 </div>
-                <i class="fas fa-puzzle-piece absolute -right-4 top-10 text-9xl text-white/5 group-hover:rotate-12 transition duration-700"></i>
+                <i class="fas fa-puzzle-piece absolute -right-4 top-10 text-9xl text-white/5 group-hover:rotate-12 group-hover:scale-110 transition duration-700"></i>
             </a>
 
             <div data-aos="fade-up" data-aos-delay="100" class="md:col-span-7 bento-item bg-yellow-400 rounded-[3rem] p-10 flex flex-col justify-between">
                 <div class="flex justify-between items-start">
-                    <h3 class="text-2xl font-black uppercase tracking-tighter text-slate-900 leading-none">Masters <br>League</h3>
-                    <div class="text-4xl">🏆</div>
+                    <div>
+                        <h4 class="font-black text-[10px] uppercase tracking-widest text-yellow-700 mb-1">Competitive Play</h4>
+                        <h3 class="text-3xl font-black uppercase tracking-tighter text-slate-900 leading-none">Masters <br>League</h3>
+                    </div>
+                    <div class="text-5xl drop-shadow-lg">🏆</div>
                 </div>
-                <div class="flex flex-col md:flex-row gap-4 mt-8">
-                    <a href="http://mrdotun.name.ng/chess/school.html" class="flex-1 bg-black text-white py-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest hover:scale-105 transition">View Standings</a>
-                    <a href="engine.html" class="flex-1 bg-white/30 backdrop-blur-md text-slate-900 py-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest hover:bg-white transition">Enroll Now</a>
+                <div class="flex flex-col sm:flex-row gap-4 mt-8">
+                    <a href="http://mrdotun.name.ng/chess/school.html" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition shadow-xl">View Standings</a>
+                    <a href="engine.html" class="flex-1 bg-yellow-300/50 text-slate-900 py-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest hover:bg-white transition border border-yellow-500/20">Enroll Junior</a>
                 </div>
             </div>
 
-            <a href="book.html" data-aos="fade-up" class="md:col-span-4 bento-item bg-slate-50 rounded-[2.5rem] p-8 group">
-                <div class="flex items-center gap-4">
-                    <div class="text-3xl group-hover:rotate-6 transition">📚</div>
+            <a href="book.html" data-aos="fade-up" class="md:col-span-4 bento-item bg-white rounded-[2.5rem] p-8 group">
+                <div class="flex items-center gap-5">
+                    <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-xl group-hover:rotate-6 transition">📚</div>
                     <div>
-                        <h4 class="font-black uppercase text-slate-900 tracking-tighter">Library</h4>
+                        <h4 class="font-black uppercase text-slate-900 tracking-tighter text-lg">Library</h4>
                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Digital Workbooks</p>
                     </div>
                 </div>
             </a>
-            <a href="quests.html" data-aos="fade-up" data-aos-delay="100" class="md:col-span-4 bento-item bg-slate-50 rounded-[2.5rem] p-8 group">
-                <div class="flex items-center gap-4">
-                    <div class="text-3xl group-hover:scale-110 transition">🎯</div>
+            <a href="quests.html" data-aos="fade-up" data-aos-delay="100" class="md:col-span-4 bento-item bg-white rounded-[2.5rem] p-8 group">
+                <div class="flex items-center gap-5">
+                    <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-xl group-hover:scale-110 transition">🎯</div>
                     <div>
-                        <h4 class="font-black uppercase text-slate-900 tracking-tighter">Quests</h4>
+                        <h4 class="font-black uppercase text-slate-900 tracking-tighter text-lg">Quests</h4>
                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Rescue Mikhail Tal</p>
                     </div>
                 </div>
             </a>
-            <a href="https://wa.me/2348026527056" data-aos="fade-up" data-aos-delay="200" class="md:col-span-4 bento-item bg-red-50 border-red-100 rounded-[2.5rem] p-8 flex items-center justify-between">
-                <span class="font-black uppercase text-red-600 tracking-tighter">Contact <br>Coach</span>
-                <i class="fab fa-whatsapp text-2xl text-red-600"></i>
+            <a href="https://wa.me/2348026527056" data-aos="fade-up" data-aos-delay="200" class="md:col-span-4 bento-item bg-red-600 rounded-[2.5rem] p-8 flex items-center justify-between group shadow-lg shadow-red-100">
+                <div>
+                    <span class="font-black uppercase text-white tracking-tighter text-lg block leading-tight">Contact <br>Coach</span>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white transition-colors">
+                    <i class="fab fa-whatsapp text-2xl text-white group-hover:text-red-600 transition-colors"></i>
+                </div>
             </a>
         </div>
     </main>
 
-    <footer class="py-24 text-center border-t border-slate-50">
-        <img src="Gemini_Generated_Image_yl963nyl963nyl96.png" class="w-16 h-16 rounded-full mx-auto mb-6 border-2 border-yellow-400 shadow-lg">
-        <h2 class="brand-font text-2xl font-bold text-red-600 uppercase tracking-widest mb-2">Decipher</h2>
+    <footer class="py-24 text-center border-t border-slate-100 bg-slate-50">
+        <img src="Screenshot_20260319-202756.jpg" alt="Decipher Logo" class="w-20 h-20 rounded-full object-cover mx-auto mb-6 border-4 border-yellow-400 shadow-xl">
+        <h2 class="brand-font text-2xl font-bold text-slate-900 uppercase tracking-widest mb-2">Decipher Chess Academy</h2>
         <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.5em] mb-12 italic">&copy; 2026 Premium Strategy Education</p>
+        
+        <div class="flex justify-center gap-8 text-slate-400">
+            <a href="#" class="hover:text-red-600 transition"><i class="fab fa-instagram text-xl"></i></a>
+            <a href="#" class="hover:text-blue-600 transition"><i class="fab fa-facebook text-xl"></i></a>
+            <a href="#" class="hover:text-red-600 transition"><i class="fab fa-youtube text-xl"></i></a>
+        </div>
     </footer>
 
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
-        AOS.init({ duration: 800, once: true });
+        AOS.init({ duration: 800, once: true, offset: 50 });
 
         // Password Logic
         const modal = document.getElementById('password-modal');
@@ -195,7 +239,8 @@
 
         function openModal() {
             modal.style.display = 'flex';
-            passInput.focus();
+            // Slight delay to allow display:flex to apply before focusing
+            setTimeout(() => passInput.focus(), 50);
         }
 
         function closeModal() {
@@ -206,18 +251,30 @@
 
         function checkPassword() {
             if (passInput.value === 'decipher1234') {
-                window.location.href = 'room.html';
+                // Success styling before redirect
+                passInput.classList.replace('border-slate-200', 'border-green-500');
+                passInput.classList.replace('focus:ring-blue-600', 'focus:ring-green-500');
+                setTimeout(() => {
+                    window.location.href = 'room.html';
+                }, 300);
             } else {
+                // Error handling
                 errorMsg.classList.remove('hidden');
+                passInput.classList.add('border-red-500', 'animate-pulse');
+                setTimeout(() => passInput.classList.remove('animate-pulse'), 500);
                 passInput.value = '';
+                passInput.focus();
             }
         }
 
-        // Enter key support for password
+        // Enter key support
         passInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                checkPassword();
-            }
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        // Click outside to close modal
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) closeModal();
         });
     </script>
 </body>
