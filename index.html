@@ -15,7 +15,6 @@
         
         :root {
             --gold: #D4AF37;
-            /* White Wine / Yellow Theme Colors */
             --wine-yellow: #f4e8c1;
             --dark-wine: #1a1608;
         }
@@ -25,40 +24,17 @@
             background-color: var(--dark-wine); 
             color: #f8fafc;
             overflow-x: hidden;
-        }
-        
-        /* Background Carousel Styling */
-        .bg-carousel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .bg-slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            /* Single Background Image Logic */
+            background-image: linear-gradient(rgba(26, 22, 8, 0.85), rgba(26, 22, 8, 0.85)), url('1772550640524.jpg');
             background-size: cover;
             background-position: center;
-            opacity: 0;
-            transition: opacity 1.5s ease-in-out;
-            /* Dark overlay for readability */
-            background-color: rgba(26, 22, 8, 0.85);
-            background-blend-mode: overlay;
+            background-attachment: fixed;
         }
-
-        .bg-slide.active { opacity: 1; }
-
+        
         .brand-font { font-family: 'Cinzel', serif; }
 
         .chess-card {
-            background: rgba(45, 40, 25, 0.4); /* Themed background */
+            background: rgba(45, 40, 25, 0.4); 
             border: 1px solid rgba(244, 232, 193, 0.1);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             backdrop-filter: blur(10px);
@@ -84,17 +60,10 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Adjusting sub-lettering sizes */
         .sub-header-text { font-size: 8px !important; letter-spacing: 0.3em; }
     </style>
 </head>
 <body>
-
-    <div class="bg-carousel">
-        <div class="bg-slide active" style="background-image: url('1772550640524.jpg');"></div>
-        <div class="bg-slide" style="background-image: url('1772551122640.jpg');"></div>
-        <div class="bg-slide" style="background-image: url('Screenshot_20260319-202756.jpg');"></div>
-    </div>
 
     <div id="password-modal" class="fixed inset-0 flex items-center justify-center bg-slate-900/80 p-6">
         <div class="bg-slate-900 border border-yellow-600/30 rounded-[3rem] p-10 max-w-sm w-full shadow-2xl text-center">
@@ -133,8 +102,8 @@
         <a href="https://wa.me/2348026527056" class="text-yellow-500 text-4xl font-black uppercase italic">Contact</a>
     </div>
 
-    <header class="pt-64 pb-20 px-6 text-center lg:text-left max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16">
-        <div class="flex-1" data-aos="fade-right">
+    <header class="pt-64 pb-20 px-6 text-center lg:text-left max-w-7xl mx-auto">
+        <div class="max-w-4xl" data-aos="fade-right">
             <div class="inline-flex items-center gap-3 mb-6 px-5 py-2 rounded-full bg-yellow-600/10 border border-yellow-600/20">
                 <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
                 <span class="text-yellow-500 text-[9px] font-black uppercase tracking-widest">Premium Learning Portal</span>
@@ -142,14 +111,11 @@
             <h1 class="text-5xl md:text-8xl font-black mb-8 tracking-tighter uppercase leading-[0.9]">
                 Deciphering the <br><span class="gold-text italic">Art of Strategy.</span>
             </h1>
-            <p class="text-slate-400 text-lg max-w-lg mb-12">Professional instruction, real-time analysis, and elite competition for modern scholars.</p>
-            <div class="flex flex-col sm:flex-row gap-4">
+            <p class="text-slate-200 text-lg max-w-lg mb-12">Professional instruction, real-time analysis, and elite competition for modern scholars.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <button onclick="toggleModal(true)" class="bg-yellow-600 text-black px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-yellow-600/20 hover:scale-105 transition">Live Room</button>
                 <a href="https://wa.me/2348026527056" class="bg-white/5 border border-white/10 text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition text-center">Enroll Now</a>
             </div>
-        </div>
-        <div class="flex-1" data-aos="zoom-in">
-            <img src="1772550640524.jpg" class="rounded-[3rem] shadow-2xl border-8 border-black/50 object-cover aspect-square">
         </div>
     </header>
 
@@ -160,10 +126,7 @@
                 <div>
                     <h3 class="text-yellow-500 font-black text-[10px] uppercase tracking-[0.4em] mb-4">Official Rankings</h3>
                     <h2 class="brand-font text-5xl md:text-7xl font-bold gold-text leading-none mb-6 italic">Masters League</h2>
-                    <p class="text-slate-400 max-w-md">View current standings and tournament points for the elite academy division.</p>
-                </div>
-                <div class="w-48 h-48 rounded-3xl overflow-hidden border-2 border-yellow-600/30 rotate-3 group-hover:rotate-0 transition duration-500 shadow-2xl">
-                    <img src="1772551122640.jpg" class="w-full h-full object-cover">
+                    <p class="text-slate-300 max-w-md">View current standings and tournament points for the elite academy division.</p>
                 </div>
             </div>
             <i class="fas fa-chess-king absolute -right-20 -bottom-20 text-[25rem] opacity-5 rotate-12"></i>
@@ -175,7 +138,7 @@
                 <span class="text-[9px] font-black text-yellow-400 uppercase tracking-widest">AI Trainer</span>
             </div>
             <h3 class="text-3xl font-black italic uppercase text-white mb-2 tracking-tighter">Foundation <br>Engine Lab</h3>
-            <p class="text-slate-500 text-sm">Perfect for beginners to test tactics and improve calculation.</p>
+            <p class="text-slate-300 text-sm">Perfect for beginners to test tactics and improve calculation.</p>
         </a>
 
         <a href="https://lichess.org/training/daily" target="_blank" data-aos="fade-up" data-aos-delay="100" class="md:col-span-6 chess-card p-10 rounded-[3rem] group">
@@ -184,13 +147,13 @@
                 <span class="text-[9px] font-black text-yellow-400 uppercase tracking-widest">Daily Quest</span>
             </div>
             <h3 class="text-3xl font-black italic uppercase text-white mb-2 tracking-tighter">Lichess <br>Tactics Arena</h3>
-            <p class="text-slate-500 text-sm">Solve world-class chess puzzles and earn your daily XP.</p>
+            <p class="text-slate-300 text-sm">Solve world-class chess puzzles and earn your daily XP.</p>
         </a>
 
         <a href="book.html" data-aos="fade-up" class="md:col-span-7 chess-card bg-white/5 p-12 rounded-[3.5rem] flex items-center justify-between group">
             <div>
                 <h3 class="text-4xl font-black italic uppercase tracking-tighter text-white mb-4">Academy <br>Workbooks</h3>
-                <p class="text-slate-500 text-sm max-w-xs">Access digital curriculum, theory notes, and homework guides.</p>
+                <p class="text-slate-300 text-sm max-w-xs">Access digital curriculum, theory notes, and homework guides.</p>
             </div>
             <div class="text-6xl group-hover:rotate-6 transition"><i class="fas fa-book-open text-yellow-600/40"></i></div>
         </a>
@@ -211,7 +174,7 @@
         <h2 class="brand-font text-3xl font-black gold-text uppercase tracking-widest mb-4">Decipher Chess Academy</h2>
         <p class="sub-header-text font-black uppercase mb-12 italic text-white/40">&copy; 2026 PREMIUM STRATEGY EDUCATION | LAGOS, NIGERIA</p>
         
-        <div class="flex justify-center gap-12 text-slate-600">
+        <div class="flex justify-center gap-12 text-slate-400">
             <a href="https://wa.me/2348026527056" class="hover:text-green-500 transition text-2xl"><i class="fab fa-whatsapp"></i></a>
             <a href="#" class="hover:text-yellow-500 transition text-2xl"><i class="fab fa-instagram"></i></a>
         </div>
@@ -220,18 +183,6 @@
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init({ duration: 1000, once: true });
-
-        // Carousel Logic
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.bg-slide');
-        
-        function nextSlide() {
-            slides[currentSlide].classList.remove('active');
-            currentSlide = (currentSlide + 1) % slides.length;
-            slides[currentSlide].classList.add('active');
-        }
-
-        setInterval(nextSlide, 5000); // Change image every 5 seconds
 
         function toggleMenu(open) {
             document.getElementById('mobile-menu').classList.toggle('active', open);
