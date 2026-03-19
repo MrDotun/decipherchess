@@ -27,7 +27,6 @@
         
         .brand-font { font-family: 'Cinzel', serif; }
 
-        /* Themed Glass Effect */
         .chess-card {
             background: rgba(30, 41, 59, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -41,14 +40,12 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
 
-        /* Mobile Menu */
         #mobile-menu {
             transition: transform 0.4s ease-in-out;
             transform: translateX(100%);
         }
         #mobile-menu.active { transform: translateX(0); }
 
-        /* Password Modal */
         #password-modal { display: none; backdrop-filter: blur(16px); z-index: 1000; }
 
         .gold-text {
@@ -113,7 +110,7 @@
             </div>
         </div>
         <div class="flex-1" data-aos="zoom-in">
-            <img src="https://images.unsplash.com/photo-1528819622765-d6bcf132f793?q=80&w=2070" class="rounded-[3rem] shadow-2xl border-8 border-slate-900 object-cover aspect-square">
+            <img src="1772550640524.jpg" class="rounded-[3rem] shadow-2xl border-8 border-slate-900 object-cover aspect-square">
         </div>
     </header>
 
@@ -126,7 +123,9 @@
                     <h2 class="brand-font text-5xl md:text-7xl font-bold gold-text leading-none mb-6 italic">Masters League</h2>
                     <p class="text-slate-400 max-w-md">View current standings and tournament points for the elite academy division.</p>
                 </div>
-                <div class="text-yellow-500 text-8xl group-hover:scale-110 transition duration-500">醇</div>
+                <div class="w-48 h-48 rounded-3xl overflow-hidden border-2 border-yellow-600/30 rotate-3 group-hover:rotate-0 transition duration-500 shadow-2xl">
+                    <img src="1772551122640.jpg" class="w-full h-full object-cover">
+                </div>
             </div>
             <i class="fas fa-chess-king absolute -right-20 -bottom-20 text-[25rem] opacity-5 rotate-12"></i>
         </a>
@@ -154,7 +153,7 @@
                 <h3 class="text-4xl font-black italic uppercase tracking-tighter text-white mb-4">Academy <br>Workbooks</h3>
                 <p class="text-slate-500 text-sm max-w-xs">Access digital curriculum, theory notes, and homework guides.</p>
             </div>
-            <div class="text-6xl group-hover:rotate-6 transition">当</div>
+            <div class="text-6xl group-hover:rotate-6 transition"><i class="fas fa-book-open text-yellow-600/40"></i></div>
         </a>
 
         <div onclick="toggleModal(true)" data-aos="fade-up" data-aos-delay="100" class="md:col-span-5 chess-card bg-blue-600 p-12 rounded-[3.5rem] flex flex-col justify-center cursor-pointer group hover:bg-blue-700">
@@ -163,7 +162,7 @@
                 <span class="text-[10px] font-black uppercase tracking-widest text-white">Entry Active</span>
             </div>
             <h3 class="text-4xl font-black italic uppercase tracking-tighter text-white">Live <br>Session</h3>
-            <div class="mt-6 text-white/60 text-xs font-bold uppercase tracking-widest">Click to Launch Room 視</div>
+            <div class="mt-6 text-white/60 text-xs font-bold uppercase tracking-widest">Click to Launch Room <i class="fas fa-arrow-right ml-2"></i></div>
         </div>
 
     </main>
