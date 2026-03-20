@@ -21,7 +21,7 @@
 
         body { 
             font-family: 'Outfit', sans-serif; 
-            background-image: linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), url('1772550640524.jpg');
+            background-image: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url('1772550640524.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -32,10 +32,10 @@
         .brand-font { font-family: 'Cinzel', serif; }
 
         .chess-card {
-            background: rgba(255, 255, 255, 0.8); 
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.6); /* More transparent */
+            border: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(10px);
             color: #1e293b;
         }
 
@@ -77,21 +77,21 @@
     </div>
 
     <nav class="fixed w-full z-50 px-6 py-6">
-        <div class="max-w-7xl mx-auto flex justify-between items-center bg-white/70 backdrop-blur-xl px-8 py-5 rounded-[2.5rem] border border-white/50 shadow-2xl">
+        <div class="max-w-7xl mx-auto flex justify-between items-center bg-white/40 backdrop-blur-xl px-8 py-5 rounded-[2.5rem] border border-white/30 shadow-2xl">
             <div class="flex items-center gap-6">
-                <img src="Screenshot_20260319-202756.jpg" class="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-yellow-500 shadow-xl object-cover">
+                <img src="Screenshot_20260319-202756.jpg" class="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-yellow-500 shadow-xl object-cover">
                 <div class="flex flex-col">
-                    <span class="brand-font font-bold gold-text text-xl md:text-2xl tracking-widest">DECIPHER</span>
+                    <span class="brand-font font-bold gold-text text-lg md:text-xl tracking-widest">DECIPHER</span>
                     <span class="sub-header-text font-bold uppercase text-slate-600 opacity-80">Chess Academy</span>
                 </div>
             </div>
 
-            <div class="hidden lg:flex items-center gap-10 text-[11px] font-black uppercase tracking-widest text-slate-700">
+            <div class="hidden lg:flex items-center gap-10 text-[10px] font-black uppercase tracking-widest text-slate-700">
                 <a href="#masters-league" class="hover:text-yellow-600 transition">League</a>
-                <a href="https://wa.me/2348026527056" class="border border-yellow-600 text-yellow-600 px-8 py-3 rounded-2xl hover:bg-yellow-600 hover:text-white transition duration-300">Support</a>
+                <a href="https://wa.me/2348026527056" class="border border-yellow-600 text-yellow-600 px-6 py-2 rounded-xl hover:bg-yellow-600 hover:text-white transition duration-300">Support</a>
             </div>
 
-            <button onclick="toggleMenu(true)" class="lg:hidden text-yellow-600 text-3xl"><i class="fas fa-bars"></i></button>
+            <button onclick="toggleMenu(true)" class="lg:hidden text-yellow-600 text-2xl"><i class="fas fa-bars"></i></button>
         </div>
     </nav>
 
@@ -103,95 +103,88 @@
     </div>
 
     <header class="pt-64 pb-20 px-6 text-center lg:text-left max-w-7xl mx-auto">
-        <div class="max-w-4xl mx-auto lg:mx-0 bg-white/70 backdrop-blur-lg p-8 md:p-14 rounded-[3rem] shadow-2xl border border-white/50" data-aos="fade-right">
-            <div class="inline-flex items-center gap-3 mb-6 px-5 py-2 rounded-full bg-yellow-600/10 border border-yellow-600/20">
+        <div class="max-w-md mx-auto lg:mx-0 bg-white/40 backdrop-blur-md p-8 md:p-10 rounded-[3rem] shadow-2xl border border-white/30" data-aos="fade-right">
+            <div class="inline-flex items-center gap-3 mb-6 px-4 py-1.5 rounded-full bg-yellow-600/10 border border-yellow-600/20">
                 <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
-                <span class="text-yellow-700 text-[9px] font-black uppercase tracking-widest">Premium Learning Portal</span>
+                <span class="text-yellow-700 text-[8px] font-black uppercase tracking-widest">Premium Portal</span>
             </div>
-            <h1 class="text-2xl md:text-[2.25rem] font-black mb-8 tracking-tighter uppercase leading-[1.0] text-slate-900">
+            <h1 class="text-2xl md:text-3xl font-black mb-6 tracking-tighter uppercase leading-tight text-slate-900">
                 Deciphering the <br><span class="gold-text italic">Art of Strategy.</span>
             </h1>
-            <p class="text-slate-800 text-lg font-medium max-w-lg mb-12 mx-auto lg:mx-0">Professional instruction, real-time analysis, and elite competition for modern scholars.</p>
+            <p class="text-slate-800 text-sm font-medium mb-10">Professional instruction and elite competition for modern scholars.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <button onclick="toggleModal(true)" class="bg-yellow-600 text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-yellow-600/20 hover:scale-105 transition">Live Room</button>
-                <a href="https://wa.me/2348026527056" class="bg-slate-900 text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition text-center">Enroll Now</a>
+                <button onclick="toggleModal(true)" class="bg-yellow-600 text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:scale-105 transition">Live Room</button>
+                <a href="https://wa.me/2348026527056" class="bg-slate-900 text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition text-center">Enroll</a>
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-6 pb-32">
         
-        <a href="http://mrdotun.name.ng/chess/school.html" id="masters-league" data-aos="fade-up" class="md:col-span-12 chess-card p-12 rounded-[4rem] relative overflow-hidden group">
+        <a href="http://mrdotun.name.ng/chess/school.html" id="masters-league" data-aos="fade-up" class="md:col-span-12 chess-card p-10 rounded-[3.5rem] relative overflow-hidden group">
             <div class="relative z-10 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-8">
                 <div>
-                    <h3 class="text-yellow-600 font-black text-[10px] uppercase tracking-[0.4em] mb-4">Official Rankings</h3>
-                    <h2 class="brand-font text-5xl md:text-7xl font-bold gold-text leading-none mb-6 italic">Masters League</h2>
-                    <p class="text-slate-600 max-w-md font-medium">View current standings and tournament points for the elite academy division.</p>
+                    <h3 class="text-yellow-600 font-black text-[9px] uppercase tracking-[0.4em] mb-2">Rankings</h3>
+                    <h2 class="brand-font text-4xl md:text-5xl font-bold gold-text leading-none mb-4 italic">Masters League</h2>
+                    <p class="text-slate-600 max-w-xs text-xs font-medium">View standings and points for the elite division.</p>
                 </div>
             </div>
-            <i class="fas fa-chess-king absolute -right-20 -bottom-20 text-[25rem] opacity-[0.03] rotate-12"></i>
+            <i class="fas fa-chess-king absolute -right-10 -bottom-10 text-[15rem] opacity-[0.03] rotate-12"></i>
         </a>
 
-        <a href="engine.html" data-aos="fade-up" class="md:col-span-6 chess-card p-10 rounded-[3rem] group">
-            <div class="flex justify-between items-start mb-10">
-                <div class="w-16 h-16 bg-yellow-500/10 rounded-2xl flex items-center justify-center text-3xl text-yellow-600"><i class="fas fa-microchip"></i></div>
-                <span class="text-[9px] font-black text-yellow-600 uppercase tracking-widest">AI Trainer</span>
+        <a href="engine.html" data-aos="fade-up" class="md:col-span-6 chess-card p-8 rounded-[2.5rem] group">
+            <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center text-2xl text-yellow-600"><i class="fas fa-microchip"></i></div>
+                <span class="text-[8px] font-black text-yellow-600 uppercase tracking-widest">AI Trainer</span>
             </div>
-            <h3 class="text-3xl font-black italic uppercase text-slate-900 mb-2 tracking-tighter">Foundation <br>Engine Lab</h3>
-            <p class="text-slate-600 text-sm font-medium">Perfect for beginners to test tactics and improve calculation.</p>
+            <h3 class="text-2xl font-black italic uppercase text-slate-900 mb-2 tracking-tighter">Foundation Lab</h3>
+            <p class="text-slate-600 text-xs font-medium">Test tactics and improve calculation.</p>
         </a>
 
-        <a href="https://lichess.org/training/daily" target="_blank" data-aos="fade-up" data-aos-delay="100" class="md:col-span-6 chess-card p-10 rounded-[3rem] group">
-            <div class="flex justify-between items-start mb-10">
-                <div class="w-16 h-16 bg-yellow-500/10 rounded-2xl flex items-center justify-center text-3xl text-yellow-600"><i class="fas fa-puzzle-piece"></i></div>
-                <span class="text-[9px] font-black text-yellow-600 uppercase tracking-widest">Daily Quest</span>
+        <a href="https://lichess.org/training/daily" target="_blank" data-aos="fade-up" data-aos-delay="100" class="md:col-span-6 chess-card p-8 rounded-[2.5rem] group">
+            <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center text-2xl text-yellow-600"><i class="fas fa-puzzle-piece"></i></div>
+                <span class="text-[8px] font-black text-yellow-600 uppercase tracking-widest">Daily Quest</span>
             </div>
-            <h3 class="text-3xl font-black italic uppercase text-slate-900 mb-2 tracking-tighter">Lichess <br>Tactics Arena</h3>
-            <p class="text-slate-600 text-sm font-medium">Solve world-class chess puzzles and earn your daily XP.</p>
+            <h3 class="text-2xl font-black italic uppercase text-slate-900 mb-2 tracking-tighter">Tactics Arena</h3>
+            <p class="text-slate-600 text-xs font-medium">Solve world-class chess puzzles.</p>
         </a>
 
-        <a href="book.html" data-aos="fade-up" class="md:col-span-7 chess-card bg-white/80 p-12 rounded-[3.5rem] flex items-center justify-between group">
+        <a href="book.html" data-aos="fade-up" class="md:col-span-7 chess-card p-10 rounded-[3rem] flex items-center justify-between group">
             <div>
-                <h3 class="text-4xl font-black italic uppercase tracking-tighter text-slate-900 mb-4">Academy <br>Workbooks</h3>
-                <p class="text-slate-600 text-sm max-w-xs font-medium">Access digital curriculum, theory notes, and homework guides.</p>
+                <h3 class="text-3xl font-black italic uppercase tracking-tighter text-slate-900 mb-2">Workbooks</h3>
+                <p class="text-slate-600 text-xs max-w-xs font-medium">Access digital curriculum and theory.</p>
             </div>
-            <div class="text-6xl group-hover:rotate-6 transition"><i class="fas fa-book-open text-yellow-600/40"></i></div>
+            <div class="text-5xl group-hover:rotate-6 transition"><i class="fas fa-book-open text-yellow-600/30"></i></div>
         </a>
 
-        <div onclick="toggleModal(true)" data-aos="fade-up" data-aos-delay="100" class="md:col-span-5 chess-card bg-yellow-600 p-12 rounded-[3.5rem] flex flex-col justify-center cursor-pointer group hover:bg-yellow-700">
-            <div class="flex items-center gap-3 mb-6">
-                <span class="w-3 h-3 bg-white rounded-full animate-ping"></span>
-                <span class="text-[9px] font-black uppercase tracking-widest text-white">Entry Active</span>
+        <div onclick="toggleModal(true)" data-aos="fade-up" data-aos-delay="100" class="md:col-span-5 chess-card bg-yellow-600/90 p-10 rounded-[3rem] flex flex-col justify-center cursor-pointer group hover:bg-yellow-700">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="w-2 h-2 bg-white rounded-full animate-ping"></span>
+                <span class="text-[8px] font-black uppercase tracking-widest text-white">Entry Active</span>
             </div>
-            <h3 class="text-4xl font-black italic uppercase tracking-tighter text-white">Live <br>Session</h3>
-            <div class="mt-6 text-white/80 text-xs font-bold uppercase tracking-widest">Click to Launch Room <i class="fas fa-arrow-right ml-2"></i></div>
+            <h3 class="text-3xl font-black italic uppercase tracking-tighter text-white">Live Session</h3>
+            <div class="mt-4 text-white/80 text-[10px] font-bold uppercase tracking-widest">Launch Room <i class="fas fa-arrow-right ml-2"></i></div>
         </div>
 
     </main>
 
-    <footer class="py-32 text-center border-t border-black/5 bg-white/50 backdrop-blur-md">
-        <img src="Screenshot_20260319-202756.jpg" class="w-32 h-32 rounded-full object-cover mx-auto mb-10 border-4 border-yellow-500 shadow-2xl">
-        <h2 class="brand-font text-3xl font-black gold-text uppercase tracking-widest mb-4">Decipher Chess Academy</h2>
-        <p class="sub-header-text font-black uppercase mb-12 italic text-slate-500">&copy; 2026 PREMIUM STRATEGY EDUCATION | LAGOS, NIGERIA</p>
+    <footer class="py-20 text-center border-t border-black/5 bg-white/30 backdrop-blur-md">
+        <img src="Screenshot_20260319-202756.jpg" class="w-20 h-20 rounded-full object-cover mx-auto mb-6 border-2 border-yellow-500 shadow-xl">
+        <h2 class="brand-font text-xl font-black gold-text uppercase tracking-widest mb-2">Decipher Chess Academy</h2>
+        <p class="sub-header-text font-black uppercase mb-8 italic text-slate-500">&copy; 2026 PREMIUM STRATEGY EDUCATION</p>
         
-        <div class="flex justify-center gap-12 text-slate-500">
-            <a href="https://wa.me/2348026527056" class="hover:text-green-600 transition text-2xl"><i class="fab fa-whatsapp"></i></a>
-            <a href="#" class="hover:text-yellow-600 transition text-2xl"><i class="fab fa-instagram"></i></a>
+        <div class="flex justify-center gap-8 text-slate-500">
+            <a href="https://wa.me/2348026527056" class="hover:text-green-600 transition text-xl"><i class="fab fa-whatsapp"></i></a>
+            <a href="#" class="hover:text-yellow-600 transition text-xl"><i class="fab fa-instagram"></i></a>
         </div>
     </footer>
 
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init({ duration: 1000, once: true });
-
-        function toggleMenu(open) {
-            document.getElementById('mobile-menu').classList.toggle('active', open);
-        }
-
-        function toggleModal(open) {
-            document.getElementById('password-modal').style.display = open ? 'flex' : 'none';
-        }
-
+        function toggleMenu(open) { document.getElementById('mobile-menu').classList.toggle('active', open); }
+        function toggleModal(open) { document.getElementById('password-modal').style.display = open ? 'flex' : 'none'; }
         function checkPass() {
             const val = document.getElementById('pass-field').value;
             if(val === 'decipher1234') { window.location.href = 'room.html'; }
