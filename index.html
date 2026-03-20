@@ -62,7 +62,6 @@
 
         .sub-header-text { font-size: 8px !important; letter-spacing: 0.3em; }
 
-        /* Added specific style for the floating back button */
         .back-float {
             position: fixed;
             bottom: 30px;
@@ -94,8 +93,8 @@
             <div class="flex items-center gap-6">
                 <img src="Screenshot_20260319-202756.jpg" class="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-yellow-500 shadow-xl object-cover">
                 <div class="flex flex-col">
-                    <span class="brand-font font-bold gold-text text-lg md:text-xl tracking-widest">DECIPHER</span>
-                    <span class="sub-header-text font-bold uppercase text-slate-600 opacity-80">Chess Academy</span>
+                    <span class="brand-font font-bold gold-text text-lg md:text-xl tracking-widest uppercase leading-none">DECIPHER</span>
+                    <span class="sub-header-text font-bold uppercase text-slate-600 opacity-80 mt-1">Chess Academy</span>
                 </div>
             </div>
 
@@ -105,8 +104,7 @@
                 <a href="https://wa.me/2348026527056" class="border border-yellow-600 text-yellow-600 px-6 py-2 rounded-xl hover:bg-yellow-600 hover:text-white transition duration-300">Support</a>
             </div>
 
-            <div class="flex items-center gap-4 lg:hidden">
-                <a href="https://decipher.com.ng" class="text-[9px] font-black uppercase tracking-tighter bg-yellow-600 text-white px-4 py-2 rounded-lg">Exit</a>
+            <div class="flex items-center lg:hidden">
                 <button onclick="toggleMenu(true)" class="text-yellow-600 text-2xl"><i class="fas fa-bars"></i></button>
             </div>
         </div>
@@ -132,7 +130,7 @@
             <p class="text-slate-800 text-sm font-medium mb-10">Professional instruction and elite competition for modern scholars.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <button onclick="toggleModal(true)" class="bg-yellow-600 text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:scale-105 transition">Live Room</button>
-                <a href="https://wa.me/2348026527056" class="bg-slate-900 text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition text-center">Enroll</a>
+                <button class="bg-slate-900 text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition text-center">Enroll</button>
             </div>
         </div>
     </header>
