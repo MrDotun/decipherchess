@@ -66,7 +66,7 @@
 <body>
 
     <div id="password-modal" class="fixed inset-0 flex items-center justify-center bg-slate-900/80 p-6">
-        <div class="bg-white border border-yellow-600/30 rounded-[3rem] p-10 max-w-sm w-full shadow-2xl text-center">
+        <div class="bg-white border border-yellow-600/30 rounded-[3rem] p-10 max-sm w-full shadow-2xl text-center">
             <div class="w-20 h-20 bg-yellow-600/10 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl border border-yellow-600/20"><i class="fas fa-lock"></i></div>
             <h3 class="brand-font text-2xl font-bold gold-text mb-2">RESTRICTED ACCESS</h3>
             <p class="text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-8">Decipher Academy Student Login</p>
@@ -86,7 +86,8 @@
                 </div>
             </div>
 
-            <div class="hidden lg:flex items-center gap-10 text-[10px] font-black uppercase tracking-widest text-slate-700">
+            <div class="hidden lg:flex items-center gap-6 text-[10px] font-black uppercase tracking-widest text-slate-700">
+                <a href="https://decipher.com.ng" class="bg-yellow-600 text-white px-6 py-2 rounded-xl hover:bg-yellow-700 transition duration-300">Back to Academy</a>
                 <a href="#masters-league" class="hover:text-yellow-600 transition">League</a>
                 <a href="https://wa.me/2348026527056" class="border border-yellow-600 text-yellow-600 px-6 py-2 rounded-xl hover:bg-yellow-600 hover:text-white transition duration-300">Support</a>
             </div>
@@ -98,8 +99,9 @@
     <div id="mobile-menu" class="fixed inset-0 bg-white z-[100] p-10 flex flex-col justify-center items-center text-center gap-10">
         <button onclick="toggleMenu(false)" class="absolute top-10 right-10 text-slate-900 text-4xl"><i class="fas fa-times"></i></button>
         <img src="Screenshot_20260319-202756.jpg" class="w-32 h-32 rounded-full border-4 border-yellow-500 mb-4">
+        <a href="https://decipher.com.ng" class="text-yellow-600 text-4xl font-black uppercase italic">Main Academy</a>
         <a href="#masters-league" onclick="toggleMenu(false)" class="text-slate-900 text-4xl font-black uppercase italic">League</a>
-        <a href="https://wa.me/2348026527056" class="text-yellow-600 text-4xl font-black uppercase italic">Contact</a>
+        <a href="https://wa.me/2348026527056" class="text-slate-900 text-4xl font-black uppercase italic">Contact</a>
     </div>
 
     <header class="pt-64 pb-20 px-6 text-center lg:text-left max-w-7xl mx-auto">
