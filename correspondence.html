@@ -128,7 +128,6 @@
     </div>
 
     <script>
-        // ... (The rest of the JS remains identical to your functional code to ensure stability)
         const firebaseConfig = {
           apiKey: "AIzaSyCcSVTifrJhzXvhQ4m1UyObtCKd8QnKEUw",
           authDomain: "assignments-de95a.firebaseapp.com",
@@ -153,17 +152,13 @@
         };
 
         function loadFrontLeaderboard() {
-            db.collection("academy_players").orderBy("rating", "desc").get().then(snap => {
+            db.collection("academy_players").orderBy("rating", "desc").limit(10).get().then(snap => {
                 let html = "";
                 let rank = 1;
                 snap.forEach(doc => {
                     const p = doc.data();
                     const rankClass = rank <= 3 ? `rank-${rank}` : "";
-                    html += `
-                        <div class="item-row">
-                            <span><span class="rank-badge ${rankClass}">${rank}</span> ${p.name}</span>
-                            <span style="color: var(--gold); font-weight:bold;">${p.rating}</span>
-                        </div>`;
+                    html += `<div class="item-row"><span><span class="rank-badge ${rankClass}">${rank}</span> ${p.name}</span><span style="color: var(--gold); font-weight:bold;">${p.rating}</span></div>`;
                     rank++;
                 });
                 document.getElementById('front-leaderboard').innerHTML = html || "<p style='font-size:10px; text-align:center;'>No players yet.</p>";
@@ -186,9 +181,7 @@
             }
             const name = $("#reg-name").val().trim(), pin = $("#reg-password").val(), id = name.toLowerCase().replace(/\s/g, '_');
             if(!name || !pin) return alert("Please fill in all required fields.");
-            
             const docRef = db.collection("academy_players").doc(id), doc = await docRef.get();
-            
             if (authMode === 'login') {
                 if (!doc.exists || (doc.data().pin !== pin && pin !== "decipher1234")) return alert("Invalid PIN or Username");
                 myData = doc.data();
@@ -223,13 +216,10 @@
                 document.getElementById('my-match-list').innerHTML = myHtml || "<p style='font-size:10px; text-align:center;'>No active battles.</p>";
                 document.getElementById('live-games-list').innerHTML = liveHtml || "<p style='font-size:10px; text-align:center;'>No games to spectate.</p>";
             });
-
             if(myId && !myId.startsWith('guest')) {
                 db.collection("academy_players").limit(15).get().then(snap => {
                     let pList = "";
-                    snap.forEach(doc => {
-                        if(doc.id !== myId) pList += `<div class="item-row"><span>${doc.data().name}</span><button onclick="challenge('${doc.id}')" style="background:var(--secondary); border:none; border-radius:4px; padding:6px; font-weight:bold; cursor:pointer;">⚔️ CHALLENGE</button></div>`;
-                    });
+                    snap.forEach(doc => { if(doc.id !== myId) pList += `<div class="item-row"><span>${doc.data().name}</span><button onclick="challenge('${doc.id}')" style="background:var(--secondary); border:none; border-radius:4px; padding:6px; font-weight:bold; cursor:pointer;">⚔️ CHALLENGE</button></div>`; });
                     document.getElementById('player-challenge-list').innerHTML = pList || "<p style='font-size:10px; text-align:center;'>No other players found.</p>";
                 });
             }
@@ -241,9 +231,7 @@
             snap.forEach(doc => { if(doc.data().players.includes(oppId)) activeWithOpponent = true; });
             if (activeWithOpponent) return alert("Active game already exists!");
             const matchId = `${myId}_vs_${oppId}_${Date.now()}`;
-            await db.collection("academy_matches").doc(matchId).set({
-                white: myId, black: oppId, players: [myId, oppId], status: "active", fen: "start", pgn: "", lastMoveTime: Date.now(), drawOffer: null
-            });
+            await db.collection("academy_matches").doc(matchId).set({ white: myId, black: oppId, players: [myId, oppId], status: "active", fen: "start", pgn: "", lastMoveTime: Date.now(), drawOffer: null });
             loadGame(matchId);
         }
 
@@ -251,7 +239,7 @@
             activeMatchId = id; viewIndex = -1;
             $(".container").addClass("hidden"); $("#section-game").removeClass("hidden");
             if (!board) {
-                board = ChessBoard('myBoard', { draggable: false, position: 'start', pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png' });
+                board = ChessBoard('myBoard', { draggable: false, position: 'start', moveSpeed: 'fast', pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png' });
                 $('#myBoard').on('click', '.square-55d63', onSquareClick);
             }
             if(chatUnsubscribe) chatUnsubscribe();
@@ -261,24 +249,32 @@
             });
             db.collection("academy_matches").doc(id).onSnapshot(async doc => {
                 const d = doc.data(); if (!d) return; matchData = d;
+                const serverFen = d.fen === "start" ? "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" : d.fen;
+                
+                // LAG PREVENTION: Only update if server state differs from local state
+                if (game.fen() !== serverFen) {
+                    game.load(serverFen);
+                    historyMoves = game.history(); 
+                    if (viewIndex === -1 || viewIndex >= historyMoves.length - 2) { 
+                        viewIndex = historyMoves.length - 1; 
+                        board.position(serverFen); 
+                    }
+                }
+
                 if (d.status !== "active") {
                     if(liveTimer) clearInterval(liveTimer);
-                    game.load_pgn(d.pgn || ""); if (game.history().length === 0 && d.fen !== "start") game.load(d.fen);
-                    board.position(game.fen());
                     document.getElementById('deadline-timer').innerText = "🏁 MATCH CONCLUDED";
                     $("#game-actions").addClass("hidden"); return;
                 }
-                game.load_pgn(d.pgn || ""); if (game.history().length === 0 && d.fen !== "start") game.load(d.fen);
-                historyMoves = game.history(); if (viewIndex === -1 || viewIndex >= historyMoves.length - 1) { viewIndex = historyMoves.length - 1; board.position(game.fen()); }
+
                 if(liveTimer) clearInterval(liveTimer);
                 const timerDisplay = document.getElementById('deadline-timer');
                 const startTimer = () => {
                     const deadline = (d.lastMoveTime || Date.now()) + (3 * 24 * 60 * 60 * 1000);
-                    const now = Date.now(); const diff = deadline - now;
+                    const diff = deadline - Date.now();
                     if(diff <= 0) { timerDisplay.innerText = "⚠️ TIME EXPIRED"; clearInterval(liveTimer); } 
                     else {
-                        const days = Math.floor(diff / (1000 * 60 * 60 * 24)), hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-                              mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)), secs = Math.floor((diff % (1000 * 60)) / 1000);
+                        const days = Math.floor(diff / 86400000), hours = Math.floor((diff % 86400000) / 3600000), mins = Math.floor((diff % 3600000) / 60000), secs = Math.floor((diff % 60000) / 1000);
                         timerDisplay.innerText = `⏳ ${days}d ${hours}h ${mins}m ${secs}s`;
                     }
                 };
@@ -295,11 +291,15 @@
             if (!matchData || matchData.status !== "active" || !matchData.players.includes(myId)) return;
             const isMyTurn = (game.turn() === 'w' && myId === matchData.white) || (game.turn() === 'b' && myId === matchData.black);
             if (!isMyTurn) return;
-            if (sourceSquare === null) { if (game.get(sq) && game.get(sq).color === game.turn()) { sourceSquare = sq; $(this).css('background', 'rgba(251, 191, 36, 0.4)'); }
+            if (sourceSquare === null) { 
+                if (game.get(sq) && game.get(sq).color === game.turn()) { sourceSquare = sq; $(this).css('background', 'rgba(251, 191, 36, 0.4)'); }
             } else {
                 const move = game.move({ from: sourceSquare, to: sq, promotion: 'q' });
                 sourceSquare = null; $('.square-55d63').css('background', '');
-                if (move) { board.position(game.fen()); db.collection("academy_matches").doc(activeMatchId).update({ fen: game.fen(), pgn: game.pgn(), lastMoveTime: Date.now(), drawOffer: null });
+                if (move) { 
+                    // OPTIMISTIC MOVE: Update local board immediately
+                    board.position(game.fen()); 
+                    db.collection("academy_matches").doc(activeMatchId).update({ fen: game.fen(), pgn: game.pgn(), lastMoveTime: Date.now(), drawOffer: null });
                 } else if (game.get(sq) && game.get(sq).color === game.turn()) { sourceSquare = sq; $(this).css('background', 'rgba(251, 191, 36, 0.4)'); }
             }
         }
@@ -331,7 +331,6 @@
             await db.collection("academy_matches").doc(activeMatchId).collection("chat").add({ user: myData.name, text: txt, time: Date.now() });
             $("#chat-input").val("");
         }
-
         function logout() { localStorage.removeItem('savedUserId'); location.reload(); }
     </script>
 </body>
