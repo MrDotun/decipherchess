@@ -42,7 +42,6 @@
         }
         .hidden-screen { display: none !important; }
         
-        /* Standard Form Styling */
         .form-group { text-align: left; width: 100%; margin-bottom: 15px; }
         .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
         input { color: black; border-radius: 8px; padding: 12px; width: 100%; border: 2px solid #1e293b; outline: none; }
@@ -54,7 +53,7 @@
     <div id="register-screen" class="overlay-screen">
         <img src="Screenshot_20260319-202756.jpg" class="w-20 h-20 rounded-full border-2 border-yellow-500 mb-4 object-cover">
         <h2 class="text-2xl font-black text-yellow-500 mb-2">STUDENT REGISTRATION</h2>
-        <p class="text-slate-400 mb-6 text-sm">Please register to receive the class password.</p>
+        <p class="text-slate-400 mb-6 text-sm">Register first to request access to the class.</p>
         
         <div class="w-full max-w-sm bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
             <div class="form-group">
@@ -73,7 +72,7 @@
                 <label>Parent's WhatsApp Number</label>
                 <input type="tel" id="reg-whatsapp" placeholder="080 0000 0000">
             </div>
-            <button onclick="handleRegistration()" class="w-full bg-yellow-500 text-black py-4 rounded-xl font-bold uppercase tracking-wider hover:bg-yellow-400 transition-all">Submit & Register</button>
+            <button onclick="handleRegistration()" class="w-full bg-yellow-500 text-black py-4 rounded-xl font-bold uppercase tracking-wider hover:bg-yellow-400 transition-all">Submit Registration</button>
         </div>
     </div>
 
@@ -83,9 +82,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
         </div>
-        <h2 class="text-2xl font-bold mb-2">Registration Received!</h2>
-        <p class="text-slate-400 max-w-xs mb-8">The password to the chess room will be sent to your WhatsApp number shortly.</p>
-        <button onclick="showScreen('login-screen')" class="w-full max-w-xs bg-slate-800 py-4 rounded-xl font-bold">Go to Login Page</button>
+        <h2 class="text-2xl font-bold mb-2">Registration Sent!</h2>
+        <p class="text-slate-400 max-w-xs mb-8">Coach will verify your details and send the password to your WhatsApp. Once you have it, click below.</p>
+        <button onclick="showScreen('login-screen')" class="w-full max-w-xs bg-yellow-500 text-black py-4 rounded-xl font-bold">I Have the Password</button>
     </div>
 
     <div id="login-screen" class="overlay-screen hidden-screen">
@@ -93,7 +92,8 @@
         <div class="w-full max-w-xs">
             <input type="password" id="room-pass" placeholder="••••••••" class="text-center text-2xl tracking-widest">
             <button onclick="checkAccess()" class="w-full bg-blue-600 py-4 rounded-xl font-bold mt-4 mb-6">ENTER LIVE ROOM</button>
-            <div class="border-t border-slate-800 pt-4">
+            <div class="flex justify-between border-t border-slate-800 pt-4">
+                <button onclick="showScreen('register-screen')" class="text-xs text-slate-500 hover:text-white">Back to Register</button>
                 <button onclick="adminLogin()" class="text-xs text-slate-500 hover:text-yellow-500 uppercase font-bold tracking-tighter">Admin Portal</button>
             </div>
         </div>
@@ -101,7 +101,7 @@
 
     <div id="admin-screen" class="overlay-screen hidden-screen" style="justify-content: start;">
         <div class="flex justify-between w-full mb-4 sticky top-0 bg-[#020617] py-2">
-            <h2 class="text-xl font-bold text-yellow-500">Database</h2>
+            <h2 class="text-xl font-bold text-yellow-500">Registration Database</h2>
             <button onclick="showScreen('login-screen')" class="text-red-500 font-bold">Exit</button>
         </div>
         <div id="admin-list" class="w-full text-left space-y-3">
@@ -131,7 +131,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // REPLACE WITH YOUR FIREBASE CONFIG
+        // CONFIGURATION
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -162,7 +162,7 @@
 
             try {
                 await addDoc(collection(db, "registrations"), data);
-                showScreen('success-screen');
+                showScreen('success-screen'); // Move to success page, NOT the room
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -170,11 +170,12 @@
 
         window.checkAccess = () => {
             const pass = $("#room-pass").val();
+            // ONLY grant access if they have the password you distributed
             if(pass === "chess2026") {
                 showScreen('main-app');
                 initChess();
             } else {
-                alert("Invalid Password. Please check the code sent to your WhatsApp.");
+                alert("Invalid Password. Please wait for Coach to send your access code.");
             }
         }
 
@@ -208,8 +209,8 @@
                 position: 'start',
                 pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
             });
-            $('#startBtn').on('click', board.start);
-            $('#clearBtn').on('click', board.clear);
+            $('#startBtn').off().on('click', board.start);
+            $('#clearBtn').off().on('click', board.clear);
             $(window).resize(board.resize);
 
             const domain = 'meet.jit.si';
