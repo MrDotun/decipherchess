@@ -20,55 +20,183 @@
             height: 100vh; 
             display: flex; 
             flex-direction: column; 
-            overflow: hidden; /* Prevents scrolling */
+            overflow: hidden; 
         }
-        /* Responsive Board Container */
         #board-wrapper {
             width: 90vw;
             max-width: 400px;
             margin: 0 auto;
         }
+        /* New Screen Overlay Styles */
+        .overlay-screen {
+            position: fixed;
+            inset: 0;
+            background: #020617;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+        .hidden-screen { display: none !important; }
+        input { color: black; border-radius: 8px; padding: 10px; width: 100%; margin-bottom: 10px; }
     </style>
 </head>
 <body class="p-4">
 
-    <div class="flex items-center justify-between mb-4">
-        <img src="Screenshot_20260319-202756.jpg" class="w-16 h-16 rounded-full border-2 border-yellow-500 object-cover">
-        <div class="text-right">
-            <h1 class="text-sm font-black uppercase text-yellow-500">Live Academy</h1>
-            <p class="text-[10px] text-slate-400">Audio: <span id="status" class="text-green-500 animate-pulse">Ready</span></p>
+    <div id="welcome-screen" class="overlay-screen">
+        <img src="Screenshot_20260319-202756.jpg" class="w-32 h-32 rounded-full border-4 border-yellow-500 mb-6 object-cover">
+        <h1 class="text-3xl font-black text-yellow-500 mb-2">DECIPHER CHESS</h1>
+        <p class="text-slate-400 mb-8">Welcome to the Live Academy Room</p>
+        <button onclick="showScreen('register-screen')" class="w-full max-w-xs bg-yellow-500 text-black font-bold py-4 rounded-2xl uppercase">Get Started</button>
+    </div>
+
+    <div id="register-screen" class="overlay-screen hidden-screen">
+        <h2 class="text-xl font-bold text-yellow-500 mb-4">Student Registration</h2>
+        <div class="w-full max-w-xs">
+            <input type="text" id="reg-name" placeholder="Full Name">
+            <input type="text" id="reg-school" placeholder="School Name">
+            <input type="text" id="reg-class" placeholder="Class (e.g. Grade 4)">
+            <input type="tel" id="reg-whatsapp" placeholder="Parent's WhatsApp Number">
+            <button onclick="handleRegistration()" class="w-full bg-blue-600 py-4 rounded-2xl font-bold mt-2">Submit & Register</button>
+            <p class="text-[10px] text-slate-500 mt-4 text-center">Your details are secure.</p>
         </div>
     </div>
 
-    <div id="board-wrapper">
-        <div id="myBoard" class="shadow-2xl border-2 border-slate-700"></div>
+    <div id="login-screen" class="overlay-screen hidden-screen">
+        <h2 class="text-xl font-bold text-yellow-500 mb-4">Enter Room</h2>
+        <div class="w-full max-w-xs">
+            <input type="password" id="room-pass" placeholder="Enter Class Password">
+            <button onclick="checkAccess()" class="w-full bg-green-600 py-4 rounded-2xl font-bold mb-4">Enter Class</button>
+            <hr class="border-slate-800 mb-4">
+            <button onclick="adminLogin()" class="text-xs text-slate-400 underline">Admin Portal</button>
+        </div>
     </div>
 
-    <div class="flex gap-2 mt-4 max-w-[400px] mx-auto w-full">
-        <button id="startBtn" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Reset</button>
-        <button id="clearBtn" class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Clear</button>
+    <div id="admin-screen" class="overlay-screen hidden-screen" style="justify-content: start; overflow-y: auto;">
+        <div class="flex justify-between w-full mb-4">
+            <h2 class="text-xl font-bold text-yellow-500">Registered Students</h2>
+            <button onclick="showScreen('login-screen')" class="text-red-500">Close</button>
+        </div>
+        <div id="admin-list" class="w-full text-left space-y-2">
+            <p>Loading...</p>
+        </div>
     </div>
 
-    <div id="voice-container" class="mt-4 h-32 w-full max-w-[400px] mx-auto rounded-2xl overflow-hidden border border-slate-800"></div>
+    <div id="main-app" class="hidden-screen">
+        <div class="flex items-center justify-between mb-4">
+            <img src="Screenshot_20260319-202756.jpg" class="w-16 h-16 rounded-full border-2 border-yellow-500 object-cover">
+            <div class="text-right">
+                <h1 class="text-sm font-black uppercase text-yellow-500">Live Academy</h1>
+                <p class="text-[10px] text-slate-400">Audio: <span id="status" class="text-green-500 animate-pulse">Ready</span></p>
+            </div>
+        </div>
 
-    <script>
-        // FIX 1: Set the piece theme to a Cloud URL so they show up
-        var board = Chessboard('myBoard', {
-            draggable: true,
-            dropOffBoard: 'trash',
-            sparePieces: true,
-            position: 'start',
-            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
-        });
+        <div id="board-wrapper">
+            <div id="myBoard" class="shadow-2xl border-2 border-slate-700"></div>
+        </div>
 
-        $('#startBtn').on('click', board.start);
-        $('#clearBtn').on('click', board.clear);
+        <div class="flex gap-2 mt-4 max-w-[400px] mx-auto w-full">
+            <button id="startBtn" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Reset</button>
+            <button id="clearBtn" class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Clear</button>
+        </div>
 
-        // FIX 2: Mobile Resize
-        $(window).resize(board.resize);
+        <div id="voice-container" class="mt-4 h-32 w-full max-w-[400px] mx-auto rounded-2xl overflow-hidden border border-slate-800"></div>
+    </div>
 
-        // Jitsi Setup
-        window.onload = () => {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // REPLACE WITH YOUR FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Navigation Logic
+        window.showScreen = (screenId) => {
+            $(".overlay-screen, #main-app").addClass("hidden-screen");
+            $("#" + screenId).removeClass("hidden-screen");
+        }
+
+        // Handle Registration
+        window.handleRegistration = async () => {
+            const data = {
+                name: $("#reg-name").val(),
+                school: $("#reg-school").val(),
+                class: $("#reg-class").val(),
+                whatsapp: $("#reg-whatsapp").val(),
+                date: new Date().toISOString()
+            };
+
+            if(!data.name || !data.whatsapp) return alert("Please fill in Name and WhatsApp");
+
+            try {
+                await addDoc(collection(db, "registrations"), data);
+                alert("Registration Successful! The password to the class will be sent to your WhatsApp number.");
+                showScreen('login-screen');
+            } catch (e) {
+                console.error(e);
+                alert("Error saving registration.");
+            }
+        }
+
+        // Access Check (Class Password)
+        window.checkAccess = () => {
+            const pass = $("#room-pass").val();
+            // You can change 'chess2026' to whatever password you want to send to parents
+            if(pass === "chess2026") {
+                showScreen('main-app');
+                initChess();
+            } else {
+                alert("Incorrect Room Password.");
+            }
+        }
+
+        // Admin Access
+        window.adminLogin = async () => {
+            const code = prompt("Enter Admin Passcode:");
+            if(code === "decipher1234") {
+                showScreen('admin-screen');
+                const querySnapshot = await getDocs(collection(db, "registrations"));
+                let html = "";
+                querySnapshot.forEach((doc) => {
+                    const user = doc.data();
+                    html += `<div class="bg-slate-900 p-3 rounded-lg border border-slate-700 text-xs">
+                        <b>${user.name}</b> (${user.class})<br>
+                        Sch: ${user.school} | WA: ${user.whatsapp}
+                    </div>`;
+                });
+                $("#admin-list").html(html || "No registrations yet.");
+            } else {
+                alert("Unauthorized.");
+            }
+        }
+
+        // Chess Initializer (Wrapped for late loading)
+        function initChess() {
+            var board = Chessboard('myBoard', {
+                draggable: true,
+                dropOffBoard: 'trash',
+                sparePieces: true,
+                position: 'start',
+                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+            });
+            $('#startBtn').on('click', board.start);
+            $('#clearBtn').on('click', board.clear);
+            $(window).resize(board.resize);
+
+            // Jitsi
             const domain = 'meet.jit.si';
             const options = {
                 roomName: 'DecipherRoom_Private_2026',
@@ -78,8 +206,8 @@
                 configOverwrite: { startWithVideoMuted: true },
                 interfaceConfigOverwrite: { TOOLBAR_BUTTONS: ['microphone'] }
             };
-            const api = new JitsiMeetExternalAPI(domain, options);
-        };
+            new JitsiMeetExternalAPI(domain, options);
+        }
     </script>
 </body>
 </html>
