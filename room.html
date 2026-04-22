@@ -27,7 +27,6 @@
             max-width: 400px;
             margin: 0 auto;
         }
-        /* New Screen Overlay Styles */
         .overlay-screen {
             position: fixed;
             inset: 0;
@@ -39,49 +38,74 @@
             justify-content: center;
             padding: 20px;
             text-align: center;
+            overflow-y: auto;
         }
         .hidden-screen { display: none !important; }
-        input { color: black; border-radius: 8px; padding: 10px; width: 100%; margin-bottom: 10px; }
+        
+        /* Standard Form Styling */
+        .form-group { text-align: left; width: 100%; margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
+        input { color: black; border-radius: 8px; padding: 12px; width: 100%; border: 2px solid #1e293b; outline: none; }
+        input:focus { border-color: #eab308; }
     </style>
 </head>
 <body class="p-4">
 
-    <div id="welcome-screen" class="overlay-screen">
-        <img src="Screenshot_20260319-202756.jpg" class="w-32 h-32 rounded-full border-4 border-yellow-500 mb-6 object-cover">
-        <h1 class="text-3xl font-black text-yellow-500 mb-2">DECIPHER CHESS</h1>
-        <p class="text-slate-400 mb-8">Welcome to the Live Academy Room</p>
-        <button onclick="showScreen('register-screen')" class="w-full max-w-xs bg-yellow-500 text-black font-bold py-4 rounded-2xl uppercase">Get Started</button>
+    <div id="register-screen" class="overlay-screen">
+        <img src="Screenshot_20260319-202756.jpg" class="w-20 h-20 rounded-full border-2 border-yellow-500 mb-4 object-cover">
+        <h2 class="text-2xl font-black text-yellow-500 mb-2">STUDENT REGISTRATION</h2>
+        <p class="text-slate-400 mb-6 text-sm">Please register to receive the class password.</p>
+        
+        <div class="w-full max-w-sm bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="reg-name" placeholder="Enter student's name">
+            </div>
+            <div class="form-group">
+                <label>School Name</label>
+                <input type="text" id="reg-school" placeholder="Enter school">
+            </div>
+            <div class="form-group">
+                <label>Class</label>
+                <input type="text" id="reg-class" placeholder="e.g. Grade 5">
+            </div>
+            <div class="form-group">
+                <label>Parent's WhatsApp Number</label>
+                <input type="tel" id="reg-whatsapp" placeholder="080 0000 0000">
+            </div>
+            <button onclick="handleRegistration()" class="w-full bg-yellow-500 text-black py-4 rounded-xl font-bold uppercase tracking-wider hover:bg-yellow-400 transition-all">Submit & Register</button>
+        </div>
     </div>
 
-    <div id="register-screen" class="overlay-screen hidden-screen">
-        <h2 class="text-xl font-bold text-yellow-500 mb-4">Student Registration</h2>
-        <div class="w-full max-w-xs">
-            <input type="text" id="reg-name" placeholder="Full Name">
-            <input type="text" id="reg-school" placeholder="School Name">
-            <input type="text" id="reg-class" placeholder="Class (e.g. Grade 4)">
-            <input type="tel" id="reg-whatsapp" placeholder="Parent's WhatsApp Number">
-            <button onclick="handleRegistration()" class="w-full bg-blue-600 py-4 rounded-2xl font-bold mt-2">Submit & Register</button>
-            <p class="text-[10px] text-slate-500 mt-4 text-center">Your details are secure.</p>
+    <div id="success-screen" class="overlay-screen hidden-screen">
+        <div class="bg-green-500/10 p-8 rounded-full mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
         </div>
+        <h2 class="text-2xl font-bold mb-2">Registration Received!</h2>
+        <p class="text-slate-400 max-w-xs mb-8">The password to the chess room will be sent to your WhatsApp number shortly.</p>
+        <button onclick="showScreen('login-screen')" class="w-full max-w-xs bg-slate-800 py-4 rounded-xl font-bold">Go to Login Page</button>
     </div>
 
     <div id="login-screen" class="overlay-screen hidden-screen">
-        <h2 class="text-xl font-bold text-yellow-500 mb-4">Enter Room</h2>
+        <h2 class="text-xl font-bold text-yellow-500 mb-4 uppercase tracking-widest">Enter Class Password</h2>
         <div class="w-full max-w-xs">
-            <input type="password" id="room-pass" placeholder="Enter Class Password">
-            <button onclick="checkAccess()" class="w-full bg-green-600 py-4 rounded-2xl font-bold mb-4">Enter Class</button>
-            <hr class="border-slate-800 mb-4">
-            <button onclick="adminLogin()" class="text-xs text-slate-400 underline">Admin Portal</button>
+            <input type="password" id="room-pass" placeholder="••••••••" class="text-center text-2xl tracking-widest">
+            <button onclick="checkAccess()" class="w-full bg-blue-600 py-4 rounded-xl font-bold mt-4 mb-6">ENTER LIVE ROOM</button>
+            <div class="border-t border-slate-800 pt-4">
+                <button onclick="adminLogin()" class="text-xs text-slate-500 hover:text-yellow-500 uppercase font-bold tracking-tighter">Admin Portal</button>
+            </div>
         </div>
     </div>
 
-    <div id="admin-screen" class="overlay-screen hidden-screen" style="justify-content: start; overflow-y: auto;">
-        <div class="flex justify-between w-full mb-4">
-            <h2 class="text-xl font-bold text-yellow-500">Registered Students</h2>
-            <button onclick="showScreen('login-screen')" class="text-red-500">Close</button>
+    <div id="admin-screen" class="overlay-screen hidden-screen" style="justify-content: start;">
+        <div class="flex justify-between w-full mb-4 sticky top-0 bg-[#020617] py-2">
+            <h2 class="text-xl font-bold text-yellow-500">Database</h2>
+            <button onclick="showScreen('login-screen')" class="text-red-500 font-bold">Exit</button>
         </div>
-        <div id="admin-list" class="w-full text-left space-y-2">
-            <p>Loading...</p>
+        <div id="admin-list" class="w-full text-left space-y-3">
+            <p>Loading database...</p>
         </div>
     </div>
 
@@ -90,19 +114,16 @@
             <img src="Screenshot_20260319-202756.jpg" class="w-16 h-16 rounded-full border-2 border-yellow-500 object-cover">
             <div class="text-right">
                 <h1 class="text-sm font-black uppercase text-yellow-500">Live Academy</h1>
-                <p class="text-[10px] text-slate-400">Audio: <span id="status" class="text-green-500 animate-pulse">Ready</span></p>
+                <p class="text-[10px] text-slate-400">Audio: <span id="status" class="text-green-500 animate-pulse">Connected</span></p>
             </div>
         </div>
-
         <div id="board-wrapper">
             <div id="myBoard" class="shadow-2xl border-2 border-slate-700"></div>
         </div>
-
         <div class="flex gap-2 mt-4 max-w-[400px] mx-auto w-full">
-            <button id="startBtn" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Reset</button>
-            <button id="clearBtn" class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Clear</button>
+            <button id="startBtn" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold text-xs">Reset</button>
+            <button id="clearBtn" class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-xs">Clear</button>
         </div>
-
         <div id="voice-container" class="mt-4 h-32 w-full max-w-[400px] mx-auto rounded-2xl overflow-hidden border border-slate-800"></div>
     </div>
 
@@ -116,54 +137,47 @@
             authDomain: "YOUR_PROJECT.firebaseapp.com",
             projectId: "YOUR_PROJECT_ID",
             storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_ID",
+            messagingSenderId: "YOUR_SENDER_ID",
             appId: "YOUR_APP_ID"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Navigation Logic
         window.showScreen = (screenId) => {
             $(".overlay-screen, #main-app").addClass("hidden-screen");
             $("#" + screenId).removeClass("hidden-screen");
         }
 
-        // Handle Registration
         window.handleRegistration = async () => {
             const data = {
                 name: $("#reg-name").val(),
                 school: $("#reg-school").val(),
                 class: $("#reg-class").val(),
                 whatsapp: $("#reg-whatsapp").val(),
-                date: new Date().toISOString()
+                date: new Date().toLocaleString()
             };
 
-            if(!data.name || !data.whatsapp) return alert("Please fill in Name and WhatsApp");
+            if(!data.name || !data.whatsapp || !data.school) return alert("Please fill in all details");
 
             try {
                 await addDoc(collection(db, "registrations"), data);
-                alert("Registration Successful! The password to the class will be sent to your WhatsApp number.");
-                showScreen('login-screen');
+                showScreen('success-screen');
             } catch (e) {
-                console.error(e);
-                alert("Error saving registration.");
+                alert("Error: " + e.message);
             }
         }
 
-        // Access Check (Class Password)
         window.checkAccess = () => {
             const pass = $("#room-pass").val();
-            // You can change 'chess2026' to whatever password you want to send to parents
             if(pass === "chess2026") {
                 showScreen('main-app');
                 initChess();
             } else {
-                alert("Incorrect Room Password.");
+                alert("Invalid Password. Please check the code sent to your WhatsApp.");
             }
         }
 
-        // Admin Access
         window.adminLogin = async () => {
             const code = prompt("Enter Admin Passcode:");
             if(code === "decipher1234") {
@@ -172,18 +186,20 @@
                 let html = "";
                 querySnapshot.forEach((doc) => {
                     const user = doc.data();
-                    html += `<div class="bg-slate-900 p-3 rounded-lg border border-slate-700 text-xs">
-                        <b>${user.name}</b> (${user.class})<br>
-                        Sch: ${user.school} | WA: ${user.whatsapp}
+                    html += `
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div class="text-yellow-500 font-bold">${user.name}</div>
+                        <div class="text-xs text-slate-400">Class: ${user.class} | School: ${user.school}</div>
+                        <div class="text-xs text-blue-400 font-mono mt-1">WhatsApp: ${user.whatsapp}</div>
+                        <div class="text-[9px] text-slate-600 mt-1">${user.date}</div>
                     </div>`;
                 });
-                $("#admin-list").html(html || "No registrations yet.");
-            } else {
-                alert("Unauthorized.");
+                $("#admin-list").html(html || "<p class='text-center'>No registrations found.</p>");
+            } else if (code !== null) {
+                alert("Access Denied.");
             }
         }
 
-        // Chess Initializer (Wrapped for late loading)
         function initChess() {
             var board = Chessboard('myBoard', {
                 draggable: true,
@@ -196,7 +212,6 @@
             $('#clearBtn').on('click', board.clear);
             $(window).resize(board.resize);
 
-            // Jitsi
             const domain = 'meet.jit.si';
             const options = {
                 roomName: 'DecipherRoom_Private_2026',
