@@ -22,15 +22,10 @@
             flex-direction: column; 
             overflow: hidden; 
         }
-        #board-wrapper {
-            width: 90vw;
-            max-width: 400px;
-            margin: 0 auto;
-        }
         .overlay-screen {
             position: fixed;
             inset: 0;
-            background: #020617;
+            background: rgba(2, 6, 23, 0.95); /* Deep dark semi-transparent */
             z-index: 50;
             display: flex;
             flex-direction: column;
@@ -38,12 +33,11 @@
             justify-content: center;
             padding: 20px;
             text-align: center;
-            overflow-y: auto;
         }
         .hidden-screen { display: none !important; }
         
         .form-group { text-align: left; width: 100%; margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
+        .form-group label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.05em; }
         
         input { 
             background-color: #ffffff !important; 
@@ -53,29 +47,29 @@
             width: 100%; 
             border: 2px solid #1e293b; 
             outline: none;
-            -webkit-appearance: none; 
+            font-size: 16px; /* Prevents iOS zoom on focus */
         }
         
-        input:focus { 
-            border-color: #eab308; 
-            background-color: #ffffff !important;
-            color: #000000 !important;
-        }
+        input:focus { border-color: #eab308; }
 
-        input::placeholder {
-            color: #64748b !important;
-            opacity: 1;
+        /* Beautiful Pop-up Animation */
+        .pop-in {
+            animation: popIn 0.4s cubic-bezier(0.26, 0.53, 0.74, 1.48);
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
 <body class="p-4">
 
     <div id="register-screen" class="overlay-screen">
-        <img src="Screenshot_20260319-202756.jpg" class="w-20 h-20 rounded-full border-2 border-yellow-500 mb-4 object-cover">
-        <h2 class="text-2xl font-black text-yellow-500 mb-2">DECIPHER LIVE ROOM</h2>
-        <p class="text-slate-400 mb-6 text-sm">Welcome! Click the button below to join the class.</p>
+        <img src="Screenshot_20260319-202756.jpg" class="w-20 h-20 rounded-full border-2 border-yellow-500 mb-4 object-cover shadow-lg shadow-yellow-500/20">
+        <h2 class="text-2xl font-black text-yellow-500 mb-1">DECIPHER LIVE ROOM</h2>
+        <p class="text-slate-400 mb-6 text-sm">Welcome! Please fill in your details.</p>
         
-        <div class="w-full max-w-sm bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+        <div class="w-full max-w-sm bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl">
             <div class="form-group">
                 <label>Full Name</label>
                 <input type="text" id="reg-name" placeholder="Enter name (Optional)">
@@ -92,55 +86,48 @@
                 <label>Parent's WhatsApp Number</label>
                 <input type="tel" id="reg-whatsapp" placeholder="Optional">
             </div>
-            <button onclick="handleRegistration()" class="w-full bg-yellow-500 text-black py-4 rounded-xl font-bold uppercase tracking-wider hover:bg-yellow-400 transition-all">Enter Live Room</button>
+            <button onclick="handleRegistration()" class="w-full bg-yellow-500 text-black py-4 rounded-xl font-bold uppercase tracking-wider hover:bg-yellow-400 active:scale-95 transition-all">Enter Live Room</button>
             
             <div class="mt-6 pt-4 border-t border-slate-800">
-                <button onclick="adminLogin()" class="text-xs text-slate-500 hover:text-yellow-500 uppercase font-bold tracking-tighter">Admin Portal</button>
+                <button onclick="adminLogin()" class="w-full py-2 text-xs text-slate-500 hover:text-yellow-500 uppercase font-bold tracking-widest transition-colors">
+                    — Admin Portal —
+                </button>
             </div>
         </div>
     </div>
 
     <div id="success-screen" class="overlay-screen hidden-screen">
-        <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-xl max-w-sm w-full">
-            <div class="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="pop-in bg-slate-900 p-8 rounded-3xl border-2 border-yellow-500/30 shadow-2xl max-w-sm w-full">
+            <div class="w-20 h-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                 </svg>
             </div>
-            <h2 class="text-xl font-bold text-white mb-2">Registration Successful</h2>
-            <p class="text-slate-400 mb-6">Thank you for your response, we'll get back to you shortly.</p>
-            <button onclick="window.location.href='room.html'" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold">Proceed to Room</button>
+            <h2 class="text-2xl font-bold text-white mb-3">Registration Successful!</h2>
+            <p class="text-slate-400 mb-8 leading-relaxed">Thank you for your response, we'll get back to you shortly.</p>
+            <button onclick="window.location.href='room.html'" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-600/20 transition-all">
+                Proceed to Room
+            </button>
         </div>
     </div>
 
-    <div id="login-screen" class="overlay-screen hidden-screen">
-        <h2 class="text-xl font-bold text-yellow-500 mb-4 uppercase tracking-widest">Enter Class Password</h2>
-        <div class="w-full max-w-xs">
-            <input type="text" id="room-pass" placeholder="Enter Room Code" class="text-center text-2xl tracking-widest">
-            <button onclick="checkAccess()" class="w-full bg-blue-600 py-4 rounded-xl font-bold mt-4 mb-6">ENTER LIVE ROOM</button>
-            <div class="flex justify-between border-t border-slate-800 pt-4">
-                <button onclick="showScreen('register-screen')" class="text-xs text-slate-500 hover:text-white">Back</button>
-                <button onclick="adminLogin()" class="text-xs text-slate-500 hover:text-yellow-500 uppercase font-bold tracking-tighter">Admin Portal</button>
+    <div id="admin-screen" class="overlay-screen hidden-screen" style="justify-content: start; overflow-y: auto;">
+        <div class="w-full max-w-2xl">
+            <div class="flex justify-between items-center w-full mb-6 sticky top-0 bg-[#020617]/90 backdrop-blur py-4 z-10 border-b border-slate-800">
+                <h2 class="text-xl font-bold text-yellow-500">Registration Database</h2>
+                <button onclick="showScreen('register-screen')" class="bg-red-500/10 text-red-500 px-4 py-1 rounded-full text-sm font-bold">Exit</button>
+            </div>
+            <div id="admin-list" class="w-full text-left space-y-3 pb-10">
+                <p class="text-slate-500 italic text-center">Loading database...</p>
             </div>
         </div>
     </div>
-
-    <div id="admin-screen" class="overlay-screen hidden-screen" style="justify-content: start;">
-        <div class="flex justify-between w-full mb-4 sticky top-0 bg-[#020617] py-2">
-            <h2 class="text-xl font-bold text-yellow-500">Registration Database</h2>
-            <button onclick="showScreen('register-screen')" class="text-red-500 font-bold">Exit</button>
-        </div>
-        <div id="admin-list" class="w-full text-left space-y-3">
-            <p>Loading database...</p>
-        </div>
-    </div>
-
-    <div id="main-app" class="hidden-screen"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // IMPORTANT: Replace with your real Firebase config
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -153,8 +140,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Global functions
         window.showScreen = (screenId) => {
-            $(".overlay-screen, #main-app").addClass("hidden-screen");
+            $(".overlay-screen").addClass("hidden-screen");
             $("#" + screenId).removeClass("hidden-screen");
         }
 
@@ -167,39 +155,45 @@
                 date: new Date().toLocaleString()
             };
 
+            // Immediately change UI to show loading state if desired, 
+            // but here we just process then show success.
             try {
-                // Save to Firebase
                 await addDoc(collection(db, "registrations"), userData);
-                // Show the success feedback screen
                 showScreen('success-screen');
             } catch (e) {
-                console.error("Error adding document: ", e);
-                // Fallback: Proceed anyway if firebase fails
+                console.error("Firebase Error: ", e);
+                // Even if firebase fails (config missing), show success for the user's sake
                 showScreen('success-screen');
             }
-        }
-
-        window.checkAccess = () => {
-            window.location.href = "room.html";
         }
 
         window.adminLogin = async () => {
             const code = prompt("Enter Admin Passcode:");
             if(code === "decipher1234") {
                 showScreen('admin-screen');
-                const querySnapshot = await getDocs(collection(db, "registrations"));
-                let html = "";
-                querySnapshot.forEach((doc) => {
-                    const user = doc.data();
-                    html += `
-                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                        <div class="text-yellow-500 font-bold">${user.name}</div>
-                        <div class="text-xs text-slate-400">Class: ${user.class} | School: ${user.school}</div>
-                        <div class="text-xs text-blue-400 font-mono mt-1">WhatsApp: ${user.whatsapp}</div>
-                        <div class="text-[9px] text-slate-600 mt-1">${user.date}</div>
-                    </div>`;
-                });
-                $("#admin-list").html(html || "<p class='text-center'>No registrations found.</p>");
+                try {
+                    const querySnapshot = await getDocs(collection(db, "registrations"));
+                    let html = "";
+                    querySnapshot.forEach((doc) => {
+                        const user = doc.data();
+                        html += `
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 hover:border-yellow-500/50 transition-colors">
+                            <div class="flex justify-between items-start">
+                                <div class="text-yellow-500 font-bold text-lg">${user.name}</div>
+                                <div class="text-[10px] text-slate-600 bg-slate-950 px-2 py-1 rounded">${user.date}</div>
+                            </div>
+                            <div class="text-sm text-slate-300 mt-1">
+                                <span class="text-slate-500">School:</span> ${user.school} | <span class="text-slate-500">Class:</span> ${user.class}
+                            </div>
+                            <div class="text-sm text-blue-400 font-mono mt-2 bg-blue-500/5 p-2 rounded">
+                                WhatsApp: ${user.whatsapp}
+                            </div>
+                        </div>`;
+                    });
+                    $("#admin-list").html(html || "<p class='text-center text-slate-500'>No registrations found.</p>");
+                } catch (err) {
+                    $("#admin-list").html("<p class='text-red-500 text-center'>Error loading data. Check Firebase config.</p>");
+                }
             } else if (code !== null) {
                 alert("Access Denied.");
             }
