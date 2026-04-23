@@ -123,7 +123,6 @@
     </div>
 
     <script type="module">
-        // Added deleteDoc and doc to imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -136,18 +135,14 @@
             appId: "YOUR_APP_ID"
         };
 
-        let app, db;
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-        } catch (error) {
-            console.warn("Firebase initialization failed.");
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
+        // Explicitly attach to window so HTML onclick can find them
         window.showScreen = (screenId) => {
             $(".overlay-screen").addClass("hidden-screen");
             $("#" + screenId).removeClass("hidden-screen");
-        }
+        };
 
         window.handleRegistration = async () => {
             const name = $("#reg-name").val().trim();
@@ -156,82 +151,63 @@
             const whatsapp = $("#reg-whatsapp").val().trim();
 
             if (!name || !school || !className || !whatsapp) {
-                alert("Please fill in all the required fields.");
+                alert("Please fill in all fields.");
                 return;
             }
 
             const userData = {
-                name: name,
-                school: school,
-                class: className,
-                whatsapp: whatsapp,
+                name, school, class: className, whatsapp,
                 date: new Date().toLocaleString()
             };
 
             try {
-                if (db) {
-                    await addDoc(collection(db, "registrations"), userData);
-                }
+                // Show the popup IMMEDIATELY before waiting for Firebase
                 window.showScreen('success-screen');
+                
+                // Then save in background
+                await addDoc(collection(db, "registrations"), userData);
             } catch (e) {
                 console.error("Firebase Error: ", e);
-                window.showScreen('success-screen');
+                // If it fails, the popup is already showing so user isn't stuck
             }
-        }
+        };
 
-        // Added delete function
         window.deleteEntry = async (docId) => {
             if (confirm("Delete this registration?")) {
                 try {
                     await deleteDoc(doc(db, "registrations", docId));
-                    // Refresh the list after deletion
                     fetchAdminData();
-                } catch (err) {
-                    alert("Error deleting entry.");
-                }
+                } catch (err) { alert("Error deleting."); }
             }
-        }
+        };
 
-        // Extracted fetch logic so it can be reused after deletion
-        const fetchAdminData = async () => {
+        window.fetchAdminData = async () => {
             try {
-                if (!db) throw new Error("Firebase not initialized");
                 const querySnapshot = await getDocs(collection(db, "registrations"));
                 let html = "";
                 querySnapshot.forEach((document) => {
                     const user = document.data();
                     html += `
-                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 hover:border-yellow-500/50 transition-colors">
-                        <div class="flex justify-between items-start">
-                            <div class="text-yellow-500 font-bold text-lg">${user.name}</div>
-                            <button onclick="deleteEntry('${document.id}')" class="text-[10px] text-red-500 bg-red-500/10 px-2 py-1 rounded hover:bg-red-500 hover:text-white transition-all font-bold">DELETE</button>
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 mb-3">
+                        <div class="flex justify-between">
+                            <div class="text-yellow-500 font-bold">${user.name}</div>
+                            <button onclick="deleteEntry('${document.id}')" class="text-red-500 text-xs font-bold">DELETE</button>
                         </div>
-                        <div class="text-sm text-slate-300 mt-1">
-                            <span class="text-slate-500">School:</span> ${user.school} | <span class="text-slate-500">Class:</span> ${user.class}
-                        </div>
-                        <div class="flex justify-between items-center mt-2">
-                             <div class="text-sm text-blue-400 font-mono bg-blue-500/5 p-2 rounded w-full">
-                                WhatsApp: ${user.whatsapp}
-                            </div>
-                            <div class="text-[9px] text-slate-600 ml-2 whitespace-nowrap">${user.date}</div>
-                        </div>
+                        <div class="text-xs text-slate-400 mt-1">${user.school} | ${user.class}</div>
+                        <div class="text-xs text-blue-400 mt-1">WhatsApp: ${user.whatsapp}</div>
                     </div>`;
                 });
-                $("#admin-list").html(html || "<p class='text-center text-slate-500'>No registrations found.</p>");
-            } catch (err) {
-                $("#admin-list").html("<p class='text-red-500 text-center'>Error loading data.</p>");
-            }
-        }
+                $("#admin-list").html(html || "<p class='text-center'>No data.</p>");
+            } catch (err) { $("#admin-list").html("<p class='text-red-500'>Error.</p>"); }
+        };
 
-        window.adminLogin = async () => {
-            const code = prompt("Enter Admin Passcode:");
+        window.adminLogin = () => {
+            const code = prompt("Passcode:");
             if(code === "decipher1234") {
                 window.showScreen('admin-screen');
-                fetchAdminData();
-            } else if (code !== null) {
-                alert("Access Denied.");
-            }
-        }
+                window.fetchAdminData();
+            } else if (code !== null) { alert("Denied."); }
+        };
     </script>
 </body>
 </html>
