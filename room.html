@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Decipher Live Room</title>
     
-    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-    <script src='https://meet.jit.si/external_api.js'></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
     <style>
         body { 
@@ -64,7 +63,9 @@
 <body class="p-4">
 
     <div id="register-screen" class="overlay-screen">
-        <img src="Screenshot_20260319-202756.jpg" class="w-20 h-20 rounded-full border-2 border-yellow-500 mb-4 object-cover shadow-lg shadow-yellow-500/20">
+        <div class="w-20 h-20 rounded-full border-2 border-yellow-500 mb-4 bg-slate-800 flex items-center justify-center shadow-lg shadow-yellow-500/20">
+            <span class="text-3xl">🔑</span>
+        </div>
         <h2 class="text-2xl font-black text-yellow-500 mb-1">DECIPHER LIVE ROOM</h2>
         <p class="text-slate-400 mb-6 text-sm">Please provide your details to enter.</p>
         
@@ -119,27 +120,20 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // IMPORTANT: Ensure these match your Firebase Console settings exactly.
+    <script>
+        // Firebase Config extracted from your provided details
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+          apiKey: "AIzaSyCcSVTifrJhzXvhQ4m1UyObtCKd8QnKEUw",
+          authDomain: "assignments-de95a.firebaseapp.com",
+          projectId: "assignments-de95a",
+          storageBucket: "assignments-de95a.firebasestorage.app",
+          messagingSenderId: "1088073398299",
+          appId: "1:1088073398299:web:dab1f57ac1d63b10dba0be"
         };
 
-        let app, db;
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-        } catch (error) {
-            console.error("Firebase initialization failed.");
-        }
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
         window.showScreen = (screenId) => {
             $(".overlay-screen").addClass("hidden-screen");
@@ -160,54 +154,47 @@
             const btn = $("#submit-btn");
             btn.prop('disabled', true).text("Registering...").css("opacity", "0.5");
 
-            const userData = {
-                name: name,
-                school: school,
-                class: className,
-                whatsapp: whatsapp,
-                date: new Date().toLocaleString()
-            };
-
             try {
-                if (!db || firebaseConfig.apiKey === "YOUR_API_KEY") {
-                    throw new Error("Firebase Config is missing real keys.");
-                }
+                // Save to 'registrations' collection
+                await db.collection("registrations").add({
+                    name: name,
+                    school: school,
+                    class: className,
+                    whatsapp: whatsapp,
+                    date: new Date().toLocaleString(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
                 
-                // WAIT for the database to finish
-                await addDoc(collection(db, "registrations"), userData);
-                
-                // ONLY show the success screen if the save was successful
                 window.showScreen('success-screen');
             } catch (e) {
                 console.error("Firebase Error: ", e);
-                alert("Critical Error: Database failed to save. Please check your Firebase API keys and Firestore rules.");
+                alert("Error saving to database. Please check your Firestore rules.");
                 btn.prop('disabled', false).text("Enter Live Room").css("opacity", "1");
             }
         }
 
-        window.deleteEntry = async (docId) => {
-            if (confirm("Delete this registration?")) {
-                try {
-                    await deleteDoc(doc(db, "registrations", docId));
-                    fetchAdminData();
-                } catch (err) {
-                    alert("Error deleting entry.");
-                }
+        window.adminLogin = () => {
+            const code = prompt("Enter Admin Passcode:");
+            if(code === "decipher1234") {
+                window.showScreen('admin-screen');
+                fetchAdminData();
+            } else if (code !== null) {
+                alert("Access Denied.");
             }
         }
 
         const fetchAdminData = async () => {
             try {
-                if (!db) throw new Error("Firebase not initialized");
-                const querySnapshot = await getDocs(collection(db, "registrations"));
+                // Fetch and sort by newest first
+                const querySnapshot = await db.collection("registrations").orderBy("timestamp", "desc").get();
                 let html = "";
-                querySnapshot.forEach((document) => {
-                    const user = document.data();
+                querySnapshot.forEach((doc) => {
+                    const user = doc.data();
                     html += `
                     <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 hover:border-yellow-500/50 transition-colors">
                         <div class="flex justify-between items-start">
                             <div class="text-yellow-500 font-bold text-lg">${user.name}</div>
-                            <button onclick="deleteEntry('${document.id}')" class="text-[10px] text-red-500 bg-red-500/10 px-2 py-1 rounded hover:bg-red-500 hover:text-white transition-all font-bold">DELETE</button>
+                            <button onclick="deleteEntry('${doc.id}')" class="text-[10px] text-red-500 bg-red-500/10 px-2 py-1 rounded hover:bg-red-500 hover:text-white transition-all font-bold">DELETE</button>
                         </div>
                         <div class="text-sm text-slate-300 mt-1">
                             <span class="text-slate-500">School:</span> ${user.school} | <span class="text-slate-500">Class:</span> ${user.class}
@@ -216,23 +203,25 @@
                              <div class="text-sm text-blue-400 font-mono bg-blue-500/5 p-2 rounded w-full">
                                 WhatsApp: ${user.whatsapp}
                             </div>
-                            <div class="text-[9px] text-slate-600 ml-2 whitespace-nowrap">${user.date}</div>
+                            <div class="text-[9px] text-slate-600 ml-2 whitespace-nowrap">${user.date || ''}</div>
                         </div>
                     </div>`;
                 });
                 $("#admin-list").html(html || "<p class='text-center text-slate-500'>No registrations found.</p>");
             } catch (err) {
-                $("#admin-list").html("<p class='text-red-500 text-center'>Error loading data.</p>");
+                console.error(err);
+                $("#admin-list").html("<p class='text-red-500 text-center'>Error loading data. Ensure 'timestamp' index is created in Firebase.</p>");
             }
         }
 
-        window.adminLogin = async () => {
-            const code = prompt("Enter Admin Passcode:");
-            if(code === "decipher1234") {
-                window.showScreen('admin-screen');
-                fetchAdminData();
-            } else if (code !== null) {
-                alert("Access Denied.");
+        window.deleteEntry = async (docId) => {
+            if (confirm("Delete this registration?")) {
+                try {
+                    await db.collection("registrations").doc(docId).delete();
+                    fetchAdminData();
+                } catch (err) {
+                    alert("Error deleting entry.");
+                }
             }
         }
     </script>
