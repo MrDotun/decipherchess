@@ -44,7 +44,17 @@
         
         .form-group { text-align: left; width: 100%; margin-bottom: 15px; }
         .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
-        input { color: black; border-radius: 8px; padding: 12px; width: 100%; border: 2px solid #1e293b; outline: none; }
+        
+        /* Updated background-color to white to ensure black text is visible */
+        input { 
+            background-color: white;
+            color: black; 
+            border-radius: 8px; 
+            padding: 12px; 
+            width: 100%; 
+            border: 2px solid #1e293b; 
+            outline: none; 
+        }
         input:focus { border-color: #eab308; }
     </style>
 </head>
@@ -81,7 +91,7 @@
     <div id="login-screen" class="overlay-screen hidden-screen">
         <h2 class="text-xl font-bold text-yellow-500 mb-4 uppercase tracking-widest">Enter Class Password</h2>
         <div class="w-full max-w-xs">
-            <input type="password" id="room-pass" placeholder="••••••••" class="text-center text-2xl tracking-widest">
+            <input type="text" id="room-pass" placeholder="Enter Room Code" class="text-center text-2xl tracking-widest">
             <button onclick="checkAccess()" class="w-full bg-blue-600 py-4 rounded-xl font-bold mt-4 mb-6">ENTER LIVE ROOM</button>
             <div class="flex justify-between border-t border-slate-800 pt-4">
                 <button onclick="showScreen('register-screen')" class="text-xs text-slate-500 hover:text-white">Back</button>
@@ -100,8 +110,7 @@
         </div>
     </div>
 
-    <div id="main-app" class="hidden-screen">
-        </div>
+    <div id="main-app" class="hidden-screen"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -125,12 +134,10 @@
             $("#" + screenId).removeClass("hidden-screen");
         }
 
-        // REDIRECTION LOGIC: Link directly to room.html
         window.handleRegistration = () => {
             window.location.href = "room.html";
         }
 
-        // Bypassing checkAccess for direct entry if needed via the login screen
         window.checkAccess = () => {
             window.location.href = "room.html";
         }
