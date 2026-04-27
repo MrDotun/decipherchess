@@ -103,12 +103,14 @@
             </p>
         </div>
 
-        <div id="rep-list" style="margin-bottom: 15px;">
+        <div id="rep-list" style="margin-bottom: 15px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
             <button class="rep-btn" onclick="selectRep(this, 'Obi Chukwuemeka ')">Obi Chukwuemeka </button>
             <button class="rep-btn" onclick="selectRep(this, 'Onele Chierika')">Onele Chierika</button>
             <button class="rep-btn" onclick="selectRep(this, 'Beckley Semilore')">Beckley Semilore</button>
             <button class="rep-btn" onclick="selectRep(this, 'Andrew Nwagbale')">Andrew Nwagbale</button>
             <button class="rep-btn" onclick="selectRep(this, 'Oluwaseun Ajayi')">Oluwaseun Ajayi</button>
+            <button class="rep-btn" onclick="selectRep(this, 'Eliana Lawrence')">Eliana Lawrence</button>
+            <button class="rep-btn" onclick="selectRep(this, 'Sage Osafile')">Sage Osafile</button>
         </div>
 
         <input type="password" id="studentPass" placeholder="Enter Team Password">
@@ -130,12 +132,12 @@
         </div>
         <div class="opp-card">
             <div style="text-align: left;"><b id="opp-name" style="color:#ef4444">Connecting...</b><br><small id="opp-school">Searching School</small></div>
-            <div id="opp-timer" class="timer-box">20:00</div>
+            <div id="opp-timer" class="timer-box">10:00</div>
         </div>
         <div id="board"></div>
         <div class="opp-card" style="border-left: 4px solid #4ade80; margin-top: 10px;">
             <div style="text-align: left;"><b id="displayName" style="color:#4ade80"></b><br><small>Maryland Convent</small></div>
-            <div id="user-timer" class="timer-box">20:00</div>
+            <div id="user-timer" class="timer-box">10:00</div>
         </div>
         <div id="status" style="font-weight: bold; margin: 10px 0;">Waiting...</div>
         
@@ -161,7 +163,7 @@ var gameInProgress = false;
 var currentOpponentName = "";
 var game = new Chess(), board = null;
 var selectedRepName = "", userColor = 'w';
-var userTime = 1200, oppTime = 1200, timerInterval = null;
+var userTime = 600, oppTime = 600, timerInterval = null;
 
 // Hardcoded position for Maryland as requested
 const marylandRanks = { 1: "12th", 2: "12th", 3: "12th", 4: "12th", 5: "12th", 6: "12th" };
@@ -213,12 +215,15 @@ function copyPGN(pgn) {
 function checkCoachPortal() {
     const pass = prompt("Enter Coach Passcode:");
     if (pass === "decipher1234") {
+        // Updated player list to include all 7 Maryland Convent students
         const players = [
             { name: "Obi Chukwuemeka", pgn: "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O" },
             { name: "Oluwaseun Ajayi", pgn: "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3" },
             { name: "Onele Chierika", pgn: "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3" },
             { name: "Andrew Nwagbale", pgn: "1. c4 e5 2. Nc3 Nf6 3. g3 d5 4. cxd5 Nxd5 5. Bg2" },
-            { name: "Beckley Semilore", pgn: "1. Nf3 d5 2. g3 Nf6 3. Bg2 c6 4. O-O Bf5 5. d3" }
+            { name: "Beckley Semilore", pgn: "1. Nf3 d5 2. g3 Nf6 3. Bg2 c6 4. O-O Bf5 5. d3" },
+            { name: "Eliana Lawrence", pgn: "1. e4 e6 2. d4 d5 3. Nc3 Nf6 4. Bg5 Be7 5. e5 Nfd7" },
+            { name: "Sage Osafile", pgn: "1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Bf5 5. Ng3 Bg6" }
         ];
         
         let html = "";
@@ -307,7 +312,7 @@ function updateTimers() {
 
 async function setupMatch() {
     gameInProgress = true;
-    userTime = 1200; oppTime = 1200;
+    userTime = 600; oppTime = 600;
     game = new Chess();
     userColor = Math.random() > 0.5 ? 'white' : 'black';
     currentOpponentName = nigerianNames[Math.floor(Math.random() * nigerianNames.length)];
