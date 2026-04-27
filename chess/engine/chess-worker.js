@@ -1,13 +1,11 @@
-// chess-worker.js
-importScripts('garbochess (4).js'); // Ensure this matches your filename
+/**
+ * Chess Worker for Ecobank Pre Tournament 2026
+ * Loads the GarboChess engine and handles communication with the main thread.
+ */
 
-onmessage = function(e) {
-    // GarboChess (garbochess.js) defines self.onmessage to handle 
-    // string commands like "position ..." and "search ...".
-    // This worker acts as the bridge.
-    
-    if (typeof e.data === 'string') {
-        // The logic is handled internally by garbochess.js's self.onmessage
-        // but we ensure the command is passed through if needed.
-    }
-};
+// Import the engine script
+importScripts('garbochess.js');
+
+// No additional onmessage handler is needed here because 
+// garbochess.js defines self.onmessage internally to process 
+// the "position" and "search" string commands.
