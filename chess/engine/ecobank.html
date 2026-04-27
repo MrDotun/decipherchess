@@ -6,7 +6,7 @@
     <title>Ecobank Pre Tournament 2026 - Decipher Chess</title>
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -21,16 +21,10 @@
         .loading-bar { width: 200px; height: 4px; background: #334155; border-radius: 2px; margin-top: 15px; overflow: hidden; }
         .loading-progress { width: 0%; height: 100%; background: #4ade80; transition: width 0.5s; }
 
-        #notification-box { position: fixed; bottom: 20px; left: 20px; background: rgba(30, 41, 59, 0.9); border-left: 4px solid #005aab; padding: 12px 20px; border-radius: 4px; transform: translateX(-150%); transition: transform 0.5s ease; z-index: 3000; pointer-events: none; }
-        #notification-box.show { transform: translateX(0); }
-
-        #round-results-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 2500; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-
         .login-card { background: #1e293b; padding: 25px; border-radius: 15px; border: 2px solid #005aab; width: 90%; max-width: 400px; text-align: center; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .login-card input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
         
-        /* Adjusted for visibility of all 7 names */
-        .rep-btn { background: #334155; color: white; padding: 7px 10px; border: 1px solid #005aab; border-radius: 8px; cursor: pointer; width: 100%; margin: 3px 0; text-align: left; transition: 0.3s; font-size: 0.9em;}
+        .rep-btn { background: #334155; color: white; padding: 10px; border: 1px solid #005aab; border-radius: 8px; cursor: pointer; width: 100%; margin: 5px 0; text-align: left; transition: 0.3s; }
         .rep-btn:hover { background: #005aab; }
         .rep-btn.selected { background: #005aab; border-color: #4ade80; }
 
@@ -44,36 +38,18 @@
         .league-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
         .timer-box { font-family: monospace; background: #000; padding: 5px 10px; border-radius: 4px; font-size: 1.2em; min-width: 80px; }
-        .waiting-text { animation: pulse 1.5s infinite; color: #94a3b8; font-weight: bold; letter-spacing: 1px; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        #replay-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.98); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
+        .ctrl-btn { flex: 1; padding: 15px; border: none; border-radius: 8px; background: #334155; color: white; cursor: pointer; font-weight: bold; }
         .highlight-white { background: rgba(0, 90, 171, 0.5) !important; }
-        
-        #coach-portal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 4000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
-        .pgn-item { background: #334155; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #005aab; }
-        .pgn-controls { display: flex; gap: 10px; margin-top: 10px; }
-        .pgn-btn { flex: 1; padding: 8px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; font-size: 0.8em; }
     </style>
 </head>
 <body>
 
-<div id="notification-box"><span id="notif-text" style="font-size: 0.9em; font-weight: bold;"></span></div>
-
-<div id="round-results-overlay">
-    <h1 style="color: #4ade80;">ROUND <span id="res-round-num">1</span> COMPLETE</h1>
-    <div class="login-card" style="margin-top: 20px;">
-        <h3 style="color: #94a3b8; margin-bottom: 5px;">Tournament Standings</h3>
-        <h2 id="maryland-pos" style="color: white; margin: 10px 0;">Maryland Convent: 12th Place</h2>
-        <p style="color: #4ade80; font-weight: bold;">Current Team Points: <span id="total-team-pts">0</span></p>
-        <button id="next-round-btn" class="submit-btn" onclick="startWaitingCountdown()">PROCEED TO NEXT ROUND</button>
-    </div>
-</div>
-
 <div id="matchmaking-overlay">
     <div class="spinner"></div>
-    <h2 id="match-status" class="waiting-text">Searching for Live Opponent...</h2>
-    <div id="wait-timer-container" style="display:none; margin-top:10px;">
-        <p>Round <span id="next-round-label"></span> pairing starts in: <span id="wait-timer" style="color:#4ade80; font-weight:bold;">60</span>s</p>
-    </div>
+    <h2 id="match-status">Searching for Live Opponent...</h2>
+    <p id="match-details" style="color: #94a3b8;">Connecting to Ecobank Tournament Servers</p>
     <div class="loading-bar"><div class="loading-progress" id="load-bar"></div></div>
 </div>
 
@@ -81,20 +57,23 @@
     <div class="login-card">
         <h1 style="color: #005aab; margin: 0;">ECOBANK</h1>
         <h3 style="margin: 0 0 5px 0; color: #94a3b8;">Pre Tournament 2026</h3>
-        <p style="color: #4ade80; font-size: 0.9em; margin-bottom: 5px;">Welcome, Maryland Convent!</p>
+        <p style="color: #4ade80; font-size: 0.9em; margin-bottom: 15px;">Welcome, Maryland Convent Private School!</p>
         
         <div id="rep-list" style="margin-bottom: 15px;">
-            <button class="rep-btn" onclick="selectRep(this, 'Obi Chukwuemeka ')">Obi Chukwuemeka </button>
+            <button class="rep-btn" onclick="selectRep(this, 'Obi Chukwuemeka (board 1)')">Obi Chukwuemeka (board 1)</button>
             <button class="rep-btn" onclick="selectRep(this, 'Onele Chierika')">Onele Chierika</button>
             <button class="rep-btn" onclick="selectRep(this, 'Beckley Semilore')">Beckley Semilore</button>
             <button class="rep-btn" onclick="selectRep(this, 'Andrew Nwagbale')">Andrew Nwagbale</button>
             <button class="rep-btn" onclick="selectRep(this, 'Oluwaseun Ajayi')">Oluwaseun Ajayi</button>
-            <button class="rep-btn" onclick="selectRep(this, 'Eliana Lawrence')">Eliana Lawrence</button>
-            <button class="rep-btn" onclick="selectRep(this, 'Sage Osafile')">Sage Osafile</button>
         </div>
 
         <input type="password" id="studentPass" placeholder="Enter Team Password">
         <button class="submit-btn" onclick="validateAndStart()">PROCEED TO ROUND 1</button>
+    </div>
+
+    <div style="width: 90%; max-width: 400px; background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 50px;">
+        <h3 style="text-align: center; color: #4ade80; margin-top:0;">🏆 Top 20 Nigeria Schools</h3>
+        <table class="league-table"><tbody id="player-body"></tbody></table>
     </div>
 </div>
 
@@ -118,12 +97,23 @@
 const chessWorker = new Worker('./chess-worker.js');
 const firebaseConfig = { apiKey: "AIzaSyCcSVTifrJhzXvhQ4m1UyObtCKd8QnKEUw", authDomain: "assignments-de95a.firebaseapp.com", projectId: "assignments-de95a", storageBucket: "assignments-de95a.firebasestorage.app", messagingSenderId: "1088073398299", appId: "1:1088073398299:web:dab1f57ac1d63b10dba0be" };
 firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 var game = new Chess(), board = null;
-var selectedRepName = "", userColor = 'w', gameInProgress = false;
-var userTime = 1200, oppTime = 1200, timerInterval = null, currentRound = 1;
+var selectedRepName = "", userColor = 'w';
+var userTime = 1200, oppTime = 1200, timerInterval = null;
 
-const nigerianSchools = ["Maryland Convent Private School", "Grange School", "Lekki British School", "Corona Private School"];
+const nigerianSchools = ["Maryland Convent Private School", "Grange School", "Lekki British School", "Corona Private School", "St. Saviour's School", "Green Springs School", "Atlantic Hall", "Chrisland Primary", "British International School", "American International School", "Children's International School", "Meadow Hall School", "Pampers Private School", "Aureola School", "Vivian Fowler", "Loyola Jesuit", "Day Waterman College", "Temple School", "Riverbank School", "Lagos Preparatory School"];
+
+function initLeagues() {
+    let pHTML = "";
+    nigerianSchools.forEach((school, i) => {
+        let score = 2400 - (i * 45);
+        pHTML += `<tr><td><b>${i+1}. ${school}</b></td><td style="text-align:right">${score}</td></tr>`;
+    });
+    $('#player-body').html(pHTML);
+}
+initLeagues();
 
 function selectRep(btn, name) {
     $('.rep-btn').removeClass('selected');
@@ -134,30 +124,46 @@ function selectRep(btn, name) {
 function validateAndStart() {
     if (!selectedRepName) return alert("Select a representative!");
     if ($('#studentPass').val() !== "decipherchess") return alert("Wrong Password!");
+    
     $('#welcome-overlay').hide();
     $('#matchmaking-overlay').css('display', 'flex');
-    setTimeout(setupMatch, 2000);
+    
+    let progress = 0;
+    let interval = setInterval(() => {
+        progress += 10;
+        $('#load-bar').css('width', progress + '%');
+        if (progress >= 100) { clearInterval(interval); setupMatch(); }
+    }, 300);
 }
 
 function formatTime(s) {
-    let min = Math.floor(s / 60); let sec = s % 60;
+    let min = Math.floor(s / 60);
+    let sec = s % 60;
     return (min < 10 ? '0' : '') + min + ":" + (sec < 10 ? '0' : '') + sec;
 }
 
 function updateTimers() {
     if (game.game_over()) return clearInterval(timerInterval);
     if (game.turn() === userColor[0]) {
-        userTime--; $('#user-timer').text(formatTime(userTime));
+        userTime--;
+        $('#user-timer').text(formatTime(userTime));
+        if (userTime <= 0) alert("Time out! You lost.");
     } else {
-        oppTime--; $('#opp-timer').text(formatTime(oppTime));
+        oppTime--;
+        $('#opp-timer').text(formatTime(oppTime));
+        if (oppTime <= 0) alert("Time out! Opponent lost.");
     }
 }
 
 async function setupMatch() {
-    gameInProgress = true;
     userColor = Math.random() > 0.5 ? 'white' : 'black';
+    const oppName = "Tunde Balogun";
+    const oppSch = nigerianSchools[Math.floor(Math.random() * 19) + 1];
+    
+    $('#opp-name').text(oppName);
+    $('#opp-school').text(oppSch);
     $('#displayName').text(selectedRepName);
-    $('#opp-name').text("Tunde Balogun");
+    
     $('#matchmaking-overlay').hide();
     $('#game-container').show();
     
@@ -173,8 +179,9 @@ async function setupMatch() {
     if (userColor === 'black') {
         $('#status').text("Opponent's turn (White)");
         setTimeout(() => {
-            game.move('e4');
+            game.move('e4'); // Forced opening for White AI
             board.position(game.fen());
+            oppTime += 3; // Increment
             $('#status').text("Your turn!");
         }, 1500);
     } else {
@@ -183,7 +190,7 @@ async function setupMatch() {
 }
 
 function onSquareClick(sq) {
-    if (!gameInProgress || game.game_over() || game.turn() !== userColor[0]) return;
+    if (game.game_over() || game.turn() !== userColor[0]) return;
     
     let sourceSquare = window.srcSq;
     if (!sourceSquare) {
@@ -201,16 +208,16 @@ function onSquareClick(sq) {
 
     if (move) {
         board.position(game.fen());
-        userTime += 3;
+        userTime += 3; // 3s Increment
         $('#status').text("Opponent is thinking...");
         
         setTimeout(() => {
             if (game.history().length === 1 && userColor === 'white') {
-                game.move('e5');
+                game.move('e5'); // Forced response for Black AI
                 board.position(game.fen());
+                oppTime += 3;
                 $('#status').text("Your turn!");
             } else {
-                // Critical movement logic using your provided worker
                 chessWorker.postMessage("search 2");
                 chessWorker.postMessage("position " + game.fen());
             }
