@@ -79,6 +79,63 @@
 </head>
 <body>
 
+    <div id="player-of-the-month-screen" class="fixed inset-0 bg-slate-950 z-[9999] overflow-y-auto flex items-center justify-center py-16 px-4">
+        <div class="absolute top-1/4 left-1/4 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
+            <div class="space-y-6 text-center md:text-left order-2 md:order-1">
+                <div class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-yellow-500/10 border border-amber-500/30 px-4 py-1.5 rounded-full backdrop-blur-sm">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-amber-400 font-mono">Player of the Month</span>
+                </div>
+                
+                <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white leading-none uppercase">
+                    Our Undefeated <br/>
+                    <span class="bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent drop-shadow-sm">
+                        Grandmaster Spirit
+                    </span>
+                </h1>
+                
+                <p class="text-slate-300 text-base sm:text-lg max-w-md mx-auto md:mx-0 leading-relaxed">
+                    A massive congratulations to <strong class="text-white font-semibold">Amber Tripathi</strong> for an extraordinary performance at the St. Saviour's School, Ikoyi Annual Chess Tournament!
+                </p>
+
+                <div class="grid grid-cols-3 gap-3 max-w-md mx-auto md:mx-0 pt-2">
+                    <div class="bg-white/[0.03] border border-white/[0.08] backdrop-blur-md rounded-2xl p-3 text-center">
+                        <p class="text-2xl font-black text-amber-400">5 / 5</p>
+                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mt-1">Perfect Score</p>
+                    </div>
+                    <div class="bg-white/[0.03] border border-white/[0.08] backdrop-blur-md rounded-2xl p-3 text-center">
+                        <p class="text-2xl font-black text-yellow-500">U-6</p>
+                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mt-1">Category</p>
+                    </div>
+                    <div class="bg-white/[0.03] border border-white/[0.08] backdrop-blur-md rounded-2xl p-3 text-center">
+                        <p class="text-2xl font-black text-emerald-400">1st</p>
+                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mt-1">Place Trophy</p>
+                    </div>
+                </div>
+
+                <div class="pt-6">
+                    <button onclick="dismissPlayerScreen()" class="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white font-black text-xs uppercase tracking-[0.2em] px-10 py-5 rounded-2xl shadow-xl hover:scale-105 transition transform duration-300 w-full sm:w-auto">
+                        Continue to Website <i class="fas fa-chevron-right ml-2 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="order-1 md:order-2 flex justify-center">
+                <div class="relative max-w-sm w-full aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black border border-white/10 bg-slate-900/50">
+                    <img 
+                      src="Screenshot_20260516-205552.jpg" 
+                      alt="Amber Tripathi - Player of the Month" 
+                      class="w-full h-full object-cover object-center"
+                    />
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <a href="http://mrdotun.name.ng/chess/ecobank.html" class="block w-full bg-blue-600 text-white text-center py-3 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-blue-700 transition relative z-[60]">
         Ecobank Pre Tournament
     </a>
@@ -146,6 +203,63 @@
             </div>
         </div>
     </header>
+
+    <section class="max-w-7xl mx-auto px-6 pb-12" data-aos="fade-up">
+        <div class="bg-slate-900/90 rounded-[3.5rem] border border-yellow-600/30 p-8 md:p-12 backdrop-blur-xl relative overflow-hidden shadow-2xl">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-600/5 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
+                <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-600/30 px-4 py-1 rounded-full">
+                        <i class="fas fa-trophy text-yellow-500 text-xs"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-yellow-500 font-mono">Championship Spotlight</span>
+                    </div>
+                    
+                    <h2 class="brand-font text-3xl md:text-4xl font-bold text-white leading-tight">
+                        Honoring <span class="gold-text">Maryland Convent <br class="hidden md:inline">Private School</span> Chess Team
+                    </h2>
+                    
+                    <p class="text-slate-300 text-sm leading-relaxed max-w-xl mx-auto lg:mx-0">
+                        A massive congratulations to our stellar players on their incredible performance at the prestigious <strong class="text-white">Ecobank Annual Schools Chess Championships 2026</strong> held in Victoria Island, Lagos! Competing head-to-head with <strong class="text-yellow-500">141 elite schools</strong>, our strategists showcased world-class resilience.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto lg:mx-0">
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                            <p class="text-3xl font-black text-yellow-500">3rd</p>
+                            <p class="text-[9px] uppercase tracking-wider text-slate-400 font-bold mt-1">Match Points</p>
+                        </div>
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                            <p class="text-3xl font-black text-slate-300">13th</p>
+                            <p class="text-[9px] uppercase tracking-wider text-slate-400 font-bold mt-1">Game Tiebreaks</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <p class="text-[9px] uppercase tracking-[0.2em] text-yellow-600 font-black mb-3 font-mono">The Elite Lineup</p>
+                        <div class="flex flex-wrap justify-center lg:justify-start gap-2">
+                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Onele Chierika</span>
+                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Obi Chukwuemeka</span>
+                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Oluwaseun Ajayi</span>
+                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Semilore Beckley</span>
+                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Eliana Lawrence</span>
+                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Sage Osafile</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                    <div class="relative group aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-slate-800">
+                        <img src="Screenshot_20260516-211346.jpg" alt="Maryland Convent Group Photo" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    </div>
+                    <div class="relative group aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-slate-800">
+                        <img src="Gemini_Generated_Image_2cj2en2cj2en2cj2.png" alt="Maryland Convent Match Play" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-6 pb-32">
         <a href="http://mrdotun.name.ng/chess/school.html" id="masters-league" data-aos="fade-up" class="md:col-span-12 chess-card p-10 rounded-[3.5rem] relative overflow-hidden group">
@@ -248,6 +362,18 @@
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init({ duration: 1000, once: true });
+        
+        // Function to smoothly hide the Player of the Month screen
+        function dismissPlayerScreen() {
+            const screen = document.getElementById('player-of-the-month-screen');
+            screen.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            screen.style.opacity = '0';
+            screen.style.transform = 'translateY(-100%)';
+            setTimeout(() => {
+                screen.style.display = 'none';
+            }, 500);
+        }
+
         function toggleMenu(open) { document.getElementById('mobile-menu').classList.toggle('active', open); }
         function toggleModal(open) { document.getElementById('password-modal').style.display = open ? 'flex' : 'none'; }
         function checkPass() {
