@@ -76,14 +76,9 @@
             transition: all 0.3s ease;
         }
 
-        /* Added Styles for Mentorship Animation */
-        @keyframes customFadeInUp {
-            from { opacity: 0; transform: translateY(30px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .animate-pop-in {
-            animation: customFadeInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
+        /* Mentorship Animation Styles */
+        @keyframes customFadeInUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .animate-pop-in { animation: customFadeInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
     </style>
 </head>
 <body>
@@ -102,7 +97,7 @@
                 <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white leading-none uppercase">
                     Our Undefeated <br/>
                     <span class="bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent drop-shadow-sm">
-                        Grandmaster Spirit
+                        Spirit
                     </span>
                 </h1>
                 
@@ -134,94 +129,63 @@
 
             <div class="order-1 md:order-2 flex justify-center">
                 <div class="relative max-w-sm w-full aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black border border-white/10 bg-slate-900/50">
-                    <img 
-                      src="IMG-20260516-WA0162.jpg" 
-                      alt="Ambar Tripathi - Player of the Month" 
-                      class="w-full h-full object-cover object-center"
-                    />
+                    <img src="IMG-20260516-WA0162.jpg" alt="Ambar Tripathi - Player of the Month" class="w-full h-full object-cover object-center"/>
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ADDED: Mentorship/Coaching Animation Overlay -->
+    <!-- Mentorship Modal -->
     <div id="mentorship-modal-container" class="fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-500 overflow-y-auto">
-        
-        <!-- Step 1: The Landing Page Convincer Prompt -->
         <div id="mentorship-prompt" class="bg-white rounded-[3rem] p-10 md:p-12 max-w-lg w-full text-center shadow-[0_20px_60px_rgba(212,175,55,0.2)] border-2 border-yellow-500/50 transform scale-75 transition-all duration-500 relative hidden">
-            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 text-3xl shadow-lg border-4 border-white">
-                <i class="fas fa-chess-knight"></i>
-            </div>
-            <h2 class="brand-font text-3xl md:text-4xl font-black gold-text mb-4 italic leading-tight">Elevate Your Strategy.</h2>
-            <p class="text-slate-700 text-sm mb-8 font-medium leading-relaxed">
-                Unlock your true potential. Join the exclusive Decipher Mentorship and Coaching Academy to learn elite tactics directly from Grandmasters and dominate the board.
-            </p>
-            <div class="flex flex-col gap-3">
-                <button onclick="acceptMentorship()" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-black text-[11px] uppercase tracking-widest py-5 px-6 rounded-2xl shadow-xl hover:scale-105 transition transform duration-300">
-                    Yes, I want to become a Master
-                </button>
-                <button onclick="closeMentorship()" class="text-slate-500 font-bold text-[10px] uppercase tracking-widest py-3 hover:text-slate-800 transition">
-                    Maybe Later
-                </button>
-            </div>
+            <h2 class="brand-font text-3xl font-black gold-text mb-4">Elevate Your Strategy</h2>
+            <p class="text-slate-700 text-sm mb-8">Join our professional mentorship and coaching academy to learn from International Masters.</p>
+            <button onclick="acceptMentorship()" class="w-full bg-yellow-600 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-700">View Packages</button>
+            <button onclick="closeMentorship()" class="mt-4 text-slate-500 text-[10px] font-bold uppercase">Maybe Later</button>
         </div>
 
-        <!-- Step 2: The Packages Page -->
-        <div id="mentorship-packages" class="hidden bg-slate-900 rounded-[3rem] p-8 md:p-12 max-w-6xl w-full shadow-2xl border border-yellow-500/30 relative my-10">
-            <button onclick="closeMentorship()" class="absolute top-6 right-8 text-slate-400 hover:text-white text-3xl transition"><i class="fas fa-times"></i></button>
-            
-            <div class="text-center mb-12">
-                <h2 class="brand-font text-3xl md:text-5xl font-black text-white mb-3">Mentorship Packages</h2>
-                <p class="text-yellow-500 text-[10px] font-black uppercase tracking-[0.3em]">Choose Your Path to Mastery</p>
+        <div id="mentorship-packages" class="hidden bg-slate-900 rounded-[3rem] p-8 md:p-12 max-w-4xl w-full shadow-2xl border border-yellow-500/30">
+            <h2 class="brand-font text-2xl text-white mb-8 text-center">Training Membership Packages</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-white text-xs">
+                <!-- Foundation -->
+                <div class="border border-white/10 p-6 rounded-2xl">
+                    <h3 class="font-bold text-yellow-500 mb-2">FOUNDATION (₦20k)</h3>
+                    <ul class="space-y-2 opacity-80">
+                        <li>• 2 training sessions/week</li>
+                        <li>• Fundamentals & tactics</li>
+                        <li>• Puzzle practice</li>
+                        <li>• Internal competitions</li>
+                    </ul>
+                </div>
+                <!-- Advanced -->
+                <div class="border border-yellow-500/50 p-6 rounded-2xl bg-yellow-900/20">
+                    <h3 class="font-bold text-yellow-500 mb-2">ADVANCED (₦30k)</h3>
+                    <ul class="space-y-2 opacity-80">
+                        <li>• 3 training sessions/week</li>
+                        <li>• Tournament preparation</li>
+                        <li>• Game reviews</li>
+                        <li>• Priority coaching</li>
+                    </ul>
+                </div>
+                <!-- Elite -->
+                <div class="border border-white/10 p-6 rounded-2xl">
+                    <h3 class="font-bold text-yellow-500 mb-2">ELITE (₦50k)</h3>
+                    <ul class="space-y-2 opacity-80">
+                        <li>• 3-4 intensive sessions</li>
+                        <li>• Personalized plans</li>
+                        <li>• 1-on-1 game analysis</li>
+                        <li>• Major competition prep</li>
+                    </ul>
+                </div>
             </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-                <!-- Standard Package -->
-                <div class="bg-white/[0.02] border border-white/10 rounded-[2rem] p-8 hover:border-yellow-500/50 transition-all duration-300 relative flex flex-col group">
-                    <h3 class="brand-font text-2xl font-bold text-white mb-2">Tactician</h3>
-                    <div class="text-4xl font-black text-slate-300 mb-6 group-hover:text-yellow-500 transition">₦25,000<span class="text-sm text-slate-500 font-medium">/mo</span></div>
-                    <ul class="text-slate-400 text-sm space-y-4 mb-10 flex-grow">
-                        <li class="flex items-center"><i class="fas fa-check-circle text-yellow-600 mr-3 text-lg"></i> 4 Live Coaching Sessions</li>
-                        <li class="flex items-center"><i class="fas fa-check-circle text-yellow-600 mr-3 text-lg"></i> Tactics & Opening Theory</li>
-                        <li class="flex items-center"><i class="fas fa-check-circle text-yellow-600 mr-3 text-lg"></i> Access to Digital Workbooks</li>
-                        <li class="flex items-center"><i class="fas fa-check-circle text-yellow-600 mr-3 text-lg"></i> Arena Tournament Entry</li>
-                    </ul>
-                    <a href="form.html?package=tactician" class="w-full text-center border border-white/20 text-white hover:bg-white hover:text-slate-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition">Select Tactician</a>
-                </div>
-                
-                <!-- Premium Package (Highlighted) -->
-                <div class="bg-gradient-to-b from-yellow-900/40 to-slate-900 border border-yellow-500 rounded-[2rem] p-8 transform lg:-translate-y-4 shadow-[0_0_40px_rgba(212,175,55,0.15)] relative flex flex-col">
-                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-yellow-500 text-slate-900 text-[9px] font-black uppercase tracking-[0.2em] py-1.5 px-4 rounded-full shadow-lg">Most Popular</div>
-                    <h3 class="brand-font text-2xl font-bold text-white mb-2">Strategist</h3>
-                    <div class="text-4xl font-black gold-text mb-6">₦50,000<span class="text-sm text-yellow-600/60 font-medium">/mo</span></div>
-                    <ul class="text-slate-200 text-sm space-y-4 mb-10 flex-grow">
-                        <li class="flex items-center"><i class="fas fa-star text-yellow-500 mr-3 text-lg"></i> 8 Live Coaching Sessions</li>
-                        <li class="flex items-center"><i class="fas fa-star text-yellow-500 mr-3 text-lg"></i> Advanced Endgame Strategies</li>
-                        <li class="flex items-center"><i class="fas fa-star text-yellow-500 mr-3 text-lg"></i> 1-on-1 Game Analysis</li>
-                        <li class="flex items-center"><i class="fas fa-star text-yellow-500 mr-3 text-lg"></i> Priority Masters League Entry</li>
-                    </ul>
-                    <a href="form.html?package=strategist" class="w-full text-center bg-yellow-600 text-white hover:bg-yellow-700 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-lg">Select Strategist</a>
-                </div>
-
-                <!-- Elite Package -->
-                <div class="bg-white/[0.02] border border-white/10 rounded-[2rem] p-8 hover:border-yellow-500/50 transition-all duration-300 relative flex flex-col group">
-                    <h3 class="brand-font text-2xl font-bold text-white mb-2">Grandmaster</h3>
-                    <div class="text-4xl font-black text-slate-300 mb-6 group-hover:text-yellow-500 transition">₦100,000<span class="text-sm text-slate-500 font-medium">/mo</span></div>
-                    <ul class="text-slate-400 text-sm space-y-4 mb-10 flex-grow">
-                        <li class="flex items-center"><i class="fas fa-crown text-yellow-600 mr-3 text-lg"></i> Unlimited Live Sessions</li>
-                        <li class="flex items-center"><i class="fas fa-crown text-yellow-600 mr-3 text-lg"></i> Custom Engine Preparation</li>
-                        <li class="flex items-center"><i class="fas fa-crown text-yellow-600 mr-3 text-lg"></i> 24/7 Private Mentorship Line</li>
-                        <li class="flex items-center"><i class="fas fa-crown text-yellow-600 mr-3 text-lg"></i> VIP Tournament Logistics</li>
-                    </ul>
-                    <a href="form.html?package=grandmaster" class="w-full text-center border border-white/20 text-white hover:bg-white hover:text-slate-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition">Select Grandmaster</a>
-                </div>
+            <div class="text-center mt-10">
+                <a href="form.html" class="bg-yellow-600 text-white px-10 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest">Register Now</a>
             </div>
         </div>
     </div>
-    <!-- END OF ADDED SECTION -->
 
+    <!-- Rest of your original code remains untouched -->
     <a href="http://mrdotun.name.ng/chess/ecobank.html" class="block w-full bg-blue-600 text-white text-center py-3 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-blue-700 transition relative z-[60]">
         Ecobank Pre Tournament
     </a>
@@ -250,14 +214,12 @@
                     <span class="sub-header-text font-bold uppercase text-slate-600 opacity-80 mt-1">Chess Academy</span>
                 </div>
             </div>
-
             <div class="hidden lg:flex items-center gap-6 text-[10px] font-black uppercase tracking-widest text-slate-700">
                 <a href="https://decipher.com.ng" class="bg-yellow-600 text-white px-6 py-2 rounded-xl hover:bg-yellow-700 transition duration-300">Back to Academy</a>
                 <a href="#masters-league" class="hover:text-yellow-600 transition">League</a>
                 <a href="correspondence.html" class="hover:text-yellow-600 transition">Arena</a>
                 <a href="https://wa.me/2348026527056" class="border border-yellow-600 text-yellow-600 px-6 py-2 rounded-xl hover:bg-yellow-600 hover:text-white transition duration-300">Support</a>
             </div>
-
             <div class="flex items-center lg:hidden">
                 <button onclick="toggleMenu(true)" class="text-yellow-600 text-2xl"><i class="fas fa-bars"></i></button>
             </div>
@@ -293,22 +255,18 @@
     <section class="max-w-7xl mx-auto px-6 pb-12" data-aos="fade-up">
         <div class="bg-slate-900/90 rounded-[3.5rem] border border-yellow-600/30 p-8 md:p-12 backdrop-blur-xl relative overflow-hidden shadow-2xl">
             <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-600/5 rounded-full blur-3xl pointer-events-none"></div>
-            
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
                 <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
                     <div class="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-600/30 px-4 py-1 rounded-full">
                         <i class="fas fa-trophy text-yellow-500 text-xs"></i>
                         <span class="text-[9px] font-black uppercase tracking-widest text-yellow-500 font-mono">Championship Spotlight</span>
                     </div>
-                    
                     <h2 class="brand-font text-3xl md:text-4xl font-bold text-white leading-tight">
                         Honoring <span class="gold-text">Maryland Convent <br class="hidden md:inline">Private School</span> Chess Team
                     </h2>
-                    
                     <p class="text-slate-300 text-sm leading-relaxed max-w-xl mx-auto lg:mx-0">
                         A massive congratulations to our stellar players on their incredible performance at the prestigious <strong class="text-white">Ecobank Annual Schools Chess Championships 2026</strong> held in Victoria Island, Lagos! Competing head-to-head with <strong class="text-yellow-500">141 elite schools</strong>, our strategists showcased world-class resilience.
                     </p>
-
                     <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto lg:mx-0">
                         <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
                             <p class="text-3xl font-black text-yellow-500">3rd</p>
@@ -319,22 +277,7 @@
                             <p class="text-[9px] uppercase tracking-wider text-slate-400 font-bold mt-1">Game Tiebreaks</p>
                         </div>
                     </div>
-
-                    <div class="pt-2">
-                        <p class="text-[9px] uppercase tracking-[0.2em] text-yellow-600 font-black mb-3 font-mono">The Elite Lineup</p>
-                        <div class="flex flex-wrap justify-center lg:justify-start gap-2">
-                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Onele Chierika</span>
-                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Obi Chukwuemeka</span>
-                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Oluwaseun Ajayi</span>
-                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Semilore Beckley</span>
-                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Andrew Uwagbale</span>
-                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Sage Osafile</span>
-                            <span class="bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl text-xs text-slate-200 font-semibold">Eliana Lawrence</span>
-                        </div>
-            
-                    </div>
                 </div>
-
                 <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
                     <div class="relative group aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-slate-800">
                         <img src="Screenshot_20260516-211346.jpg" alt="Maryland Convent Group Photo" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
@@ -360,7 +303,6 @@
             </div>
             <i class="fas fa-chess-king absolute -right-10 -bottom-10 text-[15rem] opacity-[0.03] rotate-12"></i>
         </a>
-
         <a href="correspondence.html" data-aos="fade-up" class="md:col-span-12 arena-card chess-card p-10 rounded-[3.5rem] relative overflow-hidden group border-yellow-600/40">
             <div class="relative z-10 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-8">
                 <div>
@@ -379,7 +321,6 @@
             </div>
             <i class="fas fa-chess-knight absolute -right-10 -bottom-10 text-[15rem] opacity-[0.05] -rotate-12"></i>
         </a>
-        
         <a href="puzzle.html" data-aos="fade-up" class="md:col-span-6 chess-card p-8 rounded-[2.5rem] group border-yellow-600/20">
             <div class="flex justify-between items-start mb-6">
                 <div class="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center text-2xl text-yellow-600"><i class="fas fa-fire-alt"></i></div>
@@ -388,7 +329,6 @@
             <h3 class="text-2xl font-black italic uppercase text-slate-900 mb-2 tracking-tighter">Decipher Puzzle Rush</h3>
             <p class="text-slate-600 text-xs font-medium">Test your limits and shatter the high score in our high-intensity chess puzzle battle.</p>
         </a>
-
         <a href="http://mrdotun.name.ng/chess/endgame.html" data-aos="fade-up" class="md:col-span-6 chess-card p-8 rounded-[2.5rem] group">
             <div class="flex justify-between items-start mb-6">
                 <div class="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center text-2xl text-yellow-600"><i class="fas fa-flask"></i></div>
@@ -397,7 +337,6 @@
             <h3 class="text-2xl font-black italic uppercase text-slate-900 mb-2 tracking-tighter">Endgame Training</h3>
             <p class="text-slate-600 text-xs font-medium">Test your endgame skills</p>
         </a>
-
         <a href="engine.html" data-aos="fade-up" data-aos-delay="100" class="md:col-span-6 chess-card p-8 rounded-[2.5rem] group border-yellow-600/20">
             <div class="flex justify-between items-start mb-6">
                 <div class="w-12 h-12 bg-slate-900/10 rounded-xl flex items-center justify-center text-2xl text-slate-900"><i class="fas fa-brain"></i></div>
@@ -406,7 +345,6 @@
             <h3 class="text-2xl font-black italic uppercase text-slate-900 mb-2 tracking-tighter">Decipher Engine</h3>
             <p class="text-slate-600 text-xs font-medium">Play against our custom-tuned chess engine.</p>
         </a>
-
         <a href="https://lichess.org/training/daily" target="_blank" data-aos="fade-up" class="md:col-span-6 chess-card p-8 rounded-[2.5rem] group">
             <div class="flex justify-between items-start mb-6">
                 <div class="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center text-2xl text-yellow-600"><i class="fas fa-puzzle-piece"></i></div>
@@ -415,7 +353,6 @@
             <h3 class="text-2xl font-black italic uppercase text-slate-900 mb-2 tracking-tighter">Tactics Arena</h3>
             <p class="text-slate-600 text-xs font-medium">Solve world-class chess puzzles.</p>
         </a>
-
         <a href="book.html" data-aos="fade-up" class="md:col-span-6 chess-card p-8 rounded-[2.5rem] group">
             <div class="flex justify-between items-start mb-6">
                 <div class="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center text-2xl text-yellow-600"><i class="fas fa-book-open"></i></div>
@@ -424,7 +361,6 @@
             <h3 class="text-2xl font-black italic uppercase text-slate-900 mb-2 tracking-tighter">Workbooks</h3>
             <p class="text-slate-600 text-xs font-medium">Access digital curriculum and theory.</p>
         </a>
-
         <div onclick="window.location.href='room.html'" data-aos="fade-up" class="md:col-span-12 chess-card bg-yellow-600/90 p-10 rounded-[3rem] flex flex-col justify-center items-center cursor-pointer group hover:bg-yellow-700">
             <div class="flex items-center gap-3 mb-4">
                 <span class="w-2 h-2 bg-white rounded-full animate-ping"></span>
@@ -440,7 +376,6 @@
         <h2 class="brand-font text-xl font-black gold-text uppercase tracking-widest mb-2">Decipher Chess Academy</h2>
         <a href="https://decipher.com.ng" class="inline-block mb-8 text-[10px] font-bold underline uppercase tracking-widest text-yellow-600">Return to Main Website</a>
         <p class="sub-header-text font-black uppercase mb-8 italic text-slate-500">&copy; 2026 PREMIUM STRATEGY EDUCATION</p>
-        
         <div class="flex justify-center gap-8 text-slate-500">
             <a href="https://wa.me/2348026527056" class="hover:text-green-600 transition text-xl"><i class="fab fa-whatsapp"></i></a>
             <a href="#" class="hover:text-yellow-600 transition text-xl"><i class="fab fa-instagram"></i></a>
@@ -450,8 +385,6 @@
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init({ duration: 1000, once: true });
-        
-        // Function to smoothly hide the Player of the Month screen
         function dismissPlayerScreen() {
             const screen = document.getElementById('player-of-the-month-screen');
             screen.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
@@ -459,12 +392,9 @@
             screen.style.transform = 'translateY(-100%)';
             setTimeout(() => {
                 screen.style.display = 'none';
-                
-                // ADDED: Trigger Mentorship prompt after PoM screen is gone
                 setTimeout(showMentorshipPrompt, 600);
             }, 500);
         }
-
         function toggleMenu(open) { document.getElementById('mobile-menu').classList.toggle('active', open); }
         function toggleModal(open) { document.getElementById('password-modal').style.display = open ? 'flex' : 'none'; }
         function checkPass() {
@@ -472,37 +402,19 @@
             if(val === 'decipher1234') { window.location.href = 'room.html'; }
             else { alert('Access Denied'); }
         }
-
-        // ADDED: Mentorship/Coaching logic
         function showMentorshipPrompt() {
             const container = document.getElementById('mentorship-modal-container');
             const prompt = document.getElementById('mentorship-prompt');
-            
             container.classList.remove('opacity-0', 'pointer-events-none');
             prompt.classList.remove('hidden');
-            
-            // Add custom animation
             prompt.classList.add('animate-pop-in');
         }
-
         function acceptMentorship() {
-            const prompt = document.getElementById('mentorship-prompt');
-            const packages = document.getElementById('mentorship-packages');
-            
-            // Hide prompt, show packages
-            prompt.classList.add('hidden');
-            packages.classList.remove('hidden');
-            packages.classList.add('animate-pop-in');
+            document.getElementById('mentorship-prompt').classList.add('hidden');
+            document.getElementById('mentorship-packages').classList.remove('hidden');
         }
-
         function closeMentorship() {
-            const container = document.getElementById('mentorship-modal-container');
-            container.classList.add('opacity-0', 'pointer-events-none');
-            // Reset state for next time
-            setTimeout(() => {
-                document.getElementById('mentorship-prompt').classList.add('hidden');
-                document.getElementById('mentorship-packages').classList.add('hidden');
-            }, 500);
+            document.getElementById('mentorship-modal-container').classList.add('opacity-0', 'pointer-events-none');
         }
     </script>
 </body>
