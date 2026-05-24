@@ -75,6 +75,15 @@
             z-index: 90;
             transition: all 0.3s ease;
         }
+
+        /* Added Styles for Mentorship Animation */
+        @keyframes customFadeInUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-pop-in {
+            animation: customFadeInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
     </style>
 </head>
 <body>
@@ -135,6 +144,83 @@
             </div>
         </div>
     </div>
+
+    <!-- ADDED: Mentorship/Coaching Animation Overlay -->
+    <div id="mentorship-modal-container" class="fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-500 overflow-y-auto">
+        
+        <!-- Step 1: The Landing Page Convincer Prompt -->
+        <div id="mentorship-prompt" class="bg-white rounded-[3rem] p-10 md:p-12 max-w-lg w-full text-center shadow-[0_20px_60px_rgba(212,175,55,0.2)] border-2 border-yellow-500/50 transform scale-75 transition-all duration-500 relative hidden">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 text-3xl shadow-lg border-4 border-white">
+                <i class="fas fa-chess-knight"></i>
+            </div>
+            <h2 class="brand-font text-3xl md:text-4xl font-black gold-text mb-4 italic leading-tight">Elevate Your Strategy.</h2>
+            <p class="text-slate-700 text-sm mb-8 font-medium leading-relaxed">
+                Unlock your true potential. Join the exclusive Decipher Mentorship and Coaching Academy to learn elite tactics directly from Grandmasters and dominate the board.
+            </p>
+            <div class="flex flex-col gap-3">
+                <button onclick="acceptMentorship()" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-black text-[11px] uppercase tracking-widest py-5 px-6 rounded-2xl shadow-xl hover:scale-105 transition transform duration-300">
+                    Yes, I want to become a Master
+                </button>
+                <button onclick="closeMentorship()" class="text-slate-500 font-bold text-[10px] uppercase tracking-widest py-3 hover:text-slate-800 transition">
+                    Maybe Later
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: The Packages Page -->
+        <div id="mentorship-packages" class="hidden bg-slate-900 rounded-[3rem] p-8 md:p-12 max-w-6xl w-full shadow-2xl border border-yellow-500/30 relative my-10">
+            <button onclick="closeMentorship()" class="absolute top-6 right-8 text-slate-400 hover:text-white text-3xl transition"><i class="fas fa-times"></i></button>
+            
+            <div class="text-center mb-12">
+                <h2 class="brand-font text-3xl md:text-5xl font-black text-white mb-3">Mentorship Packages</h2>
+                <p class="text-yellow-500 text-[10px] font-black uppercase tracking-[0.3em]">Choose Your Path to Mastery</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                <!-- Standard Package -->
+                <div class="bg-white/[0.02] border border-white/10 rounded-[2rem] p-8 hover:border-yellow-500/50 transition-all duration-300 relative flex flex-col group">
+                    <h3 class="brand-font text-2xl font-bold text-white mb-2">Tactician</h3>
+                    <div class="text-4xl font-black text-slate-300 mb-6 group-hover:text-yellow-500 transition">₦25,000<span class="text-sm text-slate-500 font-medium">/mo</span></div>
+                    <ul class="text-slate-400 text-sm space-y-4 mb-10 flex-grow">
+                        <li class="flex items-center"><i class="fas fa-check-circle text-yellow-600 mr-3 text-lg"></i> 4 Live Coaching Sessions</li>
+                        <li class="flex items-center"><i class="fas fa-check-circle text-yellow-600 mr-3 text-lg"></i> Tactics & Opening Theory</li>
+                        <li class="flex items-center"><i class="fas fa-check-circle text-yellow-600 mr-3 text-lg"></i> Access to Digital Workbooks</li>
+                        <li class="flex items-center"><i class="fas fa-check-circle text-yellow-600 mr-3 text-lg"></i> Arena Tournament Entry</li>
+                    </ul>
+                    <a href="form.html?package=tactician" class="w-full text-center border border-white/20 text-white hover:bg-white hover:text-slate-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition">Select Tactician</a>
+                </div>
+                
+                <!-- Premium Package (Highlighted) -->
+                <div class="bg-gradient-to-b from-yellow-900/40 to-slate-900 border border-yellow-500 rounded-[2rem] p-8 transform lg:-translate-y-4 shadow-[0_0_40px_rgba(212,175,55,0.15)] relative flex flex-col">
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-yellow-500 text-slate-900 text-[9px] font-black uppercase tracking-[0.2em] py-1.5 px-4 rounded-full shadow-lg">Most Popular</div>
+                    <h3 class="brand-font text-2xl font-bold text-white mb-2">Strategist</h3>
+                    <div class="text-4xl font-black gold-text mb-6">₦50,000<span class="text-sm text-yellow-600/60 font-medium">/mo</span></div>
+                    <ul class="text-slate-200 text-sm space-y-4 mb-10 flex-grow">
+                        <li class="flex items-center"><i class="fas fa-star text-yellow-500 mr-3 text-lg"></i> 8 Live Coaching Sessions</li>
+                        <li class="flex items-center"><i class="fas fa-star text-yellow-500 mr-3 text-lg"></i> Advanced Endgame Strategies</li>
+                        <li class="flex items-center"><i class="fas fa-star text-yellow-500 mr-3 text-lg"></i> 1-on-1 Game Analysis</li>
+                        <li class="flex items-center"><i class="fas fa-star text-yellow-500 mr-3 text-lg"></i> Priority Masters League Entry</li>
+                    </ul>
+                    <a href="form.html?package=strategist" class="w-full text-center bg-yellow-600 text-white hover:bg-yellow-700 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition shadow-lg">Select Strategist</a>
+                </div>
+
+                <!-- Elite Package -->
+                <div class="bg-white/[0.02] border border-white/10 rounded-[2rem] p-8 hover:border-yellow-500/50 transition-all duration-300 relative flex flex-col group">
+                    <h3 class="brand-font text-2xl font-bold text-white mb-2">Grandmaster</h3>
+                    <div class="text-4xl font-black text-slate-300 mb-6 group-hover:text-yellow-500 transition">₦100,000<span class="text-sm text-slate-500 font-medium">/mo</span></div>
+                    <ul class="text-slate-400 text-sm space-y-4 mb-10 flex-grow">
+                        <li class="flex items-center"><i class="fas fa-crown text-yellow-600 mr-3 text-lg"></i> Unlimited Live Sessions</li>
+                        <li class="flex items-center"><i class="fas fa-crown text-yellow-600 mr-3 text-lg"></i> Custom Engine Preparation</li>
+                        <li class="flex items-center"><i class="fas fa-crown text-yellow-600 mr-3 text-lg"></i> 24/7 Private Mentorship Line</li>
+                        <li class="flex items-center"><i class="fas fa-crown text-yellow-600 mr-3 text-lg"></i> VIP Tournament Logistics</li>
+                    </ul>
+                    <a href="form.html?package=grandmaster" class="w-full text-center border border-white/20 text-white hover:bg-white hover:text-slate-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition">Select Grandmaster</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END OF ADDED SECTION -->
 
     <a href="http://mrdotun.name.ng/chess/ecobank.html" class="block w-full bg-blue-600 text-white text-center py-3 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-blue-700 transition relative z-[60]">
         Ecobank Pre Tournament
@@ -373,6 +459,9 @@
             screen.style.transform = 'translateY(-100%)';
             setTimeout(() => {
                 screen.style.display = 'none';
+                
+                // ADDED: Trigger Mentorship prompt after PoM screen is gone
+                setTimeout(showMentorshipPrompt, 600);
             }, 500);
         }
 
@@ -382,6 +471,38 @@
             const val = document.getElementById('pass-field').value;
             if(val === 'decipher1234') { window.location.href = 'room.html'; }
             else { alert('Access Denied'); }
+        }
+
+        // ADDED: Mentorship/Coaching logic
+        function showMentorshipPrompt() {
+            const container = document.getElementById('mentorship-modal-container');
+            const prompt = document.getElementById('mentorship-prompt');
+            
+            container.classList.remove('opacity-0', 'pointer-events-none');
+            prompt.classList.remove('hidden');
+            
+            // Add custom animation
+            prompt.classList.add('animate-pop-in');
+        }
+
+        function acceptMentorship() {
+            const prompt = document.getElementById('mentorship-prompt');
+            const packages = document.getElementById('mentorship-packages');
+            
+            // Hide prompt, show packages
+            prompt.classList.add('hidden');
+            packages.classList.remove('hidden');
+            packages.classList.add('animate-pop-in');
+        }
+
+        function closeMentorship() {
+            const container = document.getElementById('mentorship-modal-container');
+            container.classList.add('opacity-0', 'pointer-events-none');
+            // Reset state for next time
+            setTimeout(() => {
+                document.getElementById('mentorship-prompt').classList.add('hidden');
+                document.getElementById('mentorship-packages').classList.add('hidden');
+            }, 500);
         }
     </script>
 </body>
