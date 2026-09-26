@@ -231,6 +231,63 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
   </div>
 </div>
 
+<!-- FINAL RESULTS / PODIUM -->
+<div id="screen-finished" class="hidden min-h-screen pb-12 hero-glow">
+  <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#07090f]/95 backdrop-blur-xl px-4 py-3 flex items-center justify-between">
+    <div class="text-xs font-black uppercase tracking-widest text-amber-400">MCPS Trial</div>
+    <div class="text-[11px] font-bold text-emerald-400">Final results</div>
+    <button type="button" class="text-xs font-bold text-slate-500 hover:text-white" onclick="location.reload()">Exit</button>
+  </nav>
+  <div class="max-w-lg mx-auto px-4 py-8 text-center">
+    <div class="text-5xl mb-2">🏆</div>
+    <div class="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400 mb-2">Tournament complete</div>
+    <h1 class="text-2xl md:text-3xl font-black italic uppercase text-white mb-1">Champion</h1>
+    <p class="text-3xl font-black text-amber-300 mb-1" id="champ-name">—</p>
+    <p class="text-sm text-slate-400 mb-8" id="champ-sub">Gold medal on Tuesday</p>
+    <div class="flex items-end justify-center gap-3 mb-10 px-2">
+      <div class="flex-1 max-w-[110px]">
+        <div class="text-2xl mb-1">🥈</div>
+        <div class="bg-slate-600/40 border border-slate-400/30 rounded-t-xl pt-6 pb-3 px-2 min-h-[90px]">
+          <div class="text-[10px] font-black text-slate-300 uppercase">2nd</div>
+          <div class="text-xs font-black text-white leading-tight mt-1" id="podium-2">—</div>
+          <div class="text-amber-300 font-black text-sm mt-1" id="podium-2-pts"></div>
+        </div>
+      </div>
+      <div class="flex-1 max-w-[130px]">
+        <div class="text-3xl mb-1">🥇</div>
+        <div class="bg-amber-500/25 border-2 border-amber-400/50 rounded-t-xl pt-8 pb-4 px-2 min-h-[120px] shadow-lg shadow-amber-500/20">
+          <div class="text-[10px] font-black text-amber-300 uppercase">1st</div>
+          <div class="text-sm font-black text-white leading-tight mt-1" id="podium-1">—</div>
+          <div class="text-amber-300 font-black text-base mt-1" id="podium-1-pts"></div>
+        </div>
+      </div>
+      <div class="flex-1 max-w-[110px]">
+        <div class="text-2xl mb-1">🥉</div>
+        <div class="bg-orange-700/30 border border-orange-400/30 rounded-t-xl pt-4 pb-3 px-2 min-h-[75px]">
+          <div class="text-[10px] font-black text-orange-300 uppercase">3rd</div>
+          <div class="text-xs font-black text-white leading-tight mt-1" id="podium-3">—</div>
+          <div class="text-amber-300 font-black text-sm mt-1" id="podium-3-pts"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel p-4 text-left mb-4">
+      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-3">Final standings</div>
+      <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>#</th><th>Player</th><th>Pts</th><th>Rating</th><th>±</th></tr></thead>
+          <tbody id="final-standings-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel p-4 border border-amber-400/30 bg-gradient-to-br from-amber-500/10 to-transparent">
+      <div class="flex items-center gap-3 justify-center">
+        <span class="text-3xl">🥇</span>
+        <p class="text-sm text-slate-200"><strong class="text-amber-300">Gold medal</strong> awarded to the champion on Tuesday.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- PLAY -->
 <div id="screen-play" class="hidden min-h-screen pb-8">
   <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#07090f]/95 backdrop-blur-xl px-4 py-3 flex items-center justify-between">
@@ -461,7 +518,14 @@ async function ensureTournamentStarted(){
 }
 
 /* ---- phase routing ---- */
-function hideAll(){['screen-closed','screen-waiting','screen-welcome','screen-login','screen-lobby','screen-play','screen-spec'].forEach(id=>document.getElementById(id).classList.add('hidden'));}
+function hideAll(){['screen-closed','screen-waiting','screen-welcome','screen-login','screen-lobby','screen-play','screen-spec','screen-finished'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('hidden');});}
+function tsMillis(t){
+  if(!t) return 0;
+  if(typeof t.toMillis==='function') return t.toMillis();
+  if(typeof t==='number') return t;
+  if(t.seconds!=null) return t.seconds*1000+Math.floor((t.nanoseconds||0)/1e6);
+  return Number(t)||0;
+}
 
 function routeByTime(){
   const now=nowMs();
@@ -577,12 +641,51 @@ function listenTournament(){
     if(specGameId && !document.getElementById('screen-spec').classList.contains('hidden')) syncSpecBoard();
     checkTimedOutGames().then(()=>maybeAdvanceRound());
   },err=>{console.error(err);toast('Connection issue');});
-  // Keep checking clocks even when no snapshot arrives (no-show forfeits)
+  // Keep checking clocks / break / pending scores even without new snapshots
   if(forfeitTimer) clearInterval(forfeitTimer);
   forfeitTimer=setInterval(()=>{
-    if(T&&T.status==='playing') checkTimedOutGames().then(()=>maybeAdvanceRound());
-    if(T&&T.status==='break'){ updateBreakTimer(); maybeAdvanceRound(); }
+    if(!T) return;
+    if(T.status==='playing') checkTimedOutGames().then(()=>maybeAdvanceRound());
+    else if(T.status==='break'){ updateBreakTimer(); maybeAdvanceRound(); }
+    else if(T.status==='finished') renderFinished();
+    else reconcilePendingResults();
   },1000);
+}
+
+function sortedPlayers(){
+  return (T&&T.players||[]).slice().sort((a,b)=>{
+    if((b.score||0)!==(a.score||0)) return (b.score||0)-(a.score||0);
+    return (b.rating||0)-(a.rating||0);
+  });
+}
+
+function renderFinished(){
+  hideAll();
+  document.getElementById('screen-finished').classList.remove('hidden');
+  const rows=sortedPlayers();
+  const champ=rows[0];
+  document.getElementById('champ-name').textContent=champ?champ.name:'—';
+  document.getElementById('champ-sub').textContent=champ?((champ.score||0)+' pts · Rating '+(champ.rating||0)+' · Gold medal on Tuesday'):'';
+  const setP=(n,el,ptsEl)=>{
+    const p=rows[n];
+    document.getElementById(el).textContent=p?p.name:'—';
+    document.getElementById(ptsEl).textContent=p?((p.score||0)+' pts'):'';
+  };
+  setP(0,'podium-1','podium-1-pts');
+  setP(1,'podium-2','podium-2-pts');
+  setP(2,'podium-3','podium-3-pts');
+  document.getElementById('final-standings-body').innerHTML=rows.map((p,i)=>{
+    const cls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+    const delta=(p.rating||0)-(p.startRating||p.rating||0);
+    return `<tr>
+      <td class="${cls}">${i+1}</td>
+      <td class="font-bold text-white">${esc(p.name)}${me&&me.id===p.id?' <span class="text-amber-400 text-[10px]">YOU</span>':''}</td>
+      <td class="font-black text-amber-300">${p.score||0}</td>
+      <td>${p.rating||0}</td>
+      <td class="${delta>0?'text-emerald-400':delta<0?'text-rose-400':'text-slate-500'}">${(delta>=0?'+':'')+delta}</td>
+    </tr>`;
+  }).join('');
+  if(champ) speakDotun();
 }
 
 function renderLobby(){
@@ -592,13 +695,25 @@ function renderLobby(){
     document.getElementById('pairings-box').innerHTML='<p class="text-sm text-slate-500">Pairing Round 1…</p>';
     return;
   }
-  document.getElementById('lobby-round').textContent='Round '+(T.currentRound||1)+' / '+TOTAL_ROUNDS;
   const st=T.status||'playing';
+  // Full tournament over → podium
+  if(st==='finished'){
+    if(document.getElementById('screen-play').classList.contains('hidden')&&
+       document.getElementById('screen-spec').classList.contains('hidden')){
+      renderFinished();
+    }
+    return;
+  }
+  // Ensure lobby visible when in break/playing
+  if(document.getElementById('screen-finished')&&!document.getElementById('screen-finished').classList.contains('hidden')){
+    hideAll();document.getElementById('screen-lobby').classList.remove('hidden');
+  }
+  document.getElementById('lobby-round').textContent='Round '+(T.currentRound||1)+' / '+TOTAL_ROUNDS;
   document.getElementById('lobby-status').textContent=st==='break'?'Break':(st==='finished'?'Finished':'Live');
   document.getElementById('lobby-status').className='text-sm font-black '+(st==='break'?'text-violet-300':st==='finished'?'text-amber-400':'text-emerald-400');
 
   const bb=document.getElementById('break-banner');
-  if(st==='break'&&T.breakEndsAt){bb.classList.remove('hidden');updateBreakTimer();}
+  if(st==='break'){bb.classList.remove('hidden');updateBreakTimer();}
   else bb.classList.add('hidden');
 
   const rd=(T.schedule||[]).find(r=>r.round===(T.currentRound||1));
@@ -668,7 +783,7 @@ function renderLobby(){
 
 function updateBreakTimer(){
   if(!T||!T.breakEndsAt) return;
-  const end=T.breakEndsAt.toMillis?T.breakEndsAt.toMillis():T.breakEndsAt;
+  const end=tsMillis(T.breakEndsAt);
   document.getElementById('break-timer').textContent=fmtTime(Math.max(0,Math.ceil((end-Date.now())/1000)));
 }
 
@@ -712,8 +827,23 @@ async function checkTimedOutGames(){
   }
 }
 
+/** Apply score + Elo for any finished game that still has eloApplied !== true */
+async function reconcilePendingResults(){
+  if(!T||!T.games) return;
+  const pending=Object.keys(T.games).filter(gid=>{
+    const g=T.games[gid];
+    return g&&g.status==='done'&&g.result&&!g.eloApplied;
+  });
+  for(const gid of pending){
+    await finalizeResult(gid, T.games[gid].result);
+  }
+}
+
 async function maybeAdvanceRound(){
-  if(!T||T.status==='finished'||advancing) return;
+  if(!T||T.status==='finished') return;
+  // Always try to apply missing scores first (default wins, forfeits, etc.)
+  await reconcilePendingResults();
+  if(advancing) return;
   const rdNum=T.currentRound||1;
   const rd=(T.schedule||[]).find(r=>r.round===rdNum);
   if(!rd) return;
@@ -723,6 +853,8 @@ async function maybeAdvanceRound(){
     return g&&g.status==='done';
   });
   const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+
+  // Round complete → break (or finish after last round)
   if(T.status==='playing'&&allDone){
     advancing=true;
     try{
@@ -740,19 +872,22 @@ async function maybeAdvanceRound(){
         });
         if(!done) return;
         if(rdNum>=TOTAL_ROUNDS){
-          tx.update(ref,{status:'finished',breakEndsAt:null});
+          tx.update(ref,{status:'finished',breakEndsAt:null,updated:firebase.firestore.FieldValue.serverTimestamp()});
         } else {
           const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000);
-          tx.update(ref,{status:'break',breakEndsAt:ends});
+          tx.update(ref,{status:'break',breakEndsAt:ends,updated:firebase.firestore.FieldValue.serverTimestamp()});
         }
       });
     } catch(e){ console.error('advance', e); }
     finally {advancing=false;}
     return;
   }
-  if(T.status==='break'&&T.breakEndsAt){
-    const end=T.breakEndsAt.toMillis?T.breakEndsAt.toMillis():T.breakEndsAt;
-    if(Date.now()>=end){
+
+  // Break timer finished → start next round (or recover if stuck at 0:00)
+  if(T.status==='break'){
+    const end=tsMillis(T.breakEndsAt);
+    // If breakEndsAt missing or already past, advance
+    if(!T.breakEndsAt || Date.now()>=end){
       advancing=true;
       try{
         await db.runTransaction(async (tx)=>{
@@ -761,11 +896,15 @@ async function maybeAdvanceRound(){
           const d=snap.data();
           if(d.status!=='break'||(d.currentRound||1)!==rdNum) return;
           const next=rdNum+1;
+          if(next>TOTAL_ROUNDS){
+            tx.update(ref,{status:'finished',breakEndsAt:null});
+            return;
+          }
           const startAt=Date.now();
           const players=(d.players||[]).map(p=>({...p}));
           const tmp={players,schedule:d.schedule};
           applyByesForRound(tmp,next);
-          const updates={status:'playing',currentRound:next,breakEndsAt:null,players:tmp.players};
+          const updates={status:'playing',currentRound:next,breakEndsAt:null,players:tmp.players,updated:firebase.firestore.FieldValue.serverTimestamp()};
           const nrd=(d.schedule||[]).find(r=>r.round===next);
           if(nrd){
             nrd.pairings.forEach(p=>{
@@ -939,15 +1078,18 @@ async function finalizeResult(gameId, result){
       if(!snap.exists) return;
       const state=snap.data();
       const g=(state.games||{})[gameId];
-      if(!g||g.eloApplied) return; // already counted — ratings stay consistent
+      if(!g) return;
+      if(g.eloApplied) return; // already counted
+      const finalResult=result||g.result;
+      if(!finalResult) return;
       const players=(state.players||[]).map(p=>({...p}));
       const w=players.find(p=>p.id===g.whiteId);
       const b=players.find(p=>p.id===g.blackId);
       if(!w||!b) return;
       let scoreW=0.5;
-      if(result==='1-0') scoreW=1; else if(result==='0-1') scoreW=0;
-      const dW=eloDelta(w.rating,b.rating,scoreW);
-      const dB=eloDelta(b.rating,w.rating,1-scoreW);
+      if(finalResult==='1-0') scoreW=1; else if(finalResult==='0-1') scoreW=0;
+      const dW=eloDelta(w.rating||1500,b.rating||1500,scoreW);
+      const dB=eloDelta(b.rating||1500,w.rating||1500,1-scoreW);
       w.rating=(w.rating||1500)+dW;
       b.rating=(b.rating||1500)+dB;
       w.score=(w.score||0)+scoreW;
@@ -960,7 +1102,7 @@ async function finalizeResult(gameId, result){
         ['games.'+gameId+'.whiteEloDelta']:dW,
         ['games.'+gameId+'.blackEloDelta']:dB,
         ['games.'+gameId+'.status']:'done',
-        ['games.'+gameId+'.result']:result
+        ['games.'+gameId+'.result']:finalResult
       });
     });
   } catch(e){ console.error('finalize', e); }
