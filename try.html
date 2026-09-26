@@ -90,24 +90,24 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
   <p class="text-xs text-slate-500 mt-3" id="load-sec">10</p>
 </div>
 
-<!-- GATES CLOSED (before 7:28 PM Sat 26 Sep) -->
+<!-- GATES CLOSED (before 10:43 PM Sat 26 Sep) -->
 <div id="screen-closed" class="hidden wait-wrap hero-glow">
   <div class="relative z-10 max-w-md">
     <div class="text-5xl mb-4">🏫</div>
     <div class="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">Maryland Convent Private School</div>
     <h1 class="text-2xl font-black italic uppercase text-white mb-2">Arena opens soon</h1>
-    <p class="text-slate-400 text-sm mb-6">Players may enter from <strong class="text-amber-300">7:28 PM</strong>. Round 1 pairs at <strong class="text-amber-300">7:30 PM</strong> WAT.</p>
+    <p class="text-slate-400 text-sm mb-6">Players may enter from <strong class="text-amber-300">10:43 PM</strong>. Round 1 pairs at <strong class="text-amber-300">10:45 PM</strong> WAT.</p>
     <div class="wait-count" id="closed-count">--:--</div>
     <div class="wait-label">Until doors open</div>
   </div>
 </div>
 
-<!-- WAITING ROOM (7:28 – 7:30 PM) -->
+<!-- WAITING ROOM (10:43 – 10:45 PM) -->
 <div id="screen-waiting" class="hidden wait-wrap hero-glow">
   <div class="relative z-10 max-w-md w-full">
     <div class="wait-ring"><div class="piece">♞</div></div>
     <h1 class="text-2xl font-black italic uppercase text-white mb-1">Please wait</h1>
-    <p class="text-slate-400 text-sm mb-2" id="wait-message">Round 1 pairs at 7:30 PM. Stretch, breathe, get ready.</p>
+    <p class="text-slate-400 text-sm mb-2" id="wait-message">Round 1 pairs at 10:45 PM. Stretch, breathe, get ready.</p>
     <div class="wait-count" id="wait-count">--:--</div>
     <div class="wait-label" id="wait-label">Until Round 1 pairing</div>
     <div class="rounded-xl overflow-hidden border border-amber-400/30 mx-auto max-w-[200px] mt-5 shadow-lg">
@@ -141,8 +141,8 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="panel p-5 mb-4">
       <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-3">Today’s schedule (WAT)</div>
       <ul class="text-sm text-slate-300 space-y-2">
-        <li>🚪 <strong class="text-white">7:28 PM</strong> — Players may join &amp; wait</li>
-        <li>♟️ <strong class="text-white">7:30 PM</strong> — Round 1 pairing (clocks start)</li>
+        <li>🚪 <strong class="text-white">10:43 PM</strong> — Players may join &amp; wait</li>
+        <li>♟️ <strong class="text-white">10:45 PM</strong> — Round 1 pairing (clocks start)</li>
         <li>☕ <strong class="text-white">2 min break</strong> after each round</li>
         <li>🏁 <strong class="text-white">5 rounds</strong> · full round robin · each opponent once</li>
       </ul>
@@ -423,8 +423,8 @@ function playMoveSound(isCapture,isCheck){
 }
 
 /* ---- Schedule (WAT = Africa/Lagos) ----
-   Doors open  19:28
-   Waiting UI until Round 1 at 19:30
+   Doors open  22:43
+   Waiting UI until Round 1 at 22:45
 */
 // Fixed for Saturday 26 Sep 2026 (WAT = UTC+1)
 function watDateOn(y,mo,d,h,m,s){
@@ -432,8 +432,8 @@ function watDateOn(y,mo,d,h,m,s){
     String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s||0).padStart(2,'0')+'+01:00';
   return new Date(iso).getTime();
 }
-const DOORS_OPEN_AT=()=>watDateOn(2026,9,26,19,28,0);  // today 7:28 PM WAT
-const ROUND1_AT=()=>watDateOn(2026,9,26,19,30,0);       // today 7:30 PM WAT
+const DOORS_OPEN_AT=()=>watDateOn(2026,9,26,22,43,0);  // today 10:43 PM WAT
+const ROUND1_AT=()=>watDateOn(2026,9,26,22,45,0);       // today 10:45 PM WAT
 
 const ROSTER=[
   {id:'p1',name:'Chierika Onele',rating:1623},
@@ -647,8 +647,8 @@ function routeByTime(){
       document.getElementById('wait-who').textContent=me?('Logged in as '+me.name):'';
       const left=Math.ceil((r1-now)/1000);
       document.getElementById('wait-count').textContent=fmtTime(left);
-      document.getElementById('wait-label').textContent='Until Round 1 pairing · 7:30 PM WAT';
-      document.getElementById('wait-message').textContent='Hold tight. At 7:30 PM everyone is paired for Round 1 — clocks start then.';
+      document.getElementById('wait-label').textContent='Until Round 1 pairing · 10:45 PM WAT';
+      document.getElementById('wait-message').textContent='Hold tight. At 10:45 PM everyone is paired for Round 1 — clocks start then.';
     } else {
       // show welcome so they can login into waiting
       if(document.getElementById('screen-login').classList.contains('hidden') &&
@@ -660,7 +660,7 @@ function routeByTime(){
     return;
   }
 
-  // Past 7:30 — ensure tournament + lobby
+  // Past 10:45 — ensure tournament + lobby
   ensureTournamentStarted().then(()=>{
     if(document.getElementById('screen-play').classList.contains('hidden') &&
        document.getElementById('screen-spec').classList.contains('hidden') &&
@@ -742,7 +742,7 @@ function enterAsVisitor(){
   clearMe();
   if(nowMs()<ROUND1_AT()){
     hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
-    document.getElementById('wait-who').textContent='Visitor mode — boards open at 7:30 PM';
+    document.getElementById('wait-who').textContent='Visitor mode — boards open at 10:45 PM';
     routeByTime();
   } else enterLobby();
 }
@@ -1874,7 +1874,7 @@ function updateSpecClocks(){
 
 /* boot */
 (function boot(){
-  // Reset stale tournament before Round 1 so 7:30 can pair cleanly
+  // Reset stale tournament before Round 1 so 10:45 can pair cleanly
   // (Only clears if still before round 1 time)
   if(nowMs()<ROUND1_AT()){
     db.collection('mcps_tournaments').doc(DOC_ID).delete().catch(()=>{});
