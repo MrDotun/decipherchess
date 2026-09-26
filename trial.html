@@ -80,7 +80,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
   <p class="text-xs text-slate-500 mt-3" id="load-sec">10</p>
 </div>
 
-<!-- GATES CLOSED (before 4:58 PM Sun 27 Sep) -->
+<!-- GATES CLOSED (before 4:38 PM Sat 26 Sep) -->
 <div id="screen-closed" class="hidden wait-wrap hero-glow">
   <div class="relative z-10 max-w-md">
     <div class="text-5xl mb-4">🏫</div>
@@ -92,7 +92,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
   </div>
 </div>
 
-<!-- WAITING ROOM (4:58 – 5:00 PM) -->
+<!-- WAITING ROOM (4:38 – 4:40 PM) -->
 <div id="screen-waiting" class="hidden wait-wrap hero-glow">
   <div class="relative z-10 max-w-md w-full">
     <div class="wait-ring"><div class="piece">♞</div></div>
@@ -194,7 +194,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       <div class="flex items-center justify-between mb-3">
         <div>
           <div class="text-[10px] font-black uppercase tracking-widest text-slate-500">Current round</div>
-          <div class="text-lg font-black text-white" id="lobby-round">Round 1 / 4</div>
+          <div class="text-lg font-black text-white" id="lobby-round">Round 1 / 5</div>
         </div>
         <div class="text-right">
           <div class="text-[10px] font-black uppercase tracking-widest text-slate-500">Status</div>
@@ -331,8 +331,8 @@ function watDateOn(y,mo,d,h,m,s){
     String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s||0).padStart(2,'0')+'+01:00';
   return new Date(iso).getTime();
 }
-const DOORS_OPEN_AT=()=>watDateOn(2026,9,27,16,58,0);  // tomorrow 4:58 PM WAT
-const ROUND1_AT=()=>watDateOn(2026,9,27,17,0,0);       // tomorrow 5:00 PM WAT
+const DOORS_OPEN_AT=()=>watDateOn(2026,9,27,16,58,0);  // Sun 27 Sep 4:58 PM WAT
+const ROUND1_AT=()=>watDateOn(2026,9,27,17,0,0);       // Sun 27 Sep 5:00 PM WAT
 
 const ROSTER=[
   {id:'p1',name:'Chierika Onele',rating:1623},
@@ -340,7 +340,7 @@ const ROSTER=[
   {id:'p3',name:'Oluwaseun Ajayi',rating:1332},
   {id:'p4',name:'Beckley Semilore',rating:1456},
   {id:'p5',name:'Osafile Sage',rating:1330},
-  {id:'p6',name:'Princewill Isioma.',rating:1330}
+  {id:'p6',name:'Princewill Isioma',rating:1330}
 ];
 
 let me=null,T=null,unsub=null;
