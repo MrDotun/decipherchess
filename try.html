@@ -954,35 +954,63 @@ function updateBreakTimer(){
   if(T.status==='break') speakBreakCountdown(left);
 }
 
-/** After break: advance round if needed, then open your board */
+/** After break: force-advance, wait for new pairings, open YOUR board immediately */
 async function proceedToNextRound(){
   const btn=document.getElementById('btn-proceed-round');
-  if(btn){btn.disabled=true;btn.textContent='Opening…';}
+  if(btn){btn.disabled=true;btn.textContent='Opening your board…';}
   playSfx(SOUND_NOTIFY,0.9);
+  const prevRound=T?(T.currentRound||1):1;
   try{
-    if(T&&T.status==='break') await maybeAdvanceRound();
-    // Wait briefly for snapshot to land with new games
-    await new Promise(r=>setTimeout(r,600));
-    if(T&&T.status==='playing'&&me){
+    advancing=false;
+    if(T&&(T.status==='break'||T.status==='playing')){
+      await maybeAdvanceRound(true);
+    }
+    // Poll until snapshot shows the next round + your game exists
+    let myGid=null;
+    for(let i=0;i<24;i++){
+      await new Promise(r=>setTimeout(r,300));
+      if(!T) continue;
+      if(T.status==='finished'){ renderFinished(); return; }
       const rdNum=T.currentRound||1;
-      const rd=(T.schedule||[]).find(r=>r.round===rdNum);
-      if(rd){
-        const mine=rd.pairings.find(p=>!p.bye&&(p.whiteId===me.id||p.blackId===me.id));
-        if(mine&&mine.gameId){
-          const g=(T.games||{})[mine.gameId];
-          if(g&&g.status!=='done'){
-            await openGame(mine.gameId);
-            playSfx(SOUND_NOTIFY,0.7);
-            return;
+      if(T.status==='playing'&&rdNum>prevRound){
+        const rd=(T.schedule||[]).find(r=>r.round===rdNum);
+        if(!rd) continue;
+        if(me){
+          const bye=rd.pairings.find(p=>p.bye&&p.playerId===me.id);
+          if(bye){ toast('You have a bye this round'); return; }
+          const mine=rd.pairings.find(p=>!p.bye&&(p.whiteId===me.id||p.blackId===me.id));
+          if(mine&&mine.gameId){
+            const g=(T.games||{})[mine.gameId];
+            if(g&&g.status!=='done'&&!g.result){ myGid=mine.gameId; break; }
+            // Game object may lag one tick — still try opening
+            if(mine.gameId){ myGid=mine.gameId; break; }
           }
+        } else {
+          // Visitor: just leave break UI
+          hideAll();document.getElementById('screen-lobby').classList.remove('hidden');
+          toast('Round '+(T.currentRound||'')+' is live');
+          return;
         }
       }
     }
-    // Fallback: stay in lobby (pairings visible)
-    if(document.getElementById('screen-lobby').classList.contains('hidden')){
-      hideAll();document.getElementById('screen-lobby').classList.remove('hidden');
+    if(myGid){
+      await openGame(myGid);
+      playSfx(SOUND_NOTIFY,0.75);
+      return;
     }
-    toast('Next round is ready — open your board from the lobby');
+    // Last attempt from whatever T is now
+    if(T&&T.status==='playing'&&me){
+      const rd=(T.schedule||[]).find(r=>r.round===(T.currentRound||1));
+      const mine=rd&&rd.pairings.find(p=>!p.bye&&(p.whiteId===me.id||p.blackId===me.id));
+      if(mine&&mine.gameId){
+        await openGame(mine.gameId);
+        return;
+      }
+    }
+    toast('Tap Play my game if the board did not open');
+  } catch(e){
+    console.error('proceed',e);
+    toast('Could not open board — try again');
   } finally {
     if(btn){btn.disabled=false;btn.textContent='⚡ Proceed to next round';}
   }
