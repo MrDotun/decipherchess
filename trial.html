@@ -1410,22 +1410,30 @@ function updatePlayStatus(){
 function clearHighlights(){$('#board .square-55d63').removeClass('highlight-select highlight-legal');}
 
 function onSquareClick(sq){
-  if(!game||!me||!activeGameId) return;
+  if(!game||!me||!activeGameId||!T) return;
   const g=T.games[activeGameId];
-  if(!g||g.status==='done') return;
+  if(!g||g.status==='done'||g.result) return;
   const myColor=g.whiteId===me.id?'w':'b';
-  if(game.turn()!==myColor){toast('Wait for your turn');return;}
+  // Trust server turn first, then local
+  const serverTurn=g.turn||game.turn();
+  if(serverTurn!==myColor){toast('Wait for your turn');return;}
+  if(game.turn()!==myColor){
+    // Resync local board to server
+    try{game.load(g.fen);board.position(g.fen,false);}catch(e){}
+    toast('Wait for your turn');return;
+  }
   const piece=game.get(sq);
   if(sourceSquare){
     if(sourceSquare===sq){sourceSquare=null;clearHighlights();return;}
     const legal=game.moves({square:sourceSquare,verbose:true}).find(m=>m.to===sq);
     if(legal){
+      const prevFen=game.fen();
       const move=game.move({from:sourceSquare,to:sq,promotion:legal.flags.includes('p')?'q':undefined});
       sourceSquare=null;clearHighlights();
       if(move){
         playMoveSound(!!move.captured, game.in_check());
         board.position(game.fen());
-        pushMove(move);
+        pushMove(move, prevFen);
       }
       return;
     }
@@ -1439,7 +1447,7 @@ function onSquareClick(sq){
   }
 }
 
-async function pushMove(move){
+async function pushMove(move, prevFen){
   const gid=activeGameId;
   const localFen=game.fen();
   const localTurn=game.turn();
@@ -1449,45 +1457,68 @@ async function pushMove(move){
   if(game.in_checkmate()){endStatus='done';endResult=moveColor==='w'?'1-0':'0-1';}
   else if(game.in_draw()){endStatus='done';endResult='1/2-1/2';}
   const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+
+  function revertLocal(){
+    try{
+      if(prevFen){ game.load(prevFen); board.position(prevFen,false); }
+      else if(T&&T.games&&T.games[gid]){ game.load(T.games[gid].fen); board.position(T.games[gid].fen,false); }
+      updatePlayStatus(); updateClockDisplay();
+    }catch(e){}
+  }
+
   try{
-    await db.runTransaction(async (tx)=>{
-      const snap=await tx.get(ref);
-      if(!snap.exists) return;
-      const state=snap.data();
-      const g=(state.games||{})[gid];
-      if(!g||g.status==='done') return;
-      // Must still be this side to move
-      if(g.turn!==moveColor) return;
-      const now=Date.now();
-      let wt=g.whiteTime||BASE_TIME, bt=g.blackTime||BASE_TIME;
-      // Apply elapsed, then +INC to the player who just moved (Fischer 10+2)
-      if(g.status==='active'){
-        const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||now;
-        const elapsed=Math.floor((now-anchor)/1000);
-        if(moveColor==='w'){
-          if(wt-elapsed<=0) return; // already flagged
-          wt=Math.max(0,wt-elapsed)+INC;
-        } else {
-          if(bt-elapsed<=0) return;
-          bt=Math.max(0,bt-elapsed)+INC;
-        }
-      } else {
-        if(moveColor==='w') wt=wt+INC; else bt=bt+INC;
-      }
-      const updates={
-        ['games.'+gid+'.fen']:localFen,
-        ['games.'+gid+'.pgn']:(g.pgn?g.pgn+' ':'')+localSan,
-        ['games.'+gid+'.turn']:localTurn,
-        ['games.'+gid+'.status']:endStatus,
-        ['games.'+gid+'.whiteTime']:wt,
-        ['games.'+gid+'.blackTime']:bt,
-        ['games.'+gid+'.lastMoveAt']:now,
-        ['games.'+gid+'.drawOfferFrom']:null
-      };
-      if(endResult) updates['games.'+gid+'.result']=endResult;
-      tx.update(ref, updates);
-    });
-  } catch(e){ console.error('move', e); toast('Move failed — try again'); return; }
+    // Read latest game, then write (simple path — more reliable than silent transaction returns)
+    const snap=await ref.get();
+    if(!snap.exists){ toast('Move failed — no tournament'); revertLocal(); return; }
+    const state=snap.data();
+    const g=(state.games||{})[gid];
+    if(!g){ toast('Move failed — game missing'); revertLocal(); return; }
+    if(g.status==='done'||g.result){ toast('Game already over'); revertLocal(); return; }
+    if((g.turn||'w')!==moveColor){ toast('Wait for your turn'); revertLocal(); return; }
+
+    const now=Date.now();
+    let wt=g.whiteTime||BASE_TIME, bt=g.blackTime||BASE_TIME;
+    const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||now;
+    const elapsed=Math.max(0,Math.floor((now-anchor)/1000));
+    if(moveColor==='w'){
+      // 2s grace so a move is not rejected by clock lag
+      if(wt-elapsed<=-2){ toast('Flag — time is up'); revertLocal(); checkTimedOutGames(); return; }
+      wt=Math.max(0,wt-elapsed)+INC;
+    } else {
+      if(bt-elapsed<=-2){ toast('Flag — time is up'); revertLocal(); checkTimedOutGames(); return; }
+      bt=Math.max(0,bt-elapsed)+INC;
+    }
+
+    const updates={
+      ['games.'+gid+'.fen']:localFen,
+      ['games.'+gid+'.pgn']:(g.pgn?g.pgn+' ':'')+localSan,
+      ['games.'+gid+'.turn']:localTurn,
+      ['games.'+gid+'.status']:endStatus,
+      ['games.'+gid+'.whiteTime']:wt,
+      ['games.'+gid+'.blackTime']:bt,
+      ['games.'+gid+'.lastMoveAt']:now,
+      ['games.'+gid+'.drawOfferFrom']:null
+    };
+    if(endResult) updates['games.'+gid+'.result']=endResult;
+
+    await ref.update(updates);
+
+    // Optimistically update local T so clock switches immediately
+    if(T&&T.games&&T.games[gid]){
+      Object.assign(T.games[gid],{
+        fen:localFen,pgn:(g.pgn?g.pgn+' ':'')+localSan,turn:localTurn,
+        status:endStatus,whiteTime:wt,blackTime:bt,lastMoveAt:now,drawOfferFrom:null,
+        result:endResult||g.result||null
+      });
+    }
+    updatePlayStatus();
+    updateClockDisplay();
+  } catch(e){
+    console.error('move', e);
+    toast('Move failed — '+(e.message||'try again'));
+    revertLocal();
+    return;
+  }
   if(endStatus==='done') await finalizeResult(gid, endResult);
 }
 
