@@ -80,24 +80,24 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
   <p class="text-xs text-slate-500 mt-3" id="load-sec">10</p>
 </div>
 
-<!-- GATES CLOSED (before 4:38 PM Sat 26 Sep) -->
+<!-- GATES CLOSED (before 5:58 PM Sat 26 Sep) -->
 <div id="screen-closed" class="hidden wait-wrap hero-glow">
   <div class="relative z-10 max-w-md">
     <div class="text-5xl mb-4">🏫</div>
     <div class="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">Maryland Convent Private School</div>
     <h1 class="text-2xl font-black italic uppercase text-white mb-2">Arena opens soon</h1>
-    <p class="text-slate-400 text-sm mb-6">Players may enter from <strong class="text-amber-300">4:38 PM</strong>. Round 1 pairs at <strong class="text-amber-300">4:40 PM</strong> WAT.</p>
+    <p class="text-slate-400 text-sm mb-6">Players may enter from <strong class="text-amber-300">5:58 PM</strong>. Round 1 pairs at <strong class="text-amber-300">6:00 PM</strong> WAT.</p>
     <div class="wait-count" id="closed-count">--:--</div>
     <div class="wait-label">Until doors open</div>
   </div>
 </div>
 
-<!-- WAITING ROOM (4:38 – 4:40 PM) -->
+<!-- WAITING ROOM (5:58 – 6:00 PM) -->
 <div id="screen-waiting" class="hidden wait-wrap hero-glow">
   <div class="relative z-10 max-w-md w-full">
     <div class="wait-ring"><div class="piece">♞</div></div>
     <h1 class="text-2xl font-black italic uppercase text-white mb-1">Please wait</h1>
-    <p class="text-slate-400 text-sm mb-2" id="wait-message">Round 1 pairs at 4:40 PM. Stretch, breathe, get ready.</p>
+    <p class="text-slate-400 text-sm mb-2" id="wait-message">Round 1 pairs at 6:00 PM. Stretch, breathe, get ready.</p>
     <div class="wait-count" id="wait-count">--:--</div>
     <div class="wait-label" id="wait-label">Until Round 1 pairing</div>
     <div class="rounded-xl overflow-hidden border border-amber-400/30 mx-auto max-w-[200px] mt-5 shadow-lg">
@@ -131,8 +131,8 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="panel p-5 mb-4">
       <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-3">Today’s schedule (WAT)</div>
       <ul class="text-sm text-slate-300 space-y-2">
-        <li>🚪 <strong class="text-white">4:38 PM</strong> — Players may join &amp; wait</li>
-        <li>♟️ <strong class="text-white">4:40 PM</strong> — Round 1 pairing (clocks start)</li>
+        <li>🚪 <strong class="text-white">5:58 PM</strong> — Players may join &amp; wait</li>
+        <li>♟️ <strong class="text-white">6:00 PM</strong> — Round 1 pairing (clocks start)</li>
         <li>☕ <strong class="text-white">2 min break</strong> after each round</li>
         <li>🏁 <strong class="text-white">5 rounds</strong> · full round robin · each opponent once</li>
       </ul>
@@ -310,7 +310,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
 const firebaseConfig={apiKey:"AIzaSyCcSVTifrJhzXvhQ4m1UyObtCKd8QnKEUw",authDomain:"assignments-de95a.firebaseapp.com",projectId:"assignments-de95a",storageBucket:"assignments-de95a.firebasestorage.app",messagingSenderId:"1088073398299",appId:"1:1088073398299:web:dab1f57ac1d63b10dba0be"};
 if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
-const DOC_ID='mcps_trial_2026';
+const DOC_ID='mcps_try_2026';
 const PASSWORD='MCPS';
 const BASE_TIME=10*60;
 const INC=2;
@@ -319,20 +319,29 @@ const K_FACTOR=20;
 const TOTAL_ROUNDS=5; // full RR for 6 players (each plays 5 games)
 const DOTUN=['audio/well-done.mp3','audio/well-done-chap.mp3','audio/great-job.mp3','audio/excellent.mp3','audio/that-was-a-strong-game.mp3'];
 const PIECE_THEME='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/{piece}.png';
+const SOUND_MOVE='https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3';
+const SOUND_CAPTURE='https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/capture.mp3';
 function pieceThemeUrl(){return function(p){const m={wP:'wp',wR:'wr',wN:'wn',wB:'wb',wQ:'wq',wK:'wk',bP:'bp',bR:'br',bN:'bn',bB:'bb',bQ:'bq',bK:'bk'};return PIECE_THEME.replace('{piece}',m[p]||p.toLowerCase());};}
+function playMoveSound(isCapture){
+  try{
+    const a=new Audio(isCapture?SOUND_CAPTURE:SOUND_MOVE);
+    a.volume=0.75;
+    a.play().catch(()=>{});
+  }catch(e){}
+}
 
 /* ---- Schedule (WAT = Africa/Lagos) ----
-   Doors open  15:55
-   Waiting UI until Round 1 at 16:02
+   Doors open  17:58
+   Waiting UI until Round 1 at 18:00
 */
-// Fixed for Sunday 27 Sep 2026 (WAT = UTC+1)
+// Fixed for Saturday 26 Sep 2026 (WAT = UTC+1)
 function watDateOn(y,mo,d,h,m,s){
   const iso=y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0')+'T'+
     String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s||0).padStart(2,'0')+'+01:00';
   return new Date(iso).getTime();
 }
-const DOORS_OPEN_AT=()=>watDateOn(2026,9,26,16,38,0);  // today 4:38 PM WAT
-const ROUND1_AT=()=>watDateOn(2026,9,26,16,40,0);       // today 4:40 PM WAT
+const DOORS_OPEN_AT=()=>watDateOn(2026,9,26,17,58,0);  // today 5:58 PM WAT
+const ROUND1_AT=()=>watDateOn(2026,9,26,18,0,0);       // today 6:00 PM WAT
 
 const ROSTER=[
   {id:'p1',name:'Chierika Onele',rating:1623},
@@ -346,9 +355,10 @@ const ROSTER=[
 let me=null,T=null,unsub=null;
 let board=null,specBoard=null,game=null;
 let activeGameId=null,specGameId=null,sourceSquare=null;
-let clockTimer=null,phaseTimer=null;
+let clockTimer=null,phaseTimer=null,forfeitTimer=null;
 let selectedLoginId=null,resultShownFor={};
 let advancing=false;
+let flaggingGames={}; // prevent duplicate time-forfeit writes across clients
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 function openModal(id){document.getElementById(id).classList.add('open');}
@@ -477,8 +487,8 @@ function routeByTime(){
       document.getElementById('wait-who').textContent=me?('Logged in as '+me.name):'';
       const left=Math.ceil((r1-now)/1000);
       document.getElementById('wait-count').textContent=fmtTime(left);
-      document.getElementById('wait-label').textContent='Until Round 1 pairing · 4:40 PM WAT';
-      document.getElementById('wait-message').textContent='Hold tight. At 4:40 PM everyone is paired for Round 1 — clocks start then.';
+      document.getElementById('wait-label').textContent='Until Round 1 pairing · 6:00 PM WAT';
+      document.getElementById('wait-message').textContent='Hold tight. At 6:00 PM everyone is paired for Round 1 — clocks start then.';
     } else {
       // show welcome so they can login into waiting
       if(document.getElementById('screen-login').classList.contains('hidden') &&
@@ -490,7 +500,7 @@ function routeByTime(){
     return;
   }
 
-  // Past 4:40 — ensure tournament + lobby
+  // Past 6:00 — ensure tournament + lobby
   ensureTournamentStarted().then(()=>{
     if(document.getElementById('screen-play').classList.contains('hidden') &&
        document.getElementById('screen-spec').classList.contains('hidden') &&
@@ -541,7 +551,7 @@ function enterAsVisitor(){
   me=null;sessionStorage.removeItem('mcps_trial_me');
   if(nowMs()<ROUND1_AT()){
     hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
-    document.getElementById('wait-who').textContent='Visitor mode — boards open at 4:40 PM';
+    document.getElementById('wait-who').textContent='Visitor mode — boards open at 6:00 PM';
     routeByTime();
   } else enterLobby();
 }
@@ -565,8 +575,14 @@ function listenTournament(){
     renderLobby();
     if(activeGameId && !document.getElementById('screen-play').classList.contains('hidden')) syncPlayBoard();
     if(specGameId && !document.getElementById('screen-spec').classList.contains('hidden')) syncSpecBoard();
-    maybeAdvanceRound();
+    checkTimedOutGames().then(()=>maybeAdvanceRound());
   },err=>{console.error(err);toast('Connection issue');});
+  // Keep checking clocks even when no snapshot arrives (no-show forfeits)
+  if(forfeitTimer) clearInterval(forfeitTimer);
+  forfeitTimer=setInterval(()=>{
+    if(T&&T.status==='playing') checkTimedOutGames().then(()=>maybeAdvanceRound());
+    if(T&&T.status==='break'){ updateBreakTimer(); maybeAdvanceRound(); }
+  },1000);
 }
 
 function renderLobby(){
@@ -654,6 +670,46 @@ function updateBreakTimer(){
   if(!T||!T.breakEndsAt) return;
   const end=T.breakEndsAt.toMillis?T.breakEndsAt.toMillis():T.breakEndsAt;
   document.getElementById('break-timer').textContent=fmtTime(Math.max(0,Math.ceil((end-Date.now())/1000)));
+}
+
+/** Any lobby/play client can flag a timed-out game so no-shows award the point
+ *  even if neither player opened their board. Runs often while status is playing. */
+async function checkTimedOutGames(){
+  if(!T||T.status!=='playing') return;
+  const games=T.games||{};
+  const now=Date.now();
+  for(const gid of Object.keys(games)){
+    const g=games[gid];
+    if(!g||g.status!=='active'||!g.lastMoveAt) continue;
+    if(flaggingGames[gid]) continue;
+    const base=g.turn==='w'?(g.whiteTime||BASE_TIME):(g.blackTime||BASE_TIME);
+    const elapsed=Math.floor((now-g.lastMoveAt)/1000);
+    const remaining=base-elapsed;
+    if(remaining>0) continue;
+    flaggingGames[gid]=true;
+    const result=g.turn==='w'?'0-1':'1-0';
+    try{
+      const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+      await db.runTransaction(async (tx)=>{
+        const snap=await tx.get(ref);
+        if(!snap.exists) return;
+        const state=snap.data();
+        const cur=(state.games||{})[gid];
+        if(!cur||cur.status!=='active') return;
+        const b=cur.turn==='w'?(cur.whiteTime||BASE_TIME):(cur.blackTime||BASE_TIME);
+        const el=Math.floor((Date.now()-cur.lastMoveAt)/1000);
+        if(b-el>0) return; // still has time (race)
+        tx.update(ref,{
+          ['games.'+gid+'.status']:'done',
+          ['games.'+gid+'.result']:result
+        });
+      });
+      await finalizeResult(gid,result);
+    }catch(e){ console.error('time forfeit',e); }
+    finally{
+      setTimeout(()=>{ delete flaggingGames[gid]; },8000);
+    }
+  }
 }
 
 async function maybeAdvanceRound(){
@@ -767,7 +823,12 @@ function syncPlayBoard(){
   if(!activeGameId||!T) return;
   const g=T.games[activeGameId];if(!g)return;
   if(!game) initPlayBoard();
-  else if(g.fen!==game.fen()){game.load(g.fen);board.position(g.fen,true);}
+  else if(g.fen!==game.fen()){
+    const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
+    const isCap=lastSan.includes('x');
+    playMoveSound(isCap);
+    game.load(g.fen);board.position(g.fen,true);
+  }
   updatePlayLabels();updatePlayStatus();updateClockDisplay();
   if(g.drawOfferFrom&&g.drawOfferFrom!==me.id&&g.status==='active'){
     document.getElementById('draw-modal-text').textContent=playerById(g.drawOfferFrom).name+' offers a draw.';
@@ -800,7 +861,11 @@ function onSquareClick(sq){
     if(legal){
       const move=game.move({from:sourceSquare,to:sq,promotion:legal.flags.includes('p')?'q':undefined});
       sourceSquare=null;clearHighlights();
-      if(move){board.position(game.fen());pushMove(move);}
+      if(move){
+        playMoveSound(!!move.captured);
+        board.position(game.fen());
+        pushMove(move);
+      }
       return;
     }
     if(piece&&piece.color===myColor){sourceSquare=sq;clearHighlights();$('#board .square-'+sq).addClass('highlight-select');game.moves({square:sq,verbose:true}).forEach(m=>{$('#board .square-'+m.to).addClass('highlight-legal');});return;}
@@ -830,14 +895,24 @@ async function pushMove(move){
       const state=snap.data();
       const g=(state.games||{})[gid];
       if(!g||g.status==='done') return;
-      // Reject stale move if board already advanced
-      if(g.fen && g.fen!==new Chess(g.fen).fen()){ /* continue */ }
+      // Must still be this side to move
+      if(g.turn!==moveColor) return;
       const now=Date.now();
       let wt=g.whiteTime||BASE_TIME, bt=g.blackTime||BASE_TIME;
+      // Apply elapsed, then +INC to the player who just moved (Fischer 10+2)
       if(g.lastMoveAt&&g.status==='active'){
         const elapsed=Math.floor((now-g.lastMoveAt)/1000);
-        if(moveColor==='w') wt=Math.max(0,wt-elapsed+INC);
-        else bt=Math.max(0,bt-elapsed+INC);
+        if(moveColor==='w'){
+          // Time already gone before the move arrived → reject (opponent wins on time)
+          if(wt-elapsed<=0) return;
+          wt=Math.max(0,wt-elapsed)+INC;
+        } else {
+          if(bt-elapsed<=0) return;
+          bt=Math.max(0,bt-elapsed)+INC;
+        }
+      } else {
+        // First tick edge: still add increment
+        if(moveColor==='w') wt=wt+INC; else bt=bt+INC;
       }
       const updates={
         ['games.'+gid+'.fen']:localFen,
@@ -916,15 +991,11 @@ function startClocks(){
     if(!g||g.status!=='active'||!g.lastMoveAt) return;
     updateClockDisplay();
     const elapsed=Math.floor((Date.now()-g.lastMoveAt)/1000);
-    const remaining=(g.turn==='w'?g.whiteTime:g.blackTime)-elapsed;
+    const remaining=(g.turn==='w'?(g.whiteTime||BASE_TIME):(g.blackTime||BASE_TIME))-elapsed;
     if(remaining<=0){
+      // Prefer the shared checker so lobby clients also flag no-shows
       flagging=true;
-      const result=g.turn==='w'?'0-1':'1-0';
-      const gid=activeGameId;
-      db.collection('mcps_tournaments').doc(DOC_ID).update({
-        ['games.'+gid+'.status']:'done',
-        ['games.'+gid+'.result']:result
-      }).then(()=>finalizeResult(gid,result)).catch(()=>{flagging=false;});
+      checkTimedOutGames().finally(()=>{ flagging=false; });
     }
   },250);
 }
@@ -991,8 +1062,17 @@ function syncSpecBoard(){
   const w=playerById(g.whiteId), b=playerById(g.blackId);
   document.getElementById('spec-label-bottom').innerHTML='⬜ White · '+esc(w.name)+' ('+w.rating+')';
   document.getElementById('spec-label-top').innerHTML='⬛ Black · '+esc(b.name)+' ('+b.rating+')';
-  if(!specBoard) specBoard=ChessBoard('spec-board',{position:g.fen||'start',draggable:false,pieceTheme:pieceThemeUrl()});
-  else specBoard.position(g.fen||'start',true);
+  if(!specBoard){
+    specBoard=ChessBoard('spec-board',{position:g.fen||'start',draggable:false,pieceTheme:pieceThemeUrl()});
+  } else {
+    const prev=specBoard.fen&&specBoard.fen();
+    const next=g.fen||'start';
+    if(prev&&prev!==next){
+      const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
+      playMoveSound(lastSan.includes('x'));
+    }
+    specBoard.position(next,true);
+  }
   document.getElementById('spec-status').textContent=g.status==='done'?('Final '+g.result):((g.turn==='w'?'White':'Black')+' to move');
   updateSpecClocks();
 }
@@ -1012,7 +1092,7 @@ function updateSpecClocks(){
 
 /* boot */
 (function boot(){
-  // Reset stale tournament before Round 1 so 4:40 can pair cleanly
+  // Reset stale tournament before Round 1 so 6:00 can pair cleanly
   // (Only clears if still before round 1 time)
   if(nowMs()<ROUND1_AT()){
     db.collection('mcps_tournaments').doc(DOC_ID).delete().catch(()=>{});
