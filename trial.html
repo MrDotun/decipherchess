@@ -80,24 +80,24 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
   <p class="text-xs text-slate-500 mt-3" id="load-sec">10</p>
 </div>
 
-<!-- GATES CLOSED (before 3:55) -->
+<!-- GATES CLOSED (before 4:58 PM Sun 27 Sep) -->
 <div id="screen-closed" class="hidden wait-wrap hero-glow">
   <div class="relative z-10 max-w-md">
     <div class="text-5xl mb-4">🏫</div>
     <div class="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">Maryland Convent Private School</div>
     <h1 class="text-2xl font-black italic uppercase text-white mb-2">Arena opens soon</h1>
-    <p class="text-slate-400 text-sm mb-6">Players may enter from <strong class="text-amber-300">3:55 PM</strong>. Round 1 pairs at <strong class="text-amber-300">4:02 PM</strong> WAT.</p>
+    <p class="text-slate-400 text-sm mb-6">Players may enter from <strong class="text-amber-300">4:58 PM</strong> tomorrow. Round 1 pairs at <strong class="text-amber-300">5:00 PM</strong> WAT.</p>
     <div class="wait-count" id="closed-count">--:--</div>
     <div class="wait-label">Until doors open</div>
   </div>
 </div>
 
-<!-- WAITING ROOM (3:55 – 4:02) -->
+<!-- WAITING ROOM (4:58 – 5:00 PM) -->
 <div id="screen-waiting" class="hidden wait-wrap hero-glow">
   <div class="relative z-10 max-w-md w-full">
     <div class="wait-ring"><div class="piece">♞</div></div>
     <h1 class="text-2xl font-black italic uppercase text-white mb-1">Please wait</h1>
-    <p class="text-slate-400 text-sm mb-2" id="wait-message">The pairing hall opens at 4:02 PM. Stretch, breathe, get ready.</p>
+    <p class="text-slate-400 text-sm mb-2" id="wait-message">Round 1 pairs at 5:00 PM tomorrow. Stretch, breathe, get ready.</p>
     <div class="wait-count" id="wait-count">--:--</div>
     <div class="wait-label" id="wait-label">Until Round 1 pairing</div>
     <div class="rounded-xl overflow-hidden border border-amber-400/30 mx-auto max-w-[200px] mt-5 shadow-lg">
@@ -108,7 +108,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       <ul class="text-sm text-slate-300 space-y-1.5">
         <li>⏱️ 10+2 rapid — clock starts when you are paired</li>
         <li>迟到 Late? Your clock still runs — arrive before 10:00 is gone</li>
-        <li>🔄 4 rounds · round robin · 2 min break between rounds</li>
+        <li>🔄 5 rounds · full round robin · each opponent once</li>
         <li>🥇 Winner gets a gold medal on Tuesday</li>
       </ul>
     </div>
@@ -129,12 +129,12 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       <p class="text-[11px] font-bold text-amber-300/90 mt-2 uppercase tracking-widest">Our championship squad</p>
     </div>
     <div class="panel p-5 mb-4">
-      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-3">Today’s schedule (WAT)</div>
+      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-3">Tomorrow’s schedule (WAT) · Sun 27 Sep</div>
       <ul class="text-sm text-slate-300 space-y-2">
-        <li>🚪 <strong class="text-white">3:55 PM</strong> — Players may join &amp; wait</li>
-        <li>♟️ <strong class="text-white">4:02 PM</strong> — Round 1 pairing (clocks start)</li>
+        <li>🚪 <strong class="text-white">4:58 PM</strong> — Players may join &amp; wait</li>
+        <li>♟️ <strong class="text-white">5:00 PM</strong> — Round 1 pairing (clocks start)</li>
         <li>☕ <strong class="text-white">2 min break</strong> after each round</li>
-        <li>🏁 <strong class="text-white">4 rounds</strong> · everyone plays everyone once</li>
+        <li>🏁 <strong class="text-white">5 rounds</strong> · full round robin · each opponent once</li>
       </ul>
     </div>
     <div class="panel p-5 mb-4">
@@ -316,7 +316,7 @@ const BASE_TIME=10*60;
 const INC=2;
 const BREAK_SEC=120;
 const K_FACTOR=20;
-const TOTAL_ROUNDS=4;
+const TOTAL_ROUNDS=5; // full RR for 6 players (each plays 5 games)
 const DOTUN=['audio/well-done.mp3','audio/well-done-chap.mp3','audio/great-job.mp3','audio/excellent.mp3','audio/that-was-a-strong-game.mp3'];
 const PIECE_THEME='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/{piece}.png';
 function pieceThemeUrl(){return function(p){const m={wP:'wp',wR:'wr',wN:'wn',wB:'wb',wQ:'wq',wK:'wk',bP:'bp',bR:'br',bN:'bn',bB:'bb',bQ:'bq',bK:'bk'};return PIECE_THEME.replace('{piece}',m[p]||p.toLowerCase());};}
@@ -325,24 +325,22 @@ function pieceThemeUrl(){return function(p){const m={wP:'wp',wR:'wr',wN:'wn',wB:
    Doors open  15:55
    Waiting UI until Round 1 at 16:02
 */
-function watDate(h,m,s){
-  // Build today's date at h:m:s in Africa/Lagos
-  const fmt=new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Lagos',year:'numeric',month:'2-digit',day:'2-digit'});
-  const parts=fmt.format(new Date()); // YYYY-MM-DD
-  // Interpret as Lagos local via offset trick
-  const iso=parts+'T'+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s||0).padStart(2,'0');
-  // Parse as local of browser — better: use temporal offset WAT=UTC+1
-  return new Date(iso+'+01:00').getTime();
+// Fixed for Sunday 27 Sep 2026 (WAT = UTC+1)
+function watDateOn(y,mo,d,h,m,s){
+  const iso=y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0')+'T'+
+    String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s||0).padStart(2,'0')+'+01:00';
+  return new Date(iso).getTime();
 }
-const DOORS_OPEN_AT=()=>watDate(15,55,0);
-const ROUND1_AT=()=>watDate(16,2,0);
+const DOORS_OPEN_AT=()=>watDateOn(2026,9,27,16,58,0);  // tomorrow 4:58 PM WAT
+const ROUND1_AT=()=>watDateOn(2026,9,27,17,0,0);       // tomorrow 5:00 PM WAT
 
 const ROSTER=[
   {id:'p1',name:'Chierika Onele',rating:1623},
   {id:'p2',name:'Obi Chukwuemeka',rating:1623},
   {id:'p3',name:'Oluwaseun Ajayi',rating:1332},
   {id:'p4',name:'Beckley Semilore',rating:1456},
-  {id:'p5',name:'Osafile Sage',rating:1330}
+  {id:'p5',name:'Osafile Sage',rating:1330},
+  {id:'p6',name:'Princewill E.',rating:1330}
 ];
 
 let me=null,T=null,unsub=null;
@@ -416,24 +414,40 @@ function applyByesForRound(state,roundNum){
 
 async function ensureTournamentStarted(){
   if(advancing) return;
-  const snap=await db.collection('mcps_tournaments').doc(DOC_ID).get();
-  if(snap.exists && snap.data().status && snap.data().status!=='waiting') return;
   advancing=true;
   try{
-    const startAt=Date.now();
-    const players=ROSTER.map(p=>({...p,startRating:p.rating,score:0,played:0}));
-    const schedule=buildSchedule(players);
-    const games={};
-    const rd1=schedule[0];
-    if(rd1){
-      rd1.pairings.forEach(p=>{
-        if(!p.bye) games[p.gameId]=emptyGame(p.whiteId,p.blackId,1,startAt);
-      });
-    }
-    const payload={status:'playing',currentRound:1,breakEndsAt:null,players,schedule,games,pairedAt:startAt,updated:firebase.firestore.FieldValue.serverTimestamp()};
-    applyByesForRound(payload,1);
-    await db.collection('mcps_tournaments').doc(DOC_ID).set(payload);
-  } finally { advancing=false; }
+    const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+    await db.runTransaction(async (tx)=>{
+      const snap=await tx.get(ref);
+      if(snap.exists){
+        const d=snap.data()||{};
+        // Already running or finished — do not overwrite (prevents hang/reset mid-event)
+        if(d.status==='playing'||d.status==='break'||d.status==='finished') return;
+      }
+      const startAt=Date.now();
+      const players=ROSTER.map(p=>({...p,startRating:p.rating,score:0,played:0}));
+      const schedule=buildSchedule(players);
+      // Safety: every pair appears at most once
+      const seen=new Set();
+      schedule.forEach(rd=>rd.pairings.forEach(p=>{
+        if(p.bye) return;
+        const key=[p.whiteId,p.blackId].sort().join('|');
+        if(seen.has(key)) throw new Error('Duplicate pairing');
+        seen.add(key);
+      }));
+      const games={};
+      const rd1=schedule[0];
+      if(rd1){
+        rd1.pairings.forEach(p=>{
+          if(!p.bye) games[p.gameId]=emptyGame(p.whiteId,p.blackId,1,startAt);
+        });
+      }
+      const payload={status:'playing',currentRound:1,breakEndsAt:null,players,schedule,games,pairedAt:startAt,updated:firebase.firestore.FieldValue.serverTimestamp()};
+      applyByesForRound(payload,1);
+      tx.set(ref, payload);
+    });
+  } catch(e){ console.error('start', e); }
+  finally { advancing=false; }
 }
 
 /* ---- phase routing ---- */
@@ -463,8 +477,8 @@ function routeByTime(){
       document.getElementById('wait-who').textContent=me?('Logged in as '+me.name):'';
       const left=Math.ceil((r1-now)/1000);
       document.getElementById('wait-count').textContent=fmtTime(left);
-      document.getElementById('wait-label').textContent='Until Round 1 pairing · 4:02 PM WAT';
-      document.getElementById('wait-message').textContent='Hold tight. At 4:02 PM everyone is paired for Round 1 — clocks start then.';
+      document.getElementById('wait-label').textContent='Until Round 1 pairing · 5:00 PM WAT';
+      document.getElementById('wait-message').textContent='Hold tight. At 5:00 PM everyone is paired for Round 1 — clocks start then.';
     } else {
       // show welcome so they can login into waiting
       if(document.getElementById('screen-login').classList.contains('hidden') &&
@@ -476,7 +490,7 @@ function routeByTime(){
     return;
   }
 
-  // Past 4:02 — ensure tournament + lobby
+  // Past 5:00 — ensure tournament + lobby
   ensureTournamentStarted().then(()=>{
     if(document.getElementById('screen-play').classList.contains('hidden') &&
        document.getElementById('screen-spec').classList.contains('hidden') &&
@@ -527,7 +541,7 @@ function enterAsVisitor(){
   me=null;sessionStorage.removeItem('mcps_trial_me');
   if(nowMs()<ROUND1_AT()){
     hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
-    document.getElementById('wait-who').textContent='Visitor mode — boards open at 4:02 PM';
+    document.getElementById('wait-who').textContent='Visitor mode — boards open at 5:00 PM';
     routeByTime();
   } else enterLobby();
 }
@@ -584,11 +598,12 @@ function renderLobby(){
     const res=g.result?` · <span class="text-amber-300 font-black">${g.result}</span>`:'';
     const live=g.status==='active'?'<span class="live-dot ml-1"></span>':'';
     if(me&&(p.whiteId===me.id||p.blackId===me.id)) myGame=p;
+    const watchLabel=g.status==='done'?'View':'Watch';
     return `<div class="bg-white/5 rounded-xl px-3 py-2.5 text-sm flex flex-wrap items-center justify-between gap-2">
       <div><span class="text-slate-500 text-[10px] font-black uppercase">⬜ White</span> <span class="font-bold text-white">${esc(w.name)}</span>
       <span class="text-amber-400 font-black mx-1">vs</span>
       <span class="text-slate-500 text-[10px] font-black uppercase">⬛ Black</span> <span class="font-bold text-white">${esc(b.name)}</span>${res}${live}</div>
-      ${g.status!=='done'?`<button type="button" class="btn-soft" style="padding:6px 10px;font-size:10px" onclick="spectateGame('${p.gameId}')">Watch</button>`:''}
+      <button type="button" class="btn-soft" style="padding:6px 10px;font-size:10px" onclick="spectateGame('${p.gameId}')">${watchLabel}</button>
     </div>`;
   }).join('');
 
@@ -604,13 +619,17 @@ function renderLobby(){
   } else act.classList.add('hidden');
 
   const liveBox=document.getElementById('live-games-box');
-  const liveGames=Object.entries(T.games||{}).filter(([,g])=>g.status==='active'&&g.round===(T.currentRound||1));
-  if(!liveGames.length) liveBox.innerHTML='<p class="text-sm text-slate-500">No live boards right now.</p>';
-  else liveBox.innerHTML=liveGames.map(([gid,g])=>{
+  const allGames=Object.entries(T.games||{}).sort((a,b)=>(a[1].round||0)-(b[1].round||0));
+  if(!allGames.length) liveBox.innerHTML='<p class="text-sm text-slate-500">No boards yet.</p>';
+  else liveBox.innerHTML=allGames.map(([gid,g])=>{
     const w=playerById(g.whiteId), b=playerById(g.blackId);
+    const live=g.status==='active';
+    const tag=live?'Live':'Done';
+    const tagCls=live?'text-rose-300':'text-slate-500';
     return `<button type="button" class="player-card" onclick="spectateGame('${gid}')">
-      <div class="flex items-center gap-2 mb-1"><span class="live-dot"></span><span class="text-[10px] font-black uppercase text-rose-300">Live · Round ${g.round}</span></div>
+      <div class="flex items-center gap-2 mb-1">${live?'<span class="live-dot"></span>':''}<span class="text-[10px] font-black uppercase ${tagCls}">${tag} · Round ${g.round}${g.result?' · '+g.result:''}</span></div>
       <div class="text-sm"><span class="text-slate-400">⬜</span> <strong>${esc(w.name)}</strong> <span class="text-amber-400">vs</span> <span class="text-slate-400">⬛</span> <strong>${esc(b.name)}</strong></div>
+      <div class="text-[10px] text-amber-400/90 mt-1 font-bold">${live?'Watch live':'View game'}</div>
     </button>`;
   }).join('');
 
@@ -647,16 +666,32 @@ async function maybeAdvanceRound(){
     const g=(T.games||{})[p.gameId];
     return g&&g.status==='done';
   });
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
   if(T.status==='playing'&&allDone){
     advancing=true;
     try{
-      if(rdNum>=TOTAL_ROUNDS){
-        await db.collection('mcps_tournaments').doc(DOC_ID).update({status:'finished',breakEndsAt:null});
-      } else {
-        const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000);
-        await db.collection('mcps_tournaments').doc(DOC_ID).update({status:'break',breakEndsAt:ends});
-      }
-    } finally {advancing=false;}
+      await db.runTransaction(async (tx)=>{
+        const snap=await tx.get(ref);
+        if(!snap.exists) return;
+        const d=snap.data();
+        if(d.status!=='playing'||(d.currentRound||1)!==rdNum) return;
+        const rdd=(d.schedule||[]).find(r=>r.round===rdNum);
+        if(!rdd) return;
+        const done=rdd.pairings.every(p=>{
+          if(p.bye) return true;
+          const g=(d.games||{})[p.gameId];
+          return g&&g.status==='done';
+        });
+        if(!done) return;
+        if(rdNum>=TOTAL_ROUNDS){
+          tx.update(ref,{status:'finished',breakEndsAt:null});
+        } else {
+          const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000);
+          tx.update(ref,{status:'break',breakEndsAt:ends});
+        }
+      });
+    } catch(e){ console.error('advance', e); }
+    finally {advancing=false;}
     return;
   }
   if(T.status==='break'&&T.breakEndsAt){
@@ -664,23 +699,27 @@ async function maybeAdvanceRound(){
     if(Date.now()>=end){
       advancing=true;
       try{
-        const next=rdNum+1;
-        const startAt=Date.now();
-        const players=(T.players||[]).map(p=>({...p}));
-        const tmp={players,schedule:T.schedule};
-        applyByesForRound(tmp,next);
-        const updates={status:'playing',currentRound:next,breakEndsAt:null,players:tmp.players};
-        // Activate next round games with fresh clocks
-        const nrd=(T.schedule||[]).find(r=>r.round===next);
-        if(nrd){
-          nrd.pairings.forEach(p=>{
-            if(!p.bye){
-              updates['games.'+p.gameId]=emptyGame(p.whiteId,p.blackId,next,startAt);
-            }
-          });
-        }
-        await db.collection('mcps_tournaments').doc(DOC_ID).update(updates);
-      } finally {advancing=false;}
+        await db.runTransaction(async (tx)=>{
+          const snap=await tx.get(ref);
+          if(!snap.exists) return;
+          const d=snap.data();
+          if(d.status!=='break'||(d.currentRound||1)!==rdNum) return;
+          const next=rdNum+1;
+          const startAt=Date.now();
+          const players=(d.players||[]).map(p=>({...p}));
+          const tmp={players,schedule:d.schedule};
+          applyByesForRound(tmp,next);
+          const updates={status:'playing',currentRound:next,breakEndsAt:null,players:tmp.players};
+          const nrd=(d.schedule||[]).find(r=>r.round===next);
+          if(nrd){
+            nrd.pairings.forEach(p=>{
+              if(!p.bye) updates['games.'+p.gameId]=emptyGame(p.whiteId,p.blackId,next,startAt);
+            });
+          }
+          tx.update(ref, updates);
+        });
+      } catch(e){ console.error('next round', e); }
+      finally {advancing=false;}
     }
   }
 }
@@ -775,56 +814,81 @@ function onSquareClick(sq){
 }
 
 async function pushMove(move){
-  const g=T.games[activeGameId];
-  const now=Date.now();
-  let wt=g.whiteTime, bt=g.blackTime;
-  if(g.lastMoveAt&&g.status==='active'){
-    const elapsed=Math.floor((now-g.lastMoveAt)/1000);
-    if(move.color==='w') wt=Math.max(0,(g.whiteTime||BASE_TIME)-elapsed+INC);
-    else bt=Math.max(0,(g.blackTime||BASE_TIME)-elapsed+INC);
-  }
-  let status='active', result=null;
-  if(game.in_checkmate()){status='done';result=move.color==='w'?'1-0':'0-1';}
-  else if(game.in_draw()){status='done';result='1/2-1/2';}
-  const updates={
-    ['games.'+activeGameId+'.fen']:game.fen(),
-    ['games.'+activeGameId+'.pgn']:(g.pgn?g.pgn+' ':'')+move.san,
-    ['games.'+activeGameId+'.turn']:game.turn(),
-    ['games.'+activeGameId+'.status']:status,
-    ['games.'+activeGameId+'.whiteTime']:wt,
-    ['games.'+activeGameId+'.blackTime']:bt,
-    ['games.'+activeGameId+'.lastMoveAt']:now,
-    ['games.'+activeGameId+'.drawOfferFrom']:null
-  };
-  if(result) updates['games.'+activeGameId+'.result']=result;
-  await db.collection('mcps_tournaments').doc(DOC_ID).update(updates);
-  if(status==='done') await finalizeResult(activeGameId,result);
+  const gid=activeGameId;
+  const localFen=game.fen();
+  const localTurn=game.turn();
+  const localSan=move.san;
+  const moveColor=move.color;
+  let endStatus='active', endResult=null;
+  if(game.in_checkmate()){endStatus='done';endResult=moveColor==='w'?'1-0':'0-1';}
+  else if(game.in_draw()){endStatus='done';endResult='1/2-1/2';}
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+  try{
+    await db.runTransaction(async (tx)=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists) return;
+      const state=snap.data();
+      const g=(state.games||{})[gid];
+      if(!g||g.status==='done') return;
+      // Reject stale move if board already advanced
+      if(g.fen && g.fen!==new Chess(g.fen).fen()){ /* continue */ }
+      const now=Date.now();
+      let wt=g.whiteTime||BASE_TIME, bt=g.blackTime||BASE_TIME;
+      if(g.lastMoveAt&&g.status==='active'){
+        const elapsed=Math.floor((now-g.lastMoveAt)/1000);
+        if(moveColor==='w') wt=Math.max(0,wt-elapsed+INC);
+        else bt=Math.max(0,bt-elapsed+INC);
+      }
+      const updates={
+        ['games.'+gid+'.fen']:localFen,
+        ['games.'+gid+'.pgn']:(g.pgn?g.pgn+' ':'')+localSan,
+        ['games.'+gid+'.turn']:localTurn,
+        ['games.'+gid+'.status']:endStatus,
+        ['games.'+gid+'.whiteTime']:wt,
+        ['games.'+gid+'.blackTime']:bt,
+        ['games.'+gid+'.lastMoveAt']:now,
+        ['games.'+gid+'.drawOfferFrom']:null
+      };
+      if(endResult) updates['games.'+gid+'.result']=endResult;
+      tx.update(ref, updates);
+    });
+  } catch(e){ console.error('move', e); toast('Move failed — try again'); return; }
+  if(endStatus==='done') await finalizeResult(gid, endResult);
 }
 
 async function finalizeResult(gameId, result){
-  const snap=await db.collection('mcps_tournaments').doc(DOC_ID).get();
-  const state=snap.data();
-  const g=state.games[gameId];
-  if(!g||g.eloApplied) return;
-  const players=state.players.map(p=>({...p}));
-  const w=players.find(p=>p.id===g.whiteId);
-  const b=players.find(p=>p.id===g.blackId);
-  if(!w||!b) return;
-  let scoreW=0.5;
-  if(result==='1-0') scoreW=1; else if(result==='0-1') scoreW=0;
-  const dW=eloDelta(w.rating,b.rating,scoreW);
-  const dB=eloDelta(b.rating,w.rating,1-scoreW);
-  w.rating=(w.rating||1500)+dW; b.rating=(b.rating||1500)+dB;
-  w.score=(w.score||0)+scoreW; b.score=(b.score||0)+(1-scoreW);
-  w.played=(w.played||0)+1; b.played=(b.played||0)+1;
-  await db.collection('mcps_tournaments').doc(DOC_ID).update({
-    players,
-    ['games.'+gameId+'.eloApplied']:true,
-    ['games.'+gameId+'.whiteEloDelta']:dW,
-    ['games.'+gameId+'.blackEloDelta']:dB,
-    ['games.'+gameId+'.status']:'done',
-    ['games.'+gameId+'.result']:result
-  });
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+  try{
+    await db.runTransaction(async (tx)=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists) return;
+      const state=snap.data();
+      const g=(state.games||{})[gameId];
+      if(!g||g.eloApplied) return; // already counted — ratings stay consistent
+      const players=(state.players||[]).map(p=>({...p}));
+      const w=players.find(p=>p.id===g.whiteId);
+      const b=players.find(p=>p.id===g.blackId);
+      if(!w||!b) return;
+      let scoreW=0.5;
+      if(result==='1-0') scoreW=1; else if(result==='0-1') scoreW=0;
+      const dW=eloDelta(w.rating,b.rating,scoreW);
+      const dB=eloDelta(b.rating,w.rating,1-scoreW);
+      w.rating=(w.rating||1500)+dW;
+      b.rating=(b.rating||1500)+dB;
+      w.score=(w.score||0)+scoreW;
+      b.score=(b.score||0)+(1-scoreW);
+      w.played=(w.played||0)+1;
+      b.played=(b.played||0)+1;
+      tx.update(ref, {
+        players,
+        ['games.'+gameId+'.eloApplied']:true,
+        ['games.'+gameId+'.whiteEloDelta']:dW,
+        ['games.'+gameId+'.blackEloDelta']:dB,
+        ['games.'+gameId+'.status']:'done',
+        ['games.'+gameId+'.result']:result
+      });
+    });
+  } catch(e){ console.error('finalize', e); }
 }
 
 function showGameResult(g){
@@ -842,21 +906,25 @@ function showGameResult(g){
   openModal('result-modal');
 }
 
+let flagging=false;
 function startClocks(){
   if(clockTimer) clearInterval(clockTimer);
+  flagging=false;
   clockTimer=setInterval(()=>{
-    if(!T||!activeGameId) return;
+    if(!T||!activeGameId||flagging) return;
     const g=T.games[activeGameId];
     if(!g||g.status!=='active'||!g.lastMoveAt) return;
     updateClockDisplay();
     const elapsed=Math.floor((Date.now()-g.lastMoveAt)/1000);
     const remaining=(g.turn==='w'?g.whiteTime:g.blackTime)-elapsed;
     if(remaining<=0){
+      flagging=true;
       const result=g.turn==='w'?'0-1':'1-0';
+      const gid=activeGameId;
       db.collection('mcps_tournaments').doc(DOC_ID).update({
-        ['games.'+activeGameId+'.status']:'done',
-        ['games.'+activeGameId+'.result']:result
-      }).then(()=>finalizeResult(activeGameId,result));
+        ['games.'+gid+'.status']:'done',
+        ['games.'+gid+'.result']:result
+      }).then(()=>finalizeResult(gid,result)).catch(()=>{flagging=false;});
     }
   },250);
 }
@@ -944,7 +1012,7 @@ function updateSpecClocks(){
 
 /* boot */
 (function boot(){
-  // Reset stale tournament from earlier tests so 4:02 can pair cleanly
+  // Reset stale tournament before Round 1 so 5:00 can pair cleanly
   // (Only clears if still before round 1 time)
   if(nowMs()<ROUND1_AT()){
     db.collection('mcps_tournaments').doc(DOC_ID).delete().catch(()=>{});
