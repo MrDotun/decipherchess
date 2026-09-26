@@ -216,6 +216,9 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       <div id="my-game-actions" class="mt-3 hidden">
         <button type="button" class="btn-gold w-full" id="btn-play-my-game">Play my game</button>
       </div>
+      <div id="round-complete-actions" class="mt-3 hidden">
+        <button type="button" class="btn-gold w-full" id="btn-finish-round" onclick="forceFinishRound()">✅ All games done — start break / next round</button>
+      </div>
     </div>
 
     <div class="panel p-4">
@@ -883,13 +886,25 @@ function renderLobby(){
   const act=document.getElementById('my-game-actions');
   if(myGame&&me){
     const g=(T.games||{})[myGame.gameId]||{};
-    if(g.status!=='done'){
+    if(g.status!=='done'&&!g.result){
       act.classList.remove('hidden');
       const btn=document.getElementById('btn-play-my-game');
       btn.textContent='Open my board — clock is running';
       btn.onclick=()=>openGame(myGame.gameId);
     } else act.classList.add('hidden');
   } else act.classList.add('hidden');
+
+  // Show unstick button when every pairing has a result but still on "Live"
+  const rca=document.getElementById('round-complete-actions');
+  if(rca){
+    if(st==='playing'&&rd&&roundAllFinished(rd,T.games)){
+      rca.classList.remove('hidden');
+      // Also auto-try advance so it doesn't stay stuck
+      maybeAdvanceRound(true);
+    } else {
+      rca.classList.add('hidden');
+    }
+  }
 
   const liveBox=document.getElementById('live-games-box');
   const allGames=Object.entries(T.games||{}).sort((a,b)=>(a[1].round||0)-(b[1].round||0));
@@ -1065,65 +1080,115 @@ async function reconcilePendingResults(){
   }
 }
 
-async function maybeAdvanceRound(){
+function isGameFinished(g){
+  return !!(g && (g.status==='done' || g.result));
+}
+
+function roundAllFinished(rd, games){
+  if(!rd) return false;
+  return rd.pairings.every(p=>{
+    if(p.bye) return true;
+    return isGameFinished((games||{})[p.gameId]);
+  });
+}
+
+async function forceFinishRound(){
+  const btn=document.getElementById('btn-finish-round');
+  if(btn){btn.disabled=true;btn.textContent='Advancing…';}
+  advancing=false; // clear any stuck lock
+  try{
+    await reconcilePendingResults();
+    await maybeAdvanceRound(true);
+    toast('Moving to break / next round…');
+  } finally {
+    if(btn){btn.disabled=false;btn.textContent='✅ All games done — start break / next round';}
+  }
+}
+
+async function maybeAdvanceRound(force){
   if(!T||T.status==='finished') return;
-  // Always try to apply missing scores first (default wins, forfeits, etc.)
   await reconcilePendingResults();
-  if(advancing) return;
+  if(advancing && !force) return;
   const rdNum=T.currentRound||1;
   const rd=(T.schedule||[]).find(r=>r.round===rdNum);
   if(!rd) return;
-  const allDone=rd.pairings.every(p=>{
-    if(p.bye) return true;
-    const g=(T.games||{})[p.gameId];
-    return g&&g.status==='done';
-  });
+  const allDone=roundAllFinished(rd, T.games);
   const ref=db.collection('mcps_tournaments').doc(DOC_ID);
 
   // Round complete → break (or finish after last round)
   if(T.status==='playing'&&allDone){
     advancing=true;
     try{
+      let wrote=false;
       await db.runTransaction(async (tx)=>{
         const snap=await tx.get(ref);
         if(!snap.exists) return;
         const d=snap.data();
-        if(d.status!=='playing'||(d.currentRound||1)!==rdNum) return;
-        const rdd=(d.schedule||[]).find(r=>r.round===rdNum);
+        if(d.status!=='playing') return;
+        if((d.currentRound||1)!==rdNum && !force) return;
+        const rdd=(d.schedule||[]).find(r=>r.round===(d.currentRound||rdNum));
         if(!rdd) return;
-        const done=rdd.pairings.every(p=>{
-          if(p.bye) return true;
+        // Accept either status done OR a result present
+        if(!roundAllFinished(rdd, d.games)) return;
+        // Ensure every finished game has status 'done'
+        const patch={};
+        rdd.pairings.forEach(p=>{
+          if(p.bye||!p.gameId) return;
           const g=(d.games||{})[p.gameId];
-          return g&&g.status==='done';
+          if(g&&g.result&&g.status!=='done'){
+            patch['games.'+p.gameId+'.status']='done';
+          }
         });
-        if(!done) return;
         if(rdNum>=TOTAL_ROUNDS){
-          tx.update(ref,{status:'finished',breakEndsAt:null,updated:firebase.firestore.FieldValue.serverTimestamp()});
+          Object.assign(patch,{status:'finished',breakEndsAt:null});
         } else {
           const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000);
-          tx.update(ref,{status:'break',breakEndsAt:ends,updated:firebase.firestore.FieldValue.serverTimestamp()});
+          Object.assign(patch,{status:'break',breakEndsAt:ends});
         }
+        patch.updated=firebase.firestore.FieldValue.serverTimestamp();
+        tx.update(ref, patch);
+        wrote=true;
       });
-    } catch(e){ console.error('advance', e); }
-    finally {advancing=false;}
+      // Fallback if transaction did nothing (permissions / race)
+      if(!wrote && force){
+        if(rdNum>=TOTAL_ROUNDS){
+          await ref.update({status:'finished',breakEndsAt:null});
+        } else {
+          const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000);
+          await ref.update({status:'break',breakEndsAt:ends});
+        }
+      }
+    } catch(e){
+      console.error('advance', e);
+      if(force){
+        try{
+          if(rdNum>=TOTAL_ROUNDS) await ref.update({status:'finished',breakEndsAt:null});
+          else await ref.update({status:'break',breakEndsAt:firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000)});
+        }catch(e2){ console.error('advance fallback', e2); }
+      }
+    } finally {
+      advancing=false;
+    }
     return;
   }
 
-  // Break timer finished → start next round (or recover if stuck at 0:00)
+  // Break timer finished → start next round
   if(T.status==='break'){
     const end=tsMillis(T.breakEndsAt);
-    // If breakEndsAt missing or already past, advance
-    if(!T.breakEndsAt || Date.now()>=end){
+    if(!T.breakEndsAt || Date.now()>=end || force){
       advancing=true;
       try{
+        let wrote=false;
         await db.runTransaction(async (tx)=>{
           const snap=await tx.get(ref);
           if(!snap.exists) return;
           const d=snap.data();
-          if(d.status!=='break'||(d.currentRound||1)!==rdNum) return;
-          const next=rdNum+1;
+          if(d.status!=='break'&&!force) return;
+          const cur=d.currentRound||rdNum;
+          const next=cur+1;
           if(next>TOTAL_ROUNDS){
             tx.update(ref,{status:'finished',breakEndsAt:null});
+            wrote=true;
             return;
           }
           const startAt=Date.now();
@@ -1138,7 +1203,22 @@ async function maybeAdvanceRound(){
             });
           }
           tx.update(ref, updates);
+          wrote=true;
         });
+        if(!wrote && force){
+          // emergency: bump round
+          const next=rdNum+1;
+          if(next>TOTAL_ROUNDS) await ref.update({status:'finished',breakEndsAt:null});
+          else {
+            const startAt=Date.now();
+            const updates={status:'playing',currentRound:next,breakEndsAt:null};
+            const nrd=(T.schedule||[]).find(r=>r.round===next);
+            if(nrd) nrd.pairings.forEach(p=>{
+              if(!p.bye) updates['games.'+p.gameId]=emptyGame(p.whiteId,p.blackId,next,startAt);
+            });
+            await ref.update(updates);
+          }
+        }
       } catch(e){ console.error('next round', e); }
       finally {advancing=false;}
     }
