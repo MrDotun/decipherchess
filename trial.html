@@ -25,14 +25,24 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:#e2e8
 .btn-blue{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-weight:900;border-radius:12px;padding:13px 18px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;border:0;cursor:pointer}
 input{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:12px 14px;width:100%;outline:none}
 input:focus{border-color:rgba(232,197,71,.5)}
-#board,#spec-board{width:100%;max-width:420px;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 0 3px rgba(232,197,71,.35)}
-.highlight-select{box-shadow:inset 0 0 0 4px rgba(232,197,71,.9)!important}
+#board,#spec-board{width:100%;max-width:560px;margin:0 auto;border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 0 3px rgba(118,150,86,.55)}
+.board-wrap{width:100%;max-width:560px;margin:0 auto}
+/* Chess.com green board squares */
+.board-b72b1 .white-1e1d7{background-color:#eeeed2!important}
+.board-b72b1 .black-3c85d{background-color:#769656!important}
+#board .white-1e1d7,#spec-board .white-1e1d7{background-color:#eeeed2!important}
+#board .black-3c85d,#spec-board .black-3c85d{background-color:#769656!important}
+.highlight-select{box-shadow:inset 0 0 0 4px rgba(255,255,0,.9)!important}
 .highlight-legal{position:relative}
-.highlight-legal::after{content:'';position:absolute;left:50%;top:50%;width:18%;height:18%;min-width:9px;min-height:9px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(34,197,94,.55);pointer-events:none;z-index:2}
+.highlight-legal::after{content:'';position:absolute;left:50%;top:50%;width:18%;height:18%;min-width:9px;min-height:9px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(0,0,0,.28);pointer-events:none;z-index:2}
 .side-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:800}
 .side-white{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#f8fafc}
 .side-black{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.12);color:#e2e8f0}
-.clock{font-variant-numeric:tabular-nums;font-weight:900;font-size:1.35rem}
+.player-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.player-row .pname{font-weight:900;font-size:14px;color:#fff;line-height:1.2}
+.player-row .prating{font-size:11px;font-weight:800;color:#fbbf24;margin-top:2px}
+.player-row .pside{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8}
+.clock{font-variant-numeric:tabular-nums;font-weight:900;font-size:1.55rem;min-width:4.2rem;text-align:right}
 .clock.active{color:#fbbf24;text-shadow:0 0 12px rgba(251,191,36,.35)}
 .clock.low{color:#f87171;animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
@@ -187,7 +197,8 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="break-banner hidden" id="break-banner">
       <div class="text-[10px] font-black uppercase tracking-widest text-violet-300 mb-1">Round complete · break</div>
       <div class="break-count" id="break-timer">2:00</div>
-      <p class="text-xs text-slate-400 mt-1">Next round pairs when the timer hits zero</p>
+      <p class="text-xs text-slate-400 mt-1 mb-3" id="break-hint">Next round pairs when the timer hits zero</p>
+      <button type="button" class="btn-gold w-full hidden" id="btn-proceed-round" onclick="proceedToNextRound()">⚡ Proceed to next round</button>
     </div>
 
     <div class="panel p-4">
@@ -295,14 +306,22 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="text-xs font-black text-amber-400">Your board</div>
     <div class="text-[11px] font-bold text-slate-500" id="play-round-label">R1</div>
   </nav>
-  <div class="max-w-lg mx-auto px-4 py-4">
-    <div class="flex items-center justify-between mb-2 gap-2">
-      <div class="side-pill side-black" id="play-label-top">⬛ Black</div>
+  <div class="max-w-xl mx-auto px-3 py-3">
+    <div class="player-row mb-2" id="play-row-top">
+      <div class="text-left min-w-0">
+        <div class="pside" id="play-side-top">⬛ Black</div>
+        <div class="pname truncate" id="play-name-top">—</div>
+        <div class="prating" id="play-rating-top"></div>
+      </div>
       <div class="clock" id="clock-top">10:00</div>
     </div>
-    <div class="panel p-3 mb-2"><div id="board"></div></div>
-    <div class="flex items-center justify-between mb-3 gap-2">
-      <div class="side-pill side-white" id="play-label-bottom">⬜ White</div>
+    <div class="panel p-2 mb-2"><div class="board-wrap"><div id="board"></div></div></div>
+    <div class="player-row mb-3" id="play-row-bottom">
+      <div class="text-left min-w-0">
+        <div class="pside" id="play-side-bottom">⬜ White</div>
+        <div class="pname truncate" id="play-name-bottom">—</div>
+        <div class="prating" id="play-rating-bottom"></div>
+      </div>
       <div class="clock" id="clock-bottom">10:00</div>
     </div>
     <p class="text-center text-sm font-bold text-slate-300 mb-3" id="play-status">Your turn</p>
@@ -320,14 +339,22 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="flex items-center gap-2 text-xs font-black text-rose-400"><span class="live-dot"></span> LIVE</div>
     <div class="text-[11px] font-bold text-slate-500">Spectator</div>
   </nav>
-  <div class="max-w-lg mx-auto px-4 py-4">
-    <div class="flex items-center justify-between mb-2 gap-2">
-      <div class="side-pill side-black" id="spec-label-top">⬛ Black</div>
+  <div class="max-w-xl mx-auto px-3 py-3">
+    <div class="player-row mb-2">
+      <div class="text-left min-w-0">
+        <div class="pside" id="spec-side-top">⬛ Black</div>
+        <div class="pname truncate" id="spec-name-top">—</div>
+        <div class="prating" id="spec-rating-top"></div>
+      </div>
       <div class="clock" id="spec-clock-top">10:00</div>
     </div>
-    <div class="panel p-3 mb-2"><div id="spec-board"></div></div>
-    <div class="flex items-center justify-between mb-3 gap-2">
-      <div class="side-pill side-white" id="spec-label-bottom">⬜ White</div>
+    <div class="panel p-2 mb-2"><div class="board-wrap"><div id="spec-board"></div></div></div>
+    <div class="player-row mb-3">
+      <div class="text-left min-w-0">
+        <div class="pside" id="spec-side-bottom">⬜ White</div>
+        <div class="pname truncate" id="spec-name-bottom">—</div>
+        <div class="prating" id="spec-rating-bottom"></div>
+      </div>
       <div class="clock" id="spec-clock-bottom">10:00</div>
     </div>
     <p class="text-center text-sm font-bold text-slate-300" id="spec-status">Watching…</p>
@@ -378,13 +405,17 @@ const DOTUN=['audio/well-done.mp3','audio/well-done-chap.mp3','audio/great-job.m
 const PIECE_THEME='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/{piece}.png';
 const SOUND_MOVE='https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3';
 const SOUND_CAPTURE='https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/capture.mp3';
+const SOUND_CHECK='https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-check.mp3';
+const SOUND_GAMEEND='https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/game-end.mp3';
+const SOUND_NOTIFY='https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/notify.mp3';
 function pieceThemeUrl(){return function(p){const m={wP:'wp',wR:'wr',wN:'wn',wB:'wb',wQ:'wq',wK:'wk',bP:'bp',bR:'br',bN:'bn',bB:'bb',bQ:'bq',bK:'bk'};return PIECE_THEME.replace('{piece}',m[p]||p.toLowerCase());};}
-function playMoveSound(isCapture){
-  try{
-    const a=new Audio(isCapture?SOUND_CAPTURE:SOUND_MOVE);
-    a.volume=0.75;
-    a.play().catch(()=>{});
-  }catch(e){}
+function playSfx(url,vol){
+  try{const a=new Audio(url);a.volume=vol==null?0.85:vol;a.play().catch(()=>{});}catch(e){}
+}
+function playMoveSound(isCapture,isCheck){
+  if(isCheck) playSfx(SOUND_CHECK,0.9);
+  else if(isCapture) playSfx(SOUND_CAPTURE,0.9);
+  else playSfx(SOUND_MOVE,0.8);
 }
 
 /* ---- Schedule (WAT = Africa/Lagos) ----
@@ -421,6 +452,66 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function speakDotun(){try{new Audio(DOTUN[Math.floor(Math.random()*DOTUN.length)]).play().catch(()=>{});}catch(e){}}
+
+let femaleVoice=null, lastBreakSpoken=-1, breakVoiceReady=false;
+function pickFemaleVoice(){
+  try{
+    const voices=window.speechSynthesis.getVoices()||[];
+    // Prefer clear female English voices
+    const prefer=['Samantha','Google UK English Female','Google US English','Karen','Moira','Tessa','Victoria','Zira','Female'];
+    for(const name of prefer){
+      const v=voices.find(x=>x.name&&x.name.indexOf(name)>=0);
+      if(v){femaleVoice=v;break;}
+    }
+    if(!femaleVoice){
+      femaleVoice=voices.find(v=>/female/i.test(v.name||''))||
+                  voices.find(v=>v.lang&&v.lang.startsWith('en'))||
+                  voices[0]||null;
+    }
+    breakVoiceReady=true;
+  }catch(e){}
+}
+if(typeof speechSynthesis!=='undefined'){
+  pickFemaleVoice();
+  speechSynthesis.onvoiceschanged=pickFemaleVoice;
+}
+function speakFemale(text){
+  try{
+    if(!window.speechSynthesis) return;
+    if(!breakVoiceReady) pickFemaleVoice();
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=0.95; u.pitch=1.15; u.volume=1;
+    if(femaleVoice) u.voice=femaleVoice;
+    u.lang=(femaleVoice&&femaleVoice.lang)||'en-US';
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function speakBreakCountdown(leftSec){
+  // Speak at start, every 30s, and final 10/5 seconds — avoids overlapping chatter
+  const left=Math.max(0,leftSec|0);
+  if(left===lastBreakSpoken) return;
+  let msg=null;
+  if(left>=118){ // just started (~2:00)
+    msg='Please wait for the next round. Two minutes remaining.';
+  } else if(left===90){
+    msg='Please wait for the next round. One minute thirty seconds remaining.';
+  } else if(left===60){
+    msg='Please wait for the next round. One minute remaining.';
+  } else if(left===30){
+    msg='Thirty seconds until the next round.';
+  } else if(left===10){
+    msg='Ten seconds. Get ready for the next round.';
+  } else if(left===5){
+    msg='Five seconds.';
+  } else if(left===0){
+    msg='Break over. Please proceed to the next round.';
+  }
+  if(msg){
+    lastBreakSpoken=left;
+    speakFemale(msg);
+  }
+}
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fmtTime(sec){sec=Math.max(0,Math.floor(sec));return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');}
 function playerById(id){return (T&&T.players||ROSTER).find(p=>p.id===id)||{name:'?',rating:0};}
@@ -649,12 +740,53 @@ function listenTournament(){
     else if(T.status==='break'){ updateBreakTimer(); maybeAdvanceRound(); }
     else if(T.status==='finished') renderFinished();
     else reconcilePendingResults();
-  },1000);
+  },500);
 }
 
+/** Result of the direct game between a and b: 1 if a beat b, 0 if b beat a, 0.5 draw/no game */
+function headToHeadScore(aId,bId){
+  const games=T&&T.games||{};
+  for(const g of Object.values(games)){
+    if(!g||g.status!=='done'||!g.result) continue;
+    if(g.whiteId===aId&&g.blackId===bId){
+      if(g.result==='1-0') return 1;
+      if(g.result==='0-1') return 0;
+      if(g.result==='1/2-1/2') return 0.5;
+    }
+    if(g.whiteId===bId&&g.blackId===aId){
+      if(g.result==='0-1') return 1;
+      if(g.result==='1-0') return 0;
+      if(g.result==='1/2-1/2') return 0.5;
+    }
+  }
+  return 0.5;
+}
+
+/** Number of wins while playing Black */
+function blackWins(playerId){
+  const games=T&&T.games||{};
+  let n=0;
+  for(const g of Object.values(games)){
+    if(!g||g.status!=='done'||g.result!=='0-1') continue;
+    if(g.blackId===playerId) n++;
+  }
+  return n;
+}
+
+/**
+ * Standings order:
+ * 1) Points  2) Head-to-head  3) Wins with Black  4) Rating
+ */
 function sortedPlayers(){
   return (T&&T.players||[]).slice().sort((a,b)=>{
-    if((b.score||0)!==(a.score||0)) return (b.score||0)-(a.score||0);
+    const sa=a.score||0, sb=b.score||0;
+    if(sb!==sa) return sb-sa;
+    // Tiebreaker 1: head-to-head
+    const h2h=headToHeadScore(a.id,b.id);
+    if(h2h!==0.5) return h2h>0.5?-1:1;
+    // Tiebreaker 2: more wins as Black ranks higher
+    const ba=blackWins(a.id), bb=blackWins(b.id);
+    if(bb!==ba) return bb-ba;
     return (b.rating||0)-(a.rating||0);
   });
 }
@@ -713,8 +845,18 @@ function renderLobby(){
   document.getElementById('lobby-status').className='text-sm font-black '+(st==='break'?'text-violet-300':st==='finished'?'text-amber-400':'text-emerald-400');
 
   const bb=document.getElementById('break-banner');
-  if(st==='break'){bb.classList.remove('hidden');updateBreakTimer();}
-  else bb.classList.add('hidden');
+  const proceedBtn=document.getElementById('btn-proceed-round');
+  if(st==='break'){
+    bb.classList.remove('hidden');
+    // Reset voice so each break announces from the start
+    if(lastBreakSpoken<0||lastBreakSpoken>120) lastBreakSpoken=-1;
+    updateBreakTimer();
+  } else {
+    bb.classList.add('hidden');
+    if(proceedBtn) proceedBtn.classList.add('hidden');
+    lastBreakSpoken=-1;
+    try{if(window.speechSynthesis) speechSynthesis.cancel();}catch(e){}
+  }
 
   const rd=(T.schedule||[]).find(r=>r.round===(T.currentRound||1));
   const box=document.getElementById('pairings-box');
@@ -764,10 +906,7 @@ function renderLobby(){
     </button>`;
   }).join('');
 
-  const rows=(T.players||[]).slice().sort((a,b)=>{
-    if((b.score||0)!==(a.score||0)) return (b.score||0)-(a.score||0);
-    return (b.rating||0)-(a.rating||0);
-  });
+  const rows=sortedPlayers();
   document.getElementById('standings-body').innerHTML=rows.map((p,i)=>{
     const cls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
     const delta=(p.rating||0)-(p.startRating||p.rating||0);
@@ -782,47 +921,134 @@ function renderLobby(){
 }
 
 function updateBreakTimer(){
-  if(!T||!T.breakEndsAt) return;
+  if(!T) return;
   const end=tsMillis(T.breakEndsAt);
-  document.getElementById('break-timer').textContent=fmtTime(Math.max(0,Math.ceil((end-Date.now())/1000)));
+  const left=Math.max(0,Math.ceil((end-Date.now())/1000));
+  const timerEl=document.getElementById('break-timer');
+  const hintEl=document.getElementById('break-hint');
+  const btn=document.getElementById('btn-proceed-round');
+  if(timerEl) timerEl.textContent=fmtTime(left);
+  if(left<=0){
+    if(hintEl) hintEl.textContent='Break over — proceed to the next round';
+    if(btn) btn.classList.remove('hidden');
+  } else {
+    if(hintEl) hintEl.textContent='Next round pairs when the timer hits zero';
+    if(btn) btn.classList.add('hidden');
+  }
+  // Female voice reads the countdown during the break
+  if(T.status==='break') speakBreakCountdown(left);
 }
 
-/** Any lobby/play client can flag a timed-out game so no-shows award the point
- *  even if neither player opened their board. Runs often while status is playing. */
+/** After break: advance round if needed, then open your board */
+async function proceedToNextRound(){
+  const btn=document.getElementById('btn-proceed-round');
+  if(btn){btn.disabled=true;btn.textContent='Opening…';}
+  playSfx(SOUND_NOTIFY,0.9);
+  try{
+    if(T&&T.status==='break') await maybeAdvanceRound();
+    // Wait briefly for snapshot to land with new games
+    await new Promise(r=>setTimeout(r,600));
+    if(T&&T.status==='playing'&&me){
+      const rdNum=T.currentRound||1;
+      const rd=(T.schedule||[]).find(r=>r.round===rdNum);
+      if(rd){
+        const mine=rd.pairings.find(p=>!p.bye&&(p.whiteId===me.id||p.blackId===me.id));
+        if(mine&&mine.gameId){
+          const g=(T.games||{})[mine.gameId];
+          if(g&&g.status!=='done'){
+            await openGame(mine.gameId);
+            playSfx(SOUND_NOTIFY,0.7);
+            return;
+          }
+        }
+      }
+    }
+    // Fallback: stay in lobby (pairings visible)
+    if(document.getElementById('screen-lobby').classList.contains('hidden')){
+      hideAll();document.getElementById('screen-lobby').classList.remove('hidden');
+    }
+    toast('Next round is ready — open your board from the lobby');
+  } finally {
+    if(btn){btn.disabled=false;btn.textContent='⚡ Proceed to next round';}
+  }
+}
+
+function gameRemainingSec(g){
+  if(!g||g.status!=='active') return 9999;
+  const base=g.turn==='w'?(g.whiteTime||BASE_TIME):(g.blackTime||BASE_TIME);
+  const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||Date.now();
+  const elapsed=Math.floor((Date.now()-anchor)/1000);
+  return base-elapsed;
+}
+
+/** Any client (lobby / play / spectate) can flag a timed-out game.
+ *  No-shows and abandoned clocks award the point so the round can advance. */
 async function checkTimedOutGames(){
   if(!T||T.status!=='playing') return;
   const games=T.games||{};
-  const now=Date.now();
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
   for(const gid of Object.keys(games)){
     const g=games[gid];
-    if(!g||g.status!=='active'||!g.lastMoveAt) continue;
+    if(!g||g.status!=='active') continue;
     if(flaggingGames[gid]) continue;
-    const base=g.turn==='w'?(g.whiteTime||BASE_TIME):(g.blackTime||BASE_TIME);
-    const elapsed=Math.floor((now-g.lastMoveAt)/1000);
-    const remaining=base-elapsed;
-    if(remaining>0) continue;
+    if(gameRemainingSec(g)>0) continue;
     flaggingGames[gid]=true;
     const result=g.turn==='w'?'0-1':'1-0';
     try{
-      const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+      let applied=false;
       await db.runTransaction(async (tx)=>{
         const snap=await tx.get(ref);
         if(!snap.exists) return;
         const state=snap.data();
         const cur=(state.games||{})[gid];
         if(!cur||cur.status!=='active') return;
-        const b=cur.turn==='w'?(cur.whiteTime||BASE_TIME):(cur.blackTime||BASE_TIME);
-        const el=Math.floor((Date.now()-cur.lastMoveAt)/1000);
-        if(b-el>0) return; // still has time (race)
-        tx.update(ref,{
+        if(gameRemainingSec(cur)>0) return;
+        // Apply result + scores in ONE transaction so standings always update
+        const players=(state.players||[]).map(p=>({...p}));
+        const w=players.find(p=>p.id===cur.whiteId);
+        const b=players.find(p=>p.id===cur.blackId);
+        const updates={
           ['games.'+gid+'.status']:'done',
           ['games.'+gid+'.result']:result
-        });
+        };
+        if(w&&b&&!cur.eloApplied){
+          let scoreW=result==='1-0'?1:(result==='0-1'?0:0.5);
+          const dW=eloDelta(w.rating||1500,b.rating||1500,scoreW);
+          const dB=eloDelta(b.rating||1500,w.rating||1500,1-scoreW);
+          w.rating=(w.rating||1500)+dW;
+          b.rating=(b.rating||1500)+dB;
+          w.score=(w.score||0)+scoreW;
+          b.score=(b.score||0)+(1-scoreW);
+          w.played=(w.played||0)+1;
+          b.played=(b.played||0)+1;
+          updates.players=players;
+          updates['games.'+gid+'.eloApplied']=true;
+          updates['games.'+gid+'.whiteEloDelta']=dW;
+          updates['games.'+gid+'.blackEloDelta']=dB;
+        }
+        tx.update(ref, updates);
+        applied=true;
       });
-      await finalizeResult(gid,result);
-    }catch(e){ console.error('time forfeit',e); }
-    finally{
-      setTimeout(()=>{ delete flaggingGames[gid]; },8000);
+      if(!applied){
+        // Fallback without transaction (still better than stuck)
+        await ref.update({
+          ['games.'+gid+'.status']:'done',
+          ['games.'+gid+'.result']:result
+        }).catch(()=>{});
+        await finalizeResult(gid,result);
+      }
+      // After flagging, try to advance round
+      setTimeout(()=>maybeAdvanceRound(),400);
+    }catch(e){
+      console.error('time forfeit',e);
+      // Last-resort write
+      try{
+        await ref.update({['games.'+gid+'.status']:'done',['games.'+gid+'.result']:result});
+        await finalizeResult(gid,result);
+        setTimeout(()=>maybeAdvanceRound(),400);
+      }catch(e2){ console.error('forfeit fallback',e2); }
+    } finally {
+      setTimeout(()=>{ delete flaggingGames[gid]; },5000);
     }
   }
 }
@@ -940,6 +1166,7 @@ function initPlayBoard(){
     board=ChessBoard('board',{position:g.fen,orientation:orient,draggable:false,pieceTheme:pieceThemeUrl()});
     $('#board').on('click','[class*="square-"]',function(){const sq=$(this).attr('data-square');if(sq)onSquareClick(sq);});
   } else {board.orientation(orient);board.position(g.fen,false);}
+  try{if(board.resize) board.resize();}catch(e){}
   updatePlayLabels();updatePlayStatus();updateClockDisplay();
 }
 
@@ -947,15 +1174,18 @@ function updatePlayLabels(){
   const g=T.games[activeGameId];if(!g)return;
   const w=playerById(g.whiteId), b=playerById(g.blackId);
   const myColor=g.whiteId===me.id?'w':'b';
+  const setRow=(sideEl,nameEl,rateEl,side,pl,you)=>{
+    document.getElementById(sideEl).textContent=(side==='w'?'⬜ White':'⬛ Black')+(you?' · you':'');
+    document.getElementById(nameEl).textContent=pl.name||'?';
+    document.getElementById(rateEl).textContent='Rating '+(pl.rating||0);
+  };
   if(myColor==='w'){
-    document.getElementById('play-label-bottom').innerHTML='⬜ White · '+esc(w.name)+' (you)';
-    document.getElementById('play-label-top').innerHTML='⬛ Black · '+esc(b.name);
+    setRow('play-side-bottom','play-name-bottom','play-rating-bottom','w',w,true);
+    setRow('play-side-top','play-name-top','play-rating-top','b',b,false);
   } else {
-    document.getElementById('play-label-bottom').innerHTML='⬛ Black · '+esc(b.name)+' (you)';
-    document.getElementById('play-label-top').innerHTML='⬜ White · '+esc(w.name);
+    setRow('play-side-bottom','play-name-bottom','play-rating-bottom','b',b,true);
+    setRow('play-side-top','play-name-top','play-rating-top','w',w,false);
   }
-  document.getElementById('play-label-bottom').className='side-pill '+(myColor==='w'?'side-white':'side-black');
-  document.getElementById('play-label-top').className='side-pill '+(myColor==='w'?'side-black':'side-white');
 }
 
 function syncPlayBoard(){
@@ -965,7 +1195,8 @@ function syncPlayBoard(){
   else if(g.fen!==game.fen()){
     const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
     const isCap=lastSan.includes('x');
-    playMoveSound(isCap);
+    const isChk=lastSan.includes('+')||lastSan.includes('#');
+    playMoveSound(isCap,isChk);
     game.load(g.fen);board.position(g.fen,true);
   }
   updatePlayLabels();updatePlayStatus();updateClockDisplay();
@@ -1001,7 +1232,7 @@ function onSquareClick(sq){
       const move=game.move({from:sourceSquare,to:sq,promotion:legal.flags.includes('p')?'q':undefined});
       sourceSquare=null;clearHighlights();
       if(move){
-        playMoveSound(!!move.captured);
+        playMoveSound(!!move.captured, game.in_check());
         board.position(game.fen());
         pushMove(move);
       }
@@ -1039,18 +1270,17 @@ async function pushMove(move){
       const now=Date.now();
       let wt=g.whiteTime||BASE_TIME, bt=g.blackTime||BASE_TIME;
       // Apply elapsed, then +INC to the player who just moved (Fischer 10+2)
-      if(g.lastMoveAt&&g.status==='active'){
-        const elapsed=Math.floor((now-g.lastMoveAt)/1000);
+      if(g.status==='active'){
+        const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||now;
+        const elapsed=Math.floor((now-anchor)/1000);
         if(moveColor==='w'){
-          // Time already gone before the move arrived → reject (opponent wins on time)
-          if(wt-elapsed<=0) return;
+          if(wt-elapsed<=0) return; // already flagged
           wt=Math.max(0,wt-elapsed)+INC;
         } else {
           if(bt-elapsed<=0) return;
           bt=Math.max(0,bt-elapsed)+INC;
         }
       } else {
-        // First tick edge: still add increment
         if(moveColor==='w') wt=wt+INC; else bt=bt+INC;
       }
       const updates={
@@ -1119,6 +1349,7 @@ function showGameResult(g){
   document.getElementById('result-sub').textContent=draw?'Shared point.':(won?'Great game.':'See standings in the lobby.');
   const d=myColor==='w'?g.whiteEloDelta:g.blackEloDelta;
   document.getElementById('result-elo').textContent=d!=null?('Rating '+(d>=0?'+':'')+d):'';
+  playSfx(SOUND_GAMEEND,0.85);
   if(won) speakDotun();
   openModal('result-modal');
 }
@@ -1130,14 +1361,11 @@ function startClocks(){
   clockTimer=setInterval(()=>{
     if(!T||!activeGameId||flagging) return;
     const g=T.games[activeGameId];
-    if(!g||g.status!=='active'||!g.lastMoveAt) return;
+    if(!g||g.status!=='active') return;
     updateClockDisplay();
-    const elapsed=Math.floor((Date.now()-g.lastMoveAt)/1000);
-    const remaining=(g.turn==='w'?(g.whiteTime||BASE_TIME):(g.blackTime||BASE_TIME))-elapsed;
-    if(remaining<=0){
-      // Prefer the shared checker so lobby clients also flag no-shows
+    if(gameRemainingSec(g)<=0){
       flagging=true;
-      checkTimedOutGames().finally(()=>{ flagging=false; });
+      checkTimedOutGames().then(()=>maybeAdvanceRound()).finally(()=>{ flagging=false; });
     }
   },250);
 }
@@ -1146,8 +1374,9 @@ function updateClockDisplay(){
   if(!activeGameId||!T) return;
   const g=T.games[activeGameId];if(!g)return;
   let wt=g.whiteTime||BASE_TIME, bt=g.blackTime||BASE_TIME;
-  if(g.status==='active'&&g.lastMoveAt){
-    const elapsed=Math.floor((Date.now()-g.lastMoveAt)/1000);
+  if(g.status==='active'){
+    const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||Date.now();
+    const elapsed=Math.floor((Date.now()-anchor)/1000);
     if(g.turn==='w') wt=Math.max(0,wt-elapsed); else bt=Math.max(0,bt-elapsed);
   }
   const myColor=me&&g.whiteId===me.id?'w':'b';
@@ -1196,14 +1425,21 @@ function spectateGame(gameId){
   hideAll();document.getElementById('screen-spec').classList.remove('hidden');
   syncSpecBoard(true);
   if(clockTimer) clearInterval(clockTimer);
-  clockTimer=setInterval(updateSpecClocks,250);
+  clockTimer=setInterval(()=>{
+    updateSpecClocks();
+    if(T&&T.status==='playing') checkTimedOutGames();
+  },250);
 }
 function syncSpecBoard(){
   if(!specGameId||!T) return;
   const g=T.games[specGameId];if(!g)return;
   const w=playerById(g.whiteId), b=playerById(g.blackId);
-  document.getElementById('spec-label-bottom').innerHTML='⬜ White · '+esc(w.name)+' ('+w.rating+')';
-  document.getElementById('spec-label-top').innerHTML='⬛ Black · '+esc(b.name)+' ('+b.rating+')';
+  document.getElementById('spec-side-bottom').textContent='⬜ White';
+  document.getElementById('spec-name-bottom').textContent=w.name||'?';
+  document.getElementById('spec-rating-bottom').textContent='Rating '+(w.rating||0);
+  document.getElementById('spec-side-top').textContent='⬛ Black';
+  document.getElementById('spec-name-top').textContent=b.name||'?';
+  document.getElementById('spec-rating-top').textContent='Rating '+(b.rating||0);
   if(!specBoard){
     specBoard=ChessBoard('spec-board',{position:g.fen||'start',draggable:false,pieceTheme:pieceThemeUrl()});
   } else {
@@ -1211,7 +1447,7 @@ function syncSpecBoard(){
     const next=g.fen||'start';
     if(prev&&prev!==next){
       const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
-      playMoveSound(lastSan.includes('x'));
+      playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
     }
     specBoard.position(next,true);
   }
@@ -1222,14 +1458,17 @@ function updateSpecClocks(){
   if(!specGameId||!T) return;
   const g=T.games[specGameId];if(!g)return;
   let wt=g.whiteTime||BASE_TIME, bt=g.blackTime||BASE_TIME;
-  if(g.status==='active'&&g.lastMoveAt){
-    const elapsed=Math.floor((Date.now()-g.lastMoveAt)/1000);
+  if(g.status==='active'){
+    const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||Date.now();
+    const elapsed=Math.floor((Date.now()-anchor)/1000);
     if(g.turn==='w') wt=Math.max(0,wt-elapsed); else bt=Math.max(0,bt-elapsed);
   }
   document.getElementById('spec-clock-bottom').textContent=fmtTime(wt);
   document.getElementById('spec-clock-top').textContent=fmtTime(bt);
-  document.getElementById('spec-clock-bottom').className='clock'+(g.turn==='w'&&g.status==='active'?' active':'');
-  document.getElementById('spec-clock-top').className='clock'+(g.turn==='b'&&g.status==='active'?' active':'');
+  document.getElementById('spec-clock-bottom').className='clock'+(g.turn==='w'&&g.status==='active'?' active':'')+(wt<30&&g.status==='active'?' low':'');
+  document.getElementById('spec-clock-top').className='clock'+(g.turn==='b'&&g.status==='active'?' active':'')+(bt<30&&g.status==='active'?' low':'');
+  // Spectator also flags timed-out games so the round never stalls
+  if(g.status==='active'&&(wt<=0||bt<=0)) checkTimedOutGames();
 }
 
 /* boot */
