@@ -199,6 +199,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       <div class="break-count" id="break-timer">2:00</div>
       <p class="text-xs text-slate-400 mt-1 mb-3" id="break-hint">Next round pairs when the timer hits zero</p>
       <button type="button" class="btn-gold w-full hidden" id="btn-proceed-round" onclick="proceedToNextRound()">⚡ Proceed to next round</button>
+      <button type="button" class="btn-gold w-full hidden" id="btn-final-standings" onclick="showFinalStandings()">🏆 See final standings</button>
     </div>
 
     <div class="panel p-4">
@@ -626,9 +627,11 @@ function routeByTime(){
   const doors=DOORS_OPEN_AT();
   const r1=ROUND1_AT();
 
-  // Already in play/spec — don't kick out
+  // Already in play/spec/finished — don't kick out
   if(!document.getElementById('screen-play').classList.contains('hidden')) return;
   if(!document.getElementById('screen-spec').classList.contains('hidden')) return;
+  if(!document.getElementById('screen-finished').classList.contains('hidden')) return;
+  if(T&&T.status==='finished'){ renderFinished(); return; }
 
   if(now<doors){
     hideAll();document.getElementById('screen-closed').classList.remove('hidden');
@@ -744,6 +747,11 @@ function enterAsVisitor(){
   } else enterLobby();
 }
 function enterLobby(){
+  if(T&&T.status==='finished'){
+    listenTournament();
+    renderFinished();
+    return;
+  }
   hideAll();document.getElementById('screen-lobby').classList.remove('hidden');
   document.getElementById('lobby-who').textContent=me?me.name:'Visitor · watching';
   listenTournament();
@@ -809,7 +817,13 @@ function listenTournament(){
     if(!T) return;
     if(T.status==='playing') checkTimedOutGames().then(()=>maybeAdvanceRound());
     else if(T.status==='break'){ updateBreakTimer(); maybeAdvanceRound(); }
-    else if(T.status==='finished') renderFinished();
+    else if(T.status==='finished'){
+      // Update numbers only — do not hideAll/show again (prevents flicker)
+      if(document.getElementById('screen-finished')&&
+         !document.getElementById('screen-finished').classList.contains('hidden')){
+        updateFinishedContent();
+      }
+    }
     else reconcilePendingResults();
   },500);
 }
@@ -862,33 +876,74 @@ function sortedPlayers(){
   });
 }
 
-function renderFinished(){
-  hideAll();
-  document.getElementById('screen-finished').classList.remove('hidden');
+let finishedCelebrated=false;
+
+function updateFinishedContent(){
   const rows=sortedPlayers();
   const champ=rows[0];
-  document.getElementById('champ-name').textContent=champ?champ.name:'—';
-  document.getElementById('champ-sub').textContent=champ?((champ.score||0)+' pts · Rating '+(champ.rating||0)+' · Gold medal on Tuesday'):'';
-  const setP=(n,el,ptsEl)=>{
+  const el=id=>document.getElementById(id);
+  if(el('champ-name')) el('champ-name').textContent=champ?champ.name:'—';
+  if(el('champ-sub')) el('champ-sub').textContent=champ?((champ.score||0)+' pts · Rating '+(champ.rating||0)+' · Gold medal on Tuesday'):'';
+  const setP=(n,nameId,ptsId)=>{
     const p=rows[n];
-    document.getElementById(el).textContent=p?p.name:'—';
-    document.getElementById(ptsEl).textContent=p?((p.score||0)+' pts'):'';
+    if(el(nameId)) el(nameId).textContent=p?p.name:'—';
+    if(el(ptsId)) el(ptsId).textContent=p?((p.score||0)+' pts'):'';
   };
   setP(0,'podium-1','podium-1-pts');
   setP(1,'podium-2','podium-2-pts');
   setP(2,'podium-3','podium-3-pts');
-  document.getElementById('final-standings-body').innerHTML=rows.map((p,i)=>{
-    const cls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
-    const delta=(p.rating||0)-(p.startRating||p.rating||0);
-    return `<tr>
-      <td class="${cls}">${i+1}</td>
-      <td class="font-bold text-white">${esc(p.name)}${me&&me.id===p.id?' <span class="text-amber-400 text-[10px]">YOU</span>':''}</td>
-      <td class="font-black text-amber-300">${p.score||0}</td>
-      <td>${p.rating||0}</td>
-      <td class="${delta>0?'text-emerald-400':delta<0?'text-rose-400':'text-slate-500'}">${(delta>=0?'+':'')+delta}</td>
-    </tr>`;
-  }).join('');
-  if(champ) speakDotun();
+  if(el('final-standings-body')){
+    el('final-standings-body').innerHTML=rows.map((p,i)=>{
+      const cls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+      const delta=(p.rating||0)-(p.startRating||p.rating||0);
+      return `<tr>
+        <td class="${cls}">${i+1}</td>
+        <td class="font-bold text-white">${esc(p.name)}${me&&me.id===p.id?' <span class="text-amber-400 text-[10px]">YOU</span>':''}</td>
+        <td class="font-black text-amber-300">${p.score||0}</td>
+        <td>${p.rating||0}</td>
+        <td class="${delta>0?'text-emerald-400':delta<0?'text-rose-400':'text-slate-500'}">${(delta>=0?'+':'')+delta}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+function renderFinished(){
+  const fin=document.getElementById('screen-finished');
+  const already=fin&&!fin.classList.contains('hidden');
+  if(!already){
+    hideAll();
+    fin.classList.remove('hidden');
+  }
+  updateFinishedContent();
+  if(!finishedCelebrated){
+    finishedCelebrated=true;
+    playSfx(SOUND_GAMEEND,0.9);
+    speakDotun();
+  }
+}
+
+async function showFinalStandings(){
+  const btn=document.getElementById('btn-final-standings');
+  if(btn){btn.disabled=true;btn.textContent='Loading…';}
+  try{
+    await recomputeAllScores();
+    await reconcilePendingResults();
+    // Ensure tournament marked finished
+    if(T&&T.status!=='finished'){
+      await db.collection('mcps_tournaments').doc(DOC_ID).update({status:'finished',breakEndsAt:null});
+    }
+    // Wait for snapshot
+    for(let i=0;i<10;i++){
+      await new Promise(r=>setTimeout(r,200));
+      if(T&&T.status==='finished') break;
+    }
+    renderFinished();
+  } catch(e){
+    console.error(e);
+    renderFinished();
+  } finally {
+    if(btn){btn.disabled=false;btn.textContent='🏆 See final standings';}
+  }
 }
 
 function renderLobby(){
@@ -899,17 +954,19 @@ function renderLobby(){
     return;
   }
   const st=T.status||'playing';
-  // Full tournament over → podium
+  // Full tournament over → stay on podium (no flicker)
   if(st==='finished'){
-    if(document.getElementById('screen-play').classList.contains('hidden')&&
-       document.getElementById('screen-spec').classList.contains('hidden')){
-      renderFinished();
-    }
+    const onPlay=!document.getElementById('screen-play').classList.contains('hidden');
+    const onSpec=!document.getElementById('screen-spec').classList.contains('hidden');
+    if(!onPlay&&!onSpec) renderFinished();
     return;
   }
-  // Ensure lobby visible when in break/playing
-  if(document.getElementById('screen-finished')&&!document.getElementById('screen-finished').classList.contains('hidden')){
-    hideAll();document.getElementById('screen-lobby').classList.remove('hidden');
+  // Leave podium only if tournament is no longer finished
+  const fin=document.getElementById('screen-finished');
+  if(fin&&!fin.classList.contains('hidden')){
+    // Keep lobby under for navigation, but don't hide finished if we got here by mistake
+    fin.classList.add('hidden');
+    document.getElementById('screen-lobby').classList.remove('hidden');
   }
   document.getElementById('lobby-round').textContent='Round '+(T.currentRound||1)+' / '+TOTAL_ROUNDS;
   document.getElementById('lobby-status').textContent=st==='break'?'Break':(st==='finished'?'Finished':'Live');
@@ -917,14 +974,34 @@ function renderLobby(){
 
   const bb=document.getElementById('break-banner');
   const proceedBtn=document.getElementById('btn-proceed-round');
-  if(st==='break'){
+  const finalBtn=document.getElementById('btn-final-standings');
+  const rdNum=T.currentRound||1;
+  const rdNow=(T.schedule||[]).find(r=>r.round===rdNum);
+  const lastRoundDone=rdNum>=TOTAL_ROUNDS&&rdNow&&roundAllFinished(rdNow,T.games);
+
+  if(st==='break'||lastRoundDone){
     bb.classList.remove('hidden');
-    // Reset voice so each break announces from the start
-    if(lastBreakSpoken<0||lastBreakSpoken>120) lastBreakSpoken=-1;
-    updateBreakTimer();
+    if(lastRoundDone||rdNum>=TOTAL_ROUNDS){
+      // Final round complete — show standings button, not next round
+      document.getElementById('break-timer').textContent='Done';
+      document.getElementById('break-hint').textContent='Tournament complete — view the podium and final standings';
+      if(proceedBtn) proceedBtn.classList.add('hidden');
+      if(finalBtn) finalBtn.classList.remove('hidden');
+      // Auto-mark finished if still playing/break
+      if(st!=='finished'){
+        recomputeAllScores().then(()=>{
+          db.collection('mcps_tournaments').doc(DOC_ID).update({status:'finished',breakEndsAt:null}).catch(()=>{});
+        });
+      }
+    } else {
+      if(lastBreakSpoken<0||lastBreakSpoken>120) lastBreakSpoken=-1;
+      updateBreakTimer();
+      if(finalBtn) finalBtn.classList.add('hidden');
+    }
   } else {
     bb.classList.add('hidden');
     if(proceedBtn) proceedBtn.classList.add('hidden');
+    if(finalBtn) finalBtn.classList.add('hidden');
     lastBreakSpoken=-1;
     try{if(window.speechSynthesis) speechSynthesis.cancel();}catch(e){}
   }
@@ -1218,13 +1295,113 @@ async function checkTimedOutGames(){
   }
 }
 
+/**
+ * Rebuild every player's score, played count, and rating from scratch
+ * using all finished games + byes. Fixes missing points.
+ */
+async function recomputeAllScores(){
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+  try{
+    await db.runTransaction(async (tx)=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists) return;
+      const state=snap.data();
+      const players=(state.players||[]).map(p=>({
+        ...p,
+        score:0,
+        played:0,
+        rating:p.startRating!=null?p.startRating:(p.rating||1500)
+      }));
+      const byId={};
+      players.forEach(p=>{ byId[p.id]=p; });
+
+      // Byes from schedule
+      (state.schedule||[]).forEach(rd=>{
+        (rd.pairings||[]).forEach(p=>{
+          if(p.bye&&p.playerId&&byId[p.playerId]){
+            byId[p.playerId].score+=1;
+            byId[p.playerId].played+=1;
+          }
+        });
+      });
+
+      // Games in round order
+      const games=Object.entries(state.games||{}).map(([id,g])=>({id,...g}))
+        .filter(g=>g.result&&(g.status==='done'||g.result))
+        .sort((a,b)=>(a.round||0)-(b.round||0));
+
+      const gamePatches={};
+      games.forEach(g=>{
+        const w=byId[g.whiteId], b=byId[g.blackId];
+        if(!w||!b) return;
+        let scoreW=0.5;
+        if(g.result==='1-0') scoreW=1;
+        else if(g.result==='0-1') scoreW=0;
+        const dW=eloDelta(w.rating,b.rating,scoreW);
+        const dB=eloDelta(b.rating,w.rating,1-scoreW);
+        w.rating=w.rating+dW;
+        b.rating=b.rating+dB;
+        w.score+=scoreW;
+        b.score+=(1-scoreW);
+        w.played+=1;
+        b.played+=1;
+        gamePatches['games.'+g.id+'.eloApplied']=true;
+        gamePatches['games.'+g.id+'.whiteEloDelta']=dW;
+        gamePatches['games.'+g.id+'.blackEloDelta']=dB;
+        gamePatches['games.'+g.id+'.status']='done';
+        gamePatches['games.'+g.id+'.result']=g.result;
+      });
+
+      tx.update(ref, Object.assign({players}, gamePatches));
+    });
+  } catch(e){
+    console.error('recompute scores', e);
+    // Fallback non-transaction rebuild of scores only
+    try{
+      const snap=await ref.get();
+      if(!snap.exists) return;
+      const state=snap.data();
+      const players=(state.players||[]).map(p=>({
+        ...p,
+        score:0,
+        played:0,
+        rating:p.startRating!=null?p.startRating:(p.rating||1500)
+      }));
+      const byId={};
+      players.forEach(p=>{ byId[p.id]=p; });
+      (state.schedule||[]).forEach(rd=>{
+        (rd.pairings||[]).forEach(p=>{
+          if(p.bye&&p.playerId&&byId[p.playerId]){ byId[p.playerId].score+=1; byId[p.playerId].played+=1; }
+        });
+      });
+      Object.values(state.games||{}).filter(g=>g&&g.result).forEach(g=>{
+        const w=byId[g.whiteId], b=byId[g.blackId];
+        if(!w||!b) return;
+        let scoreW=0.5;
+        if(g.result==='1-0') scoreW=1; else if(g.result==='0-1') scoreW=0;
+        const dW=eloDelta(w.rating,b.rating,scoreW);
+        const dB=eloDelta(b.rating,w.rating,1-scoreW);
+        w.rating+=dW; b.rating+=dB;
+        w.score+=scoreW; b.score+=(1-scoreW);
+        w.played+=1; b.played+=1;
+      });
+      await ref.update({players});
+    }catch(e2){ console.error('recompute fallback', e2); }
+  }
+}
+
 /** Apply score + Elo for any finished game that still has eloApplied !== true */
 async function reconcilePendingResults(){
   if(!T||!T.games) return;
   const pending=Object.keys(T.games).filter(gid=>{
     const g=T.games[gid];
-    return g&&g.status==='done'&&g.result&&!g.eloApplied;
+    return g&&(g.status==='done'||g.result)&&g.result&&!g.eloApplied;
   });
+  if(pending.length>=2){
+    // Multiple missing — full recompute is safer
+    await recomputeAllScores();
+    return;
+  }
   for(const gid of pending){
     await finalizeResult(gid, T.games[gid].result);
   }
@@ -1308,6 +1485,7 @@ async function maybeAdvanceRound(force){
           await ref.update({status:'break',breakEndsAt:ends});
         }
       }
+      if(rdNum>=TOTAL_ROUNDS) await recomputeAllScores();
     } catch(e){
       console.error('advance', e);
       if(force){
