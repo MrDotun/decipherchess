@@ -578,8 +578,11 @@ let startingTournament=false;
 async function forceStartTournament(){
   startingTournament=false;
   toast('Starting Round 1…');
+  // Always wipe and create a clean Round 1
+  try{
+    await db.collection('mcps_tournaments').doc(DOC_ID).delete();
+  }catch(e){}
   await ensureTournamentStarted();
-  // Refresh listener
   if(typeof listenTournament==='function') listenTournament();
 }
 function buildTournamentPayload(){
@@ -605,34 +608,57 @@ function buildTournamentPayload(){
   return payload;
 }
 
+function countFinishedRounds(d){
+  const schedule=d.schedule||[];
+  const games=d.games||{};
+  let done=0;
+  schedule.forEach(rd=>{
+    const all=(rd.pairings||[]).every(p=>{
+      if(p.bye) return true;
+      const g=games[p.gameId];
+      return g&&(g.status==='done'||g.result);
+    });
+    if(all&&rd.pairings&&rd.pairings.length) done++;
+  });
+  return done;
+}
+
+function isTrulyComplete(d){
+  if(!d) return false;
+  // Only complete when ALL scheduled rounds are finished
+  const schedule=d.schedule||[];
+  if(schedule.length<TOTAL_ROUNDS) return false;
+  return countFinishedRounds(d)>=TOTAL_ROUNDS;
+}
+
 async function ensureTournamentStarted(){
   if(startingTournament) return;
   if(nowMs()<ROUND1_AT()) return; // too early
   startingTournament=true;
   const ref=db.collection('mcps_tournaments').doc(DOC_ID);
   try{
-    // Fast path: already exists and active
     const existing=await ref.get();
     if(existing.exists){
       const d=existing.data()||{};
-      if(d.status==='playing'||d.status==='break'||d.status==='finished'){
-        if(d.schedule&&d.schedule.length&&d.games) return;
-        // Broken doc (no schedule) — recreate
-      } else {
-        // stale waiting doc — recreate
+      // Valid in-progress event — keep it
+      if((d.status==='playing'||d.status==='break')&&d.schedule&&d.schedule.length>=TOTAL_ROUNDS&&d.games){
+        return;
       }
+      // Truly finished all 5 rounds — keep podium
+      if(d.status==='finished'&&isTrulyComplete(d)){
+        return;
+      }
+      // Finished too early / broken / incomplete — wipe and start fresh
+      console.warn('Resetting incomplete tournament', d.status, countFinishedRounds(d));
+      await ref.delete().catch(()=>{});
     }
     const payload=buildTournamentPayload();
-    // Direct set is more reliable than a transaction that can no-op
     await ref.set(payload);
     toast('Round 1 paired — good luck!');
   } catch(e){
     console.error('start', e);
     toast('Pairing failed: '+(e.message||'retrying…'));
-    // One more try
-    try{
-      await ref.set(buildTournamentPayload());
-    }catch(e2){ console.error('start retry', e2); }
+    try{ await ref.set(buildTournamentPayload()); }catch(e2){ console.error('start retry', e2); }
   } finally {
     startingTournament=false;
   }
@@ -987,12 +1013,24 @@ function renderLobby(){
     return;
   }
   const st=T.status||'playing';
-  // Full tournament over → stay on podium (no flicker)
+  // Full tournament over → podium ONLY if all 5 rounds really finished
   if(st==='finished'){
-    const onPlay=!document.getElementById('screen-play').classList.contains('hidden');
-    const onSpec=!document.getElementById('screen-spec').classList.contains('hidden');
-    if(!onPlay&&!onSpec) renderFinished();
-    return;
+    if(!isTrulyComplete(T)){
+      // False finish (e.g. after round 1) — reopen as playing/break and continue
+      const rdNum=T.currentRound||1;
+      const rd=(T.schedule||[]).find(r=>r.round===rdNum);
+      const allDone=rd&&roundAllFinished(rd,T.games);
+      const fix=allDone&&rdNum<TOTAL_ROUNDS
+        ? {status:'break',breakEndsAt:firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000)}
+        : {status:'playing',breakEndsAt:null};
+      db.collection('mcps_tournaments').doc(DOC_ID).update(fix).catch(()=>{});
+      // Fall through to normal lobby with corrected intent
+    } else {
+      const onPlay=!document.getElementById('screen-play').classList.contains('hidden');
+      const onSpec=!document.getElementById('screen-spec').classList.contains('hidden');
+      if(!onPlay&&!onSpec) renderFinished();
+      return;
+    }
   }
   // Leave podium only if tournament is no longer finished
   const fin=document.getElementById('screen-finished');
@@ -1010,27 +1048,32 @@ function renderLobby(){
   const finalBtn=document.getElementById('btn-final-standings');
   const rdNum=T.currentRound||1;
   const rdNow=(T.schedule||[]).find(r=>r.round===rdNum);
-  const lastRoundDone=rdNum>=TOTAL_ROUNDS&&rdNow&&roundAllFinished(rdNow,T.games);
+  // ONLY true when we are on the last round AND every game in that round is done
+  const lastRoundDone=rdNum>=TOTAL_ROUNDS&&rdNow&&roundAllFinished(rdNow,T.games)&&isTrulyComplete(T);
 
-  if(st==='break'||lastRoundDone){
+  if(st==='break'){
     bb.classList.remove('hidden');
-    if(lastRoundDone||rdNum>=TOTAL_ROUNDS){
-      // Final round complete — show standings button, not next round
+    if(lastRoundDone){
       document.getElementById('break-timer').textContent='Done';
-      document.getElementById('break-hint').textContent='Tournament complete — view the podium and final standings';
+      document.getElementById('break-hint').textContent='All 5 rounds complete — view the podium and final standings';
       if(proceedBtn) proceedBtn.classList.add('hidden');
       if(finalBtn) finalBtn.classList.remove('hidden');
-      // Auto-mark finished if still playing/break
-      if(st!=='finished'){
-        recomputeAllScores().then(()=>{
-          db.collection('mcps_tournaments').doc(DOC_ID).update({status:'finished',breakEndsAt:null}).catch(()=>{});
-        });
-      }
     } else {
+      // Mid-tournament break — never show final standings here
       if(lastBreakSpoken<0||lastBreakSpoken>120) lastBreakSpoken=-1;
       updateBreakTimer();
       if(finalBtn) finalBtn.classList.add('hidden');
     }
+  } else if(st==='playing'&&lastRoundDone){
+    // Last round games all done while still "playing" → move to finished
+    bb.classList.remove('hidden');
+    document.getElementById('break-timer').textContent='Done';
+    document.getElementById('break-hint').textContent='All 5 rounds complete — view final standings';
+    if(proceedBtn) proceedBtn.classList.add('hidden');
+    if(finalBtn) finalBtn.classList.remove('hidden');
+    recomputeAllScores().then(()=>{
+      db.collection('mcps_tournaments').doc(DOC_ID).update({status:'finished',breakEndsAt:null}).catch(()=>{});
+    });
   } else {
     bb.classList.add('hidden');
     if(proceedBtn) proceedBtn.classList.add('hidden');
@@ -1145,19 +1188,32 @@ async function startNextRoundNow(){
   const cur=d.currentRound||1;
 
   // Already left the break
-  if(d.status==='finished') return null;
+  if(d.status==='finished'){
+    // Only stay finished if all 5 rounds truly complete; otherwise continue
+    if(isTrulyComplete(d)) return null;
+  }
+  if(d.status==='playing'&&(d.currentRound||1)>cur) return d.currentRound;
   if(d.status==='playing') return cur;
 
-  // Must be on break (or force from stuck state)
-  if(cur>=TOTAL_ROUNDS){
+  // After the LAST round is fully done → finished
+  if(cur>=TOTAL_ROUNDS&&isTrulyComplete(d)){
+    await recomputeAllScores();
     await ref.update({status:'finished',breakEndsAt:null});
     return null;
   }
-  const next=cur+1;
-  const nrd=(d.schedule||[]).find(r=>r.round===next);
+  const next=Math.min(cur+1, TOTAL_ROUNDS);
+  // If still on round < TOTAL and somehow marked past last, start next
+  let nrd=(d.schedule||[]).find(r=>r.round===next);
+  if(!nrd&&next<=TOTAL_ROUNDS){
+    // Schedule incomplete — rebuild schedule without wiping scores/games
+    console.warn('Schedule missing round', next);
+    return null;
+  }
   if(!nrd){
-    // No more scheduled rounds
-    await ref.update({status:'finished',breakEndsAt:null});
+    if(isTrulyComplete(d)){
+      await recomputeAllScores();
+      await ref.update({status:'finished',breakEndsAt:null});
+    }
     return null;
   }
   const startAt=Date.now();
@@ -1499,6 +1555,7 @@ async function maybeAdvanceRound(force){
             patch['games.'+p.gameId+'.status']='done';
           }
         });
+        // Finish ONLY after the 5th round is fully complete
         if(rdNum>=TOTAL_ROUNDS){
           Object.assign(patch,{status:'finished',breakEndsAt:null});
         } else {
@@ -1509,7 +1566,6 @@ async function maybeAdvanceRound(force){
         tx.update(ref, patch);
         wrote=true;
       });
-      // Fallback if transaction did nothing (permissions / race)
       if(!wrote && force){
         if(rdNum>=TOTAL_ROUNDS){
           await ref.update({status:'finished',breakEndsAt:null});
