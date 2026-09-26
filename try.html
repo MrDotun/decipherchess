@@ -639,8 +639,7 @@ function routeByTime(){
 
   if(now<r1){
     // Between doors and pairing — waiting room (after login) or welcome
-    if(me || sessionStorage.getItem('mcps_trial_me')){
-      try{if(!me) me=JSON.parse(sessionStorage.getItem('mcps_trial_me'));}catch(e){}
+    if(me || loadMe()){
       hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
       document.getElementById('wait-who').textContent=me?('Logged in as '+me.name):'';
       const left=Math.ceil((r1-now)/1000);
@@ -663,8 +662,7 @@ function routeByTime(){
     if(document.getElementById('screen-play').classList.contains('hidden') &&
        document.getElementById('screen-spec').classList.contains('hidden') &&
        document.getElementById('screen-login').classList.contains('hidden')){
-      if(me || sessionStorage.getItem('mcps_trial_me')){
-        try{if(!me) me=JSON.parse(sessionStorage.getItem('mcps_trial_me'));}catch(e){}
+      if(me || loadMe()){
         enterLobby();
       } else if(document.getElementById('screen-welcome').classList.contains('hidden') &&
                 document.getElementById('screen-lobby').classList.contains('hidden')){
@@ -693,12 +691,44 @@ function selectPlayer(id){
   selectedLoginId=id;
   document.querySelectorAll('.player-card').forEach(el=>el.classList.toggle('selected',el.dataset.id===id));
 }
+function saveMe(){
+  try{
+    const s=JSON.stringify(me);
+    sessionStorage.setItem('mcps_trial_me',s);
+    localStorage.setItem('mcps_trial_me',s);
+  }catch(e){}
+}
+function loadMe(){
+  try{
+    const s=sessionStorage.getItem('mcps_trial_me')||localStorage.getItem('mcps_trial_me');
+    if(s) me=JSON.parse(s);
+  }catch(e){ me=null; }
+  return me;
+}
+function clearMe(){
+  me=null;
+  try{ sessionStorage.removeItem('mcps_trial_me'); localStorage.removeItem('mcps_trial_me'); }catch(e){}
+  clearSavedGame();
+}
+function saveActiveGame(gid){
+  try{
+    if(gid) localStorage.setItem('mcps_trial_game',gid);
+    else localStorage.removeItem('mcps_trial_game');
+  }catch(e){}
+}
+function loadSavedGame(){
+  try{ return localStorage.getItem('mcps_trial_game'); }catch(e){ return null; }
+}
+function clearSavedGame(){
+  try{ localStorage.removeItem('mcps_trial_game'); }catch(e){}
+}
+
 function doLogin(){
   if(!selectedLoginId){toast('Select your name');return;}
   if((document.getElementById('login-pass').value||'').trim()!==PASSWORD){toast('Wrong password');return;}
   const p=ROSTER.find(x=>x.id===selectedLoginId);
   me={id:p.id,name:p.name};
-  sessionStorage.setItem('mcps_trial_me',JSON.stringify(me));
+  saveMe();
   if(nowMs()<ROUND1_AT()){
     hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
     document.getElementById('wait-who').textContent='Logged in as '+me.name;
@@ -706,7 +736,7 @@ function doLogin(){
   } else enterLobby();
 }
 function enterAsVisitor(){
-  me=null;sessionStorage.removeItem('mcps_trial_me');
+  clearMe();
   if(nowMs()<ROUND1_AT()){
     hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
     document.getElementById('wait-who').textContent='Visitor mode — boards open at 7:30 PM';
@@ -719,10 +749,37 @@ function enterLobby(){
   listenTournament();
 }
 function backToLobby(){
+  // Keep saved game so refresh can resume; only clear if game is over
+  if(activeGameId&&T&&T.games&&T.games[activeGameId]&&(T.games[activeGameId].status==='done'||T.games[activeGameId].result)){
+    clearSavedGame();
+  }
   activeGameId=null;specGameId=null;
   if(clockTimer){clearInterval(clockTimer);clockTimer=null;}
   hideAll();document.getElementById('screen-lobby').classList.remove('hidden');
   renderLobby();
+}
+
+/** After refresh/exit: reopen the player's unfinished game */
+let resumeAttempted=false;
+function tryResumeMyGame(){
+  if(!me||!T||T.status!=='playing') return false;
+  // Prefer current-round live game
+  let gid=findMyLiveGameId();
+  if(gid==='BYE'){ clearSavedGame(); return false; }
+  if(!gid){
+    const saved=loadSavedGame();
+    if(saved&&T.games&&T.games[saved]){
+      const g=T.games[saved];
+      if(g.status!=='done'&&!g.result&&(g.whiteId===me.id||g.blackId===me.id)) gid=saved;
+      else clearSavedGame();
+    }
+  }
+  if(!gid) return false;
+  // Don't interrupt if already on play/spec for this game
+  if(activeGameId===gid&&!document.getElementById('screen-play').classList.contains('hidden')) return true;
+  openGame(gid);
+  toast('Welcome back — game resumed');
+  return true;
 }
 
 function listenTournament(){
@@ -733,6 +790,17 @@ function listenTournament(){
     renderLobby();
     if(activeGameId && !document.getElementById('screen-play').classList.contains('hidden')) syncPlayBoard();
     if(specGameId && !document.getElementById('screen-spec').classList.contains('hidden')) syncSpecBoard();
+    // Auto-resume after refresh/exit if player has a live game
+    if(me&&T.status==='playing'){
+      const onPlay=!document.getElementById('screen-play').classList.contains('hidden');
+      const onSpec=!document.getElementById('screen-spec').classList.contains('hidden');
+      if(!onPlay&&!onSpec){
+        if(!resumeAttempted){ resumeAttempted=true; tryResumeMyGame(); }
+        else {
+          // Soft check: still show Resume button state via renderLobby
+        }
+      }
+    }
     checkTimedOutGames().then(()=>maybeAdvanceRound());
   },err=>{console.error(err);toast('Connection issue');});
   // Keep checking clocks / break / pending scores even without new snapshots
@@ -889,9 +957,13 @@ function renderLobby(){
     if(g.status!=='done'&&!g.result){
       act.classList.remove('hidden');
       const btn=document.getElementById('btn-play-my-game');
-      btn.textContent='Open my board — clock is running';
+      btn.textContent='▶ Resume my game — clock is running';
       btn.onclick=()=>openGame(myGame.gameId);
-    } else act.classList.add('hidden');
+      saveActiveGame(myGame.gameId);
+    } else {
+      act.classList.add('hidden');
+      clearSavedGame();
+    }
   } else act.classList.add('hidden');
 
   // Show unstick button when every pairing has a result but still on "Live"
@@ -954,6 +1026,63 @@ function updateBreakTimer(){
   if(T.status==='break') speakBreakCountdown(left);
 }
 
+/** Direct Firestore write: leave break and start the next round (no fragile transaction). */
+async function startNextRoundNow(){
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+  const snap=await ref.get();
+  if(!snap.exists) throw new Error('Tournament not found');
+  const d=snap.data()||{};
+  const cur=d.currentRound||1;
+
+  // Already left the break
+  if(d.status==='finished') return null;
+  if(d.status==='playing') return cur;
+
+  // Must be on break (or force from stuck state)
+  if(cur>=TOTAL_ROUNDS){
+    await ref.update({status:'finished',breakEndsAt:null});
+    return null;
+  }
+  const next=cur+1;
+  const nrd=(d.schedule||[]).find(r=>r.round===next);
+  if(!nrd){
+    // No more scheduled rounds
+    await ref.update({status:'finished',breakEndsAt:null});
+    return null;
+  }
+  const startAt=Date.now();
+  const players=(d.players||[]).map(p=>({...p}));
+  const tmp={players,schedule:d.schedule};
+  applyByesForRound(tmp,next);
+  const updates={
+    status:'playing',
+    currentRound:next,
+    breakEndsAt:null,
+    players:tmp.players
+  };
+  nrd.pairings.forEach(p=>{
+    if(!p.bye&&p.gameId){
+      updates['games.'+p.gameId]=emptyGame(p.whiteId,p.blackId,next,startAt);
+    }
+  });
+  await ref.update(updates);
+  return next;
+}
+
+function findMyLiveGameId(){
+  if(!T||!me) return null;
+  const rdNum=T.currentRound||1;
+  const rd=(T.schedule||[]).find(r=>r.round===rdNum);
+  if(!rd) return null;
+  const bye=rd.pairings.find(p=>p.bye&&p.playerId===me.id);
+  if(bye) return 'BYE';
+  const mine=rd.pairings.find(p=>!p.bye&&(p.whiteId===me.id||p.blackId===me.id));
+  if(!mine||!mine.gameId) return null;
+  const g=(T.games||{})[mine.gameId];
+  if(g&&(g.status==='done'||g.result)) return null;
+  return mine.gameId;
+}
+
 /** After break: force-advance, wait for new pairings, open YOUR board immediately */
 async function proceedToNextRound(){
   const btn=document.getElementById('btn-proceed-round');
@@ -962,55 +1091,48 @@ async function proceedToNextRound(){
   const prevRound=T?(T.currentRound||1):1;
   try{
     advancing=false;
-    if(T&&(T.status==='break'||T.status==='playing')){
+    let next=null;
+    try{
+      next=await startNextRoundNow();
+    }catch(e){
+      console.error('startNextRoundNow',e);
+      toast('Advance failed: '+(e.message||e));
+      // still try the old path
       await maybeAdvanceRound(true);
     }
-    // Poll until snapshot shows the next round + your game exists
+    if(next===null&&T&&T.status==='finished'){
+      renderFinished();
+      return;
+    }
+    // Poll until local T shows the new round
     let myGid=null;
-    for(let i=0;i<24;i++){
-      await new Promise(r=>setTimeout(r,300));
+    for(let i=0;i<30;i++){
+      await new Promise(r=>setTimeout(r,250));
       if(!T) continue;
       if(T.status==='finished'){ renderFinished(); return; }
-      const rdNum=T.currentRound||1;
-      if(T.status==='playing'&&rdNum>prevRound){
-        const rd=(T.schedule||[]).find(r=>r.round===rdNum);
-        if(!rd) continue;
-        if(me){
-          const bye=rd.pairings.find(p=>p.bye&&p.playerId===me.id);
-          if(bye){ toast('You have a bye this round'); return; }
-          const mine=rd.pairings.find(p=>!p.bye&&(p.whiteId===me.id||p.blackId===me.id));
-          if(mine&&mine.gameId){
-            const g=(T.games||{})[mine.gameId];
-            if(g&&g.status!=='done'&&!g.result){ myGid=mine.gameId; break; }
-            // Game object may lag one tick — still try opening
-            if(mine.gameId){ myGid=mine.gameId; break; }
-          }
-        } else {
-          // Visitor: just leave break UI
-          hideAll();document.getElementById('screen-lobby').classList.remove('hidden');
-          toast('Round '+(T.currentRound||'')+' is live');
-          return;
-        }
+      if(T.status==='playing'&&(T.currentRound||1)>prevRound){
+        myGid=findMyLiveGameId();
+        if(myGid==='BYE'){ toast('You have a bye this round'); return; }
+        if(myGid) break;
+        // Games map may lag — keep waiting a bit
       }
     }
-    if(myGid){
+    if(!myGid) myGid=findMyLiveGameId();
+    if(myGid&&myGid!=='BYE'){
       await openGame(myGid);
       playSfx(SOUND_NOTIFY,0.75);
       return;
     }
-    // Last attempt from whatever T is now
-    if(T&&T.status==='playing'&&me){
-      const rd=(T.schedule||[]).find(r=>r.round===(T.currentRound||1));
-      const mine=rd&&rd.pairings.find(p=>!p.bye&&(p.whiteId===me.id||p.blackId===me.id));
-      if(mine&&mine.gameId){
-        await openGame(mine.gameId);
-        return;
-      }
+    if(T&&T.status==='playing'){
+      toast('Round '+(T.currentRound||'')+' is live — open your board');
+      hideAll();document.getElementById('screen-lobby').classList.remove('hidden');
+      renderLobby();
+      return;
     }
-    toast('Tap Play my game if the board did not open');
+    toast('Still on break — try Proceed again');
   } catch(e){
     console.error('proceed',e);
-    toast('Could not open board — try again');
+    toast('Error: '+(e.message||'try again'));
   } finally {
     if(btn){btn.disabled=false;btn.textContent='⚡ Proceed to next round';}
   }
@@ -1200,53 +1322,13 @@ async function maybeAdvanceRound(force){
     return;
   }
 
-  // Break timer finished → start next round
+  // Break timer finished → start next round (direct write — reliable)
   if(T.status==='break'){
     const end=tsMillis(T.breakEndsAt);
     if(!T.breakEndsAt || Date.now()>=end || force){
       advancing=true;
       try{
-        let wrote=false;
-        await db.runTransaction(async (tx)=>{
-          const snap=await tx.get(ref);
-          if(!snap.exists) return;
-          const d=snap.data();
-          if(d.status!=='break'&&!force) return;
-          const cur=d.currentRound||rdNum;
-          const next=cur+1;
-          if(next>TOTAL_ROUNDS){
-            tx.update(ref,{status:'finished',breakEndsAt:null});
-            wrote=true;
-            return;
-          }
-          const startAt=Date.now();
-          const players=(d.players||[]).map(p=>({...p}));
-          const tmp={players,schedule:d.schedule};
-          applyByesForRound(tmp,next);
-          const updates={status:'playing',currentRound:next,breakEndsAt:null,players:tmp.players,updated:firebase.firestore.FieldValue.serverTimestamp()};
-          const nrd=(d.schedule||[]).find(r=>r.round===next);
-          if(nrd){
-            nrd.pairings.forEach(p=>{
-              if(!p.bye) updates['games.'+p.gameId]=emptyGame(p.whiteId,p.blackId,next,startAt);
-            });
-          }
-          tx.update(ref, updates);
-          wrote=true;
-        });
-        if(!wrote && force){
-          // emergency: bump round
-          const next=rdNum+1;
-          if(next>TOTAL_ROUNDS) await ref.update({status:'finished',breakEndsAt:null});
-          else {
-            const startAt=Date.now();
-            const updates={status:'playing',currentRound:next,breakEndsAt:null};
-            const nrd=(T.schedule||[]).find(r=>r.round===next);
-            if(nrd) nrd.pairings.forEach(p=>{
-              if(!p.bye) updates['games.'+p.gameId]=emptyGame(p.whiteId,p.blackId,next,startAt);
-            });
-            await ref.update(updates);
-          }
-        }
+        await startNextRoundNow();
       } catch(e){ console.error('next round', e); }
       finally {advancing=false;}
     }
@@ -1259,6 +1341,7 @@ async function openGame(gameId){
   if(!g) return;
   if(g.whiteId!==me.id&&g.blackId!==me.id){toast('Not your board');return;}
   activeGameId=gameId;
+  saveActiveGame(gameId);
   hideAll();document.getElementById('screen-play').classList.remove('hidden');
   document.getElementById('play-round-label').textContent='R'+g.round;
   initPlayBoard();
@@ -1459,6 +1542,7 @@ function showGameResult(g){
   document.getElementById('result-elo').textContent=d!=null?('Rating '+(d>=0?'+':'')+d):'';
   playSfx(SOUND_GAMEEND,0.85);
   if(won) speakDotun();
+  clearSavedGame();
   openModal('result-modal');
 }
 
@@ -1598,7 +1682,8 @@ function updateSpecClocks(){
       fill.style.width='100%';
       setTimeout(()=>{
         document.getElementById('loading-overlay').style.display='none';
-        try{const s=sessionStorage.getItem('mcps_trial_me');if(s) me=JSON.parse(s);}catch(e){}
+        loadMe();
+        resumeAttempted=false;
         routeByTime();
         phaseTimer=setInterval(routeByTime,500);
       },250);
