@@ -574,42 +574,68 @@ function applyByesForRound(state,roundNum){
   });
 }
 
-async function ensureTournamentStarted(){
-  if(advancing) return;
-  advancing=true;
-  try{
-    const ref=db.collection('mcps_tournaments').doc(DOC_ID);
-    await db.runTransaction(async (tx)=>{
-      const snap=await tx.get(ref);
-      if(snap.exists){
-        const d=snap.data()||{};
-        // Already running or finished — do not overwrite (prevents hang/reset mid-event)
-        if(d.status==='playing'||d.status==='break'||d.status==='finished') return;
-      }
-      const startAt=Date.now();
-      const players=ROSTER.map(p=>({...p,startRating:p.rating,score:0,played:0}));
-      const schedule=buildSchedule(players);
-      // Safety: every pair appears at most once
-      const seen=new Set();
-      schedule.forEach(rd=>rd.pairings.forEach(p=>{
-        if(p.bye) return;
-        const key=[p.whiteId,p.blackId].sort().join('|');
-        if(seen.has(key)) throw new Error('Duplicate pairing');
-        seen.add(key);
-      }));
-      const games={};
-      const rd1=schedule[0];
-      if(rd1){
-        rd1.pairings.forEach(p=>{
-          if(!p.bye) games[p.gameId]=emptyGame(p.whiteId,p.blackId,1,startAt);
-        });
-      }
-      const payload={status:'playing',currentRound:1,breakEndsAt:null,players,schedule,games,pairedAt:startAt,updated:firebase.firestore.FieldValue.serverTimestamp()};
-      applyByesForRound(payload,1);
-      tx.set(ref, payload);
+let startingTournament=false;
+async function forceStartTournament(){
+  startingTournament=false;
+  toast('Starting Round 1…');
+  await ensureTournamentStarted();
+  // Refresh listener
+  if(typeof listenTournament==='function') listenTournament();
+}
+function buildTournamentPayload(){
+  const startAt=Date.now();
+  const players=ROSTER.map(p=>({...p,startRating:p.rating,score:0,played:0}));
+  const schedule=buildSchedule(players);
+  const seen=new Set();
+  schedule.forEach(rd=>rd.pairings.forEach(p=>{
+    if(p.bye) return;
+    const key=[p.whiteId,p.blackId].sort().join('|');
+    if(seen.has(key)) throw new Error('Duplicate pairing');
+    seen.add(key);
+  }));
+  const games={};
+  const rd1=schedule[0];
+  if(rd1){
+    rd1.pairings.forEach(p=>{
+      if(!p.bye) games[p.gameId]=emptyGame(p.whiteId,p.blackId,1,startAt);
     });
-  } catch(e){ console.error('start', e); }
-  finally { advancing=false; }
+  }
+  const payload={status:'playing',currentRound:1,breakEndsAt:null,players,schedule,games,pairedAt:startAt};
+  applyByesForRound(payload,1);
+  return payload;
+}
+
+async function ensureTournamentStarted(){
+  if(startingTournament) return;
+  if(nowMs()<ROUND1_AT()) return; // too early
+  startingTournament=true;
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+  try{
+    // Fast path: already exists and active
+    const existing=await ref.get();
+    if(existing.exists){
+      const d=existing.data()||{};
+      if(d.status==='playing'||d.status==='break'||d.status==='finished'){
+        if(d.schedule&&d.schedule.length&&d.games) return;
+        // Broken doc (no schedule) — recreate
+      } else {
+        // stale waiting doc — recreate
+      }
+    }
+    const payload=buildTournamentPayload();
+    // Direct set is more reliable than a transaction that can no-op
+    await ref.set(payload);
+    toast('Round 1 paired — good luck!');
+  } catch(e){
+    console.error('start', e);
+    toast('Pairing failed: '+(e.message||'retrying…'));
+    // One more try
+    try{
+      await ref.set(buildTournamentPayload());
+    }catch(e2){ console.error('start retry', e2); }
+  } finally {
+    startingTournament=false;
+  }
 }
 
 /* ---- phase routing ---- */
@@ -793,7 +819,12 @@ function tryResumeMyGame(){
 function listenTournament(){
   if(unsub) unsub();
   unsub=db.collection('mcps_tournaments').doc(DOC_ID).onSnapshot(doc=>{
-    if(!doc.exists){T=null;renderLobby();return;}
+    if(!doc.exists){
+      T=null;
+      renderLobby();
+      if(nowMs()>=ROUND1_AT()) ensureTournamentStarted();
+      return;
+    }
     T=doc.data();T.id=doc.id;
     renderLobby();
     if(activeGameId && !document.getElementById('screen-play').classList.contains('hidden')) syncPlayBoard();
@@ -950,7 +981,9 @@ function renderLobby(){
   if(!T){
     document.getElementById('lobby-round').textContent='Starting…';
     document.getElementById('lobby-status').textContent='Pairing';
-    document.getElementById('pairings-box').innerHTML='<p class="text-sm text-slate-500">Pairing Round 1…</p>';
+    document.getElementById('pairings-box').innerHTML='<p class="text-sm text-slate-500">Pairing Round 1…</p><button type="button" class="btn-gold w-full mt-3" onclick="forceStartTournament()">⚡ Start Round 1 now</button>';
+    // Keep trying to create the tournament document
+    if(nowMs()>=ROUND1_AT()) ensureTournamentStarted();
     return;
   }
   const st=T.status||'playing';
