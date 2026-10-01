@@ -87,6 +87,8 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
 .chat-msg .cbody{font-size:13px;color:#e2e8f0;margin-top:2px;word-break:break-word}
 .chat-msg .ctime{font-size:10px;color:#64748b;margin-top:4px}
 .chat-msg .cdel{font-size:10px;font-weight:800;color:#fda4af;cursor:pointer;float:right}
+.chat-msg.coach{border-color:rgba(59,130,246,.45);background:rgba(59,130,246,.12)}
+.chat-msg.coach .cfrom{color:#93c5fd}
 .chat-locked{opacity:.55;pointer-events:none}
 
 </style>
@@ -100,7 +102,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
 <body>
 <!-- 10s piece loader -->
 <div id="loading-overlay" class="loading-overlay">
-  <div class="text-lg font-black text-white uppercase italic">MCPS Trial · TEST</div>
+  <div class="text-lg font-black text-white uppercase italic">MCPS Trial Arena</div>
   <p class="text-sm text-slate-400 mt-1">Loading pieces…</p>
   <div class="loading-bar"><div class="loading-fill" id="load-fill"></div></div>
   <p class="text-xs text-slate-500 mt-3" id="load-sec">10</p>
@@ -138,7 +140,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
         <li>⏱️ 10+2 rapid — clock starts when you are paired</li>
         <li>🧊 Clocks freeze during the 2‑minute break between rounds</li>
         <li>迟到 Late? Your clock still runs in a live round — arrive before time is gone</li>
-        <li>🔄 5 rounds · full round robin · each opponent once · no round skips</li>
+        <li>🔄 6 rounds · 7 players · 1 bye each round · no skips</li>
         <li>🥇 Winner gets a gold medal on Tuesday</li>
       </ul>
     </div>
@@ -164,7 +166,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
         <li>🚪 <strong class="text-white">4:55 PM</strong> — Players may join &amp; wait</li>
         <li>♟️ <strong class="text-white">5:00 PM</strong> — Round 1 pairing (clocks start)</li>
         <li>☕ <strong class="text-white">2 min break</strong> after each round</li>
-        <li>🏁 <strong class="text-white">5 rounds</strong> · full round robin · each opponent once</li>
+        <li>🏁 <strong class="text-white">6 rounds</strong> · 7 players · bye each round</li>
       </ul>
     </div>
     <div class="panel p-5 mb-4">
@@ -173,9 +175,11 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
         <li>⏱️ <strong class="text-white">10+2 rapid</strong></li>
         <li>⏰ Clock runs from pairing while the round is live — be on time</li>
         <li>🧊 <strong class="text-white">Clocks freeze on break</strong> — no time lost between rounds</li>
-        <li>🔄 Rounds advance only 1 → 2 → 3 → 4 → 5 (no skips)</li>
-        <li>📊 Live standings · ratings update each game</li>
-        <li>👀 Visitors may watch any live board</li>
+        <li>🔄 Rounds advance only 1 → 2 → 3 → 4 → 5 → 6 (no skips)</li>
+        <li>📊 Live standings · ratings update each game and carry to the next event</li>
+        <li>⭐ Tournament winners earn a star on their name</li>
+        <li>🤝 Draw offers only after 30 moves</li>
+        <li>👀 Visitors may watch live boards and replay finished games</li>
       </ul>
     </div>
     <div class="panel p-5 mb-4 border border-rose-400/40 bg-gradient-to-br from-rose-500/15 to-transparent">
@@ -253,9 +257,13 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
         <input id="chat-name" type="text" placeholder="Your name (coach / visitor)" class="hidden" maxlength="40" autocomplete="off">
         <div class="flex gap-2">
           <input id="chat-input" type="text" placeholder="Message during break…" maxlength="280" autocomplete="off" style="flex:1">
-          <button type="button" class="btn-gold" style="padding:12px 14px;white-space:nowrap" onclick="sendChatMsg()">Send</button>
+          <button type="button" class="btn-gold" style="padding:12px 14px;white-space:nowrap" onclick="sendChatMsg(false)">Send</button>
         </div>
-        <p class="text-[10px] text-slate-500">Coaches can moderate: tap Delete on a message (password required).</p>
+        <div class="flex gap-2 items-center">
+          <input id="chat-coach-pass" type="password" placeholder="Coach password" maxlength="40" autocomplete="off" style="flex:1">
+          <button type="button" class="btn-blue" style="padding:12px 14px;white-space:nowrap" onclick="sendChatMsg(true)">Coach msg</button>
+        </div>
+        <p class="text-[10px] text-slate-500">Chat open on break + 5 min after finals. Coaches: password <span class="text-amber-300/80">decipher1234</span> · Delete needs same password.</p>
       </div>
     </div>
 
@@ -263,7 +271,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       <div class="flex items-center justify-between mb-3">
         <div>
           <div class="text-[10px] font-black uppercase tracking-widest text-slate-500">Current round</div>
-          <div class="text-lg font-black text-white" id="lobby-round">Round 1 / 5</div>
+          <div class="text-lg font-black text-white" id="lobby-round">Round 1 / 6</div>
         </div>
         <div class="text-right">
           <div class="text-[10px] font-black uppercase tracking-widest text-slate-500">Status</div>
@@ -371,7 +379,8 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       </div>
     </div>
     <button type="button" class="btn-gold w-full mb-2" onclick="openResetModal()">🔄 Restart training · new Round 1</button>
-    <p class="text-[11px] text-slate-500 mt-2">Password required · pairings stay fixed 1→5 every run</p>
+    <button type="button" class="btn-blue w-full mb-2" onclick="hideAll();document.getElementById('screen-lobby').classList.remove('hidden');listenChat();updateChatUI();renderLobby();">💬 Post-event chat (5 min)</button>
+    <p class="text-[11px] text-slate-500 mt-2">Password required · pairings stay fixed 1→6 every run</p>
   </div>
 </div>
 
@@ -436,6 +445,17 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
     </div>
     <p class="text-center text-sm font-bold text-slate-300" id="spec-status">Watching…</p>
     <p class="text-center text-[11px] font-black uppercase tracking-wider text-emerald-300 mt-1 hidden" id="spec-clock-frozen">⏱ Clocks frozen — break in progress</p>
+    <div id="replay-panel" class="panel p-3 mt-3 hidden">
+      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">Replay</div>
+      <p class="text-xs text-slate-400 mb-2" id="replay-label">Move 0</p>
+      <div class="grid grid-cols-4 gap-2">
+        <button type="button" class="btn-soft" style="padding:10px 8px" onclick="replayToStart()">⏮</button>
+        <button type="button" class="btn-soft" style="padding:10px 8px" onclick="replayPrev()">◀</button>
+        <button type="button" class="btn-soft" style="padding:10px 8px" onclick="replayNext()">▶</button>
+        <button type="button" class="btn-soft" style="padding:10px 8px" onclick="replayToEnd()">⏭</button>
+      </div>
+      <button type="button" class="btn-gold w-full mt-2" style="padding:10px" onclick="startReplay()">▶ Replay game</button>
+    </div>
   </div>
 </div>
 
@@ -470,7 +490,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
   <div class="modal-card" style="border-color:rgba(244,63,94,.45)">
     <div class="text-4xl mb-2">🔐</div>
     <h3 class="text-lg font-black text-white">Restart training?</h3>
-    <p class="text-sm text-slate-300 mt-2 mb-4">Clears scores and games, then pairs <strong class="text-white">fixed Round 1</strong> again (rounds always 1→2→3→4→5).</p>
+    <p class="text-sm text-slate-300 mt-2 mb-4">Clears scores and games, then pairs <strong class="text-white">fixed Round 1</strong> again (rounds always 1→2→3→4→5→6).</p>
     <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block text-left">Round 1 start time (your local time)</label>
     <input id="reset-start-at" type="datetime-local" class="mb-3" style="color-scheme:dark">
     <p class="text-[11px] text-slate-400 mb-3 text-left">Players may join 5 minutes before this time. Countdown shows days, hours, minutes, seconds.</p>
@@ -495,14 +515,14 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
 const firebaseConfig={apiKey:"AIzaSyCcSVTifrJhzXvhQ4m1UyObtCKd8QnKEUw",authDomain:"assignments-de95a.firebaseapp.com",projectId:"assignments-de95a",storageBucket:"assignments-de95a.firebasestorage.app",messagingSenderId:"1088073398299",appId:"1:1088073398299:web:dab1f57ac1d63b10dba0be"};
 if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
-const DOC_ID='mcps_try_2026_test'; // TEST only — does not touch live tournament data
+const DOC_ID='mcps_try_2026_test'; // TEST only — separate from live
 const PASSWORD='MCPS';
 const RESET_PASSWORD='decipher1234';
 const BASE_TIME=10*60;
 const INC=2;
 const BREAK_SEC=120;
-const K_FACTOR=20;
-const TOTAL_ROUNDS=5; // full RR for 6 players (each plays 5 games)
+const K_FACTOR=24; // school rapid: ratings move a bit more each game
+const TOTAL_ROUNDS=6; // full RR for 7 players (each plays 6 games, 1 bye/round)
 const DOTUN=['audio/well-done.mp3','audio/well-done-chap.mp3','audio/great-job.mp3','audio/excellent.mp3','audio/that-was-a-strong-game.mp3'];
 // Chess pieces loaded from CDN (keeps this file small enough for GitHub).
 const CHESSCOM_PIECE_BASE='https://www.chess.com/chess-themes/pieces/neo/150/';
@@ -595,8 +615,45 @@ const ROSTER=[
   {id:'p3',name:'Oluwaseun Ajayi',rating:1332},
   {id:'p4',name:'Beckley Semilore',rating:1456},
   {id:'p5',name:'Osafile Sage',rating:1330},
-  {id:'p6',name:'Princewill Isioma',rating:1330}
+  {id:'p6',name:'Princewill Isioma',rating:1330},
+  {id:'p7',name:'Andrew Uwagbale',rating:1615}
 ];
+let PLAYER_STATS={}; // { id: { rating, stars, name } } persisted across tournaments
+function statsDoc(){ return db.collection('mcps_player_stats').doc(DOC_ID); }
+function starsLabel(n){
+  n=Math.max(0, n|0);
+  if(!n) return '';
+  if(n<=5) return ' '+'⭐'.repeat(n);
+  return ' ⭐×'+n;
+}
+async function loadPlayerStats(){
+  try{
+    const snap=await statsDoc().get();
+    PLAYER_STATS=snap.exists?(snap.data().players||{}):{};
+  }catch(e){ console.warn('stats load', e); PLAYER_STATS={}; }
+  // Seed missing roster entries
+  ROSTER.forEach(p=>{
+    if(!PLAYER_STATS[p.id]) PLAYER_STATS[p.id]={rating:p.rating,stars:0,name:p.name};
+    else {
+      PLAYER_STATS[p.id].name=p.name;
+      if(PLAYER_STATS[p.id].rating==null) PLAYER_STATS[p.id].rating=p.rating;
+      if(PLAYER_STATS[p.id].stars==null) PLAYER_STATS[p.id].stars=0;
+    }
+  });
+}
+async function savePlayerStats(){
+  try{
+    await statsDoc().set({players:PLAYER_STATS, updated:firebase.firestore.FieldValue.serverTimestamp()}, {merge:true});
+  }catch(e){ console.error('stats save', e); }
+}
+function rosterWithLiveRatings(){
+  return ROSTER.map(p=>{
+    const st=PLAYER_STATS[p.id]||{};
+    return {...p, rating:st.rating!=null?st.rating:p.rating, stars:st.stars||0};
+  });
+}
+
+
 
 let me=null,T=null,unsub=null;
 let board=null,specBoard=null,game=null;
@@ -689,57 +746,32 @@ function eloDelta(ra,rb,score){return Math.round(K_FACTOR*(score-expectedScore(r
 function nowMs(){return Date.now();}
 
 /**
- * FIXED pairings for the 6 MCPS players — always the same, sequential rounds 1→5.
- * Login order never changes who plays whom. Only one round is live at a time.
- * Round robin (circle method), colors alternate by round.
+ * FIXED sequential pairings — roster order only (login never reshuffles).
+ * 7 players → 6 rounds, 1 bye each round (full round robin).
  */
 function buildSchedule(players){
-  // Always use roster order by id so pairings are identical every training run
-  const order=['p1','p2','p3','p4','p5','p6'];
-  const ids=order.filter(id=>players.some(p=>p.id===id));
-  // Fallback if roster changes
-  if(ids.length!==6){
-    const arr=players.map(p=>p.id);
-    if(arr.length%2===1) arr.push(null);
-    const n=arr.length, half=n/2, schedule=[], a=arr.slice();
-    for(let r=0;r<n-1 && schedule.length<TOTAL_ROUNDS;r++){
-      const pairings=[];
-      for(let i=0;i<half;i++){
-        const A=a[i], B=a[n-1-i];
-        if(A===null||B===null) pairings.push({bye:true,playerId:A||B,gameId:null});
-        else {
-          const white=r%2===0?A:B, black=r%2===0?B:A;
-          pairings.push({bye:false,whiteId:white,blackId:black,gameId:'r'+(r+1)+'_'+white+'_'+black});
-        }
+  const order=['p1','p2','p3','p4','p5','p6','p7'];
+  let ids=order.filter(id=>players.some(p=>p.id===id));
+  if(!ids.length) ids=players.map(p=>p.id);
+  const arr=ids.slice();
+  if(arr.length%2===1) arr.push(null); // bye marker
+  const n=arr.length, half=n/2, schedule=[], a=arr.slice();
+  const maxR=Math.min(TOTAL_ROUNDS, n-1);
+  for(let r=0;r<maxR;r++){
+    const pairings=[];
+    for(let i=0;i<half;i++){
+      const A=a[i], B=a[n-1-i];
+      if(A===null||B===null) pairings.push({bye:true,playerId:A||B,gameId:null});
+      else {
+        const white=r%2===0?A:B, black=r%2===0?B:A;
+        pairings.push({bye:false,whiteId:white,blackId:black,gameId:'r'+(r+1)+'_'+white+'_'+black});
       }
-      schedule.push({round:r+1,pairings});
-      const fixed=a[0], rest=a.slice(1); rest.unshift(rest.pop());
-      a.splice(0,a.length,fixed,...rest);
     }
-    return schedule;
+    schedule.push({round:r+1,pairings});
+    const fixed=a[0], rest=a.slice(1); rest.unshift(rest.pop());
+    a.splice(0,a.length,fixed,...rest);
   }
-  // Explicit fixed rounds (circle method on p1..p6) — never reshuffled by login
-  const rounds=[
-    // R1: p1-p6, p2-p5, p3-p4
-    [['p1','p6'],['p2','p5'],['p3','p4']],
-    // R2
-    [['p1','p5'],['p6','p4'],['p2','p3']],
-    // R3
-    [['p1','p4'],['p5','p3'],['p6','p2']],
-    // R4
-    [['p1','p3'],['p4','p2'],['p5','p6']],
-    // R5
-    [['p1','p2'],['p3','p6'],['p4','p5']]
-  ];
-  return rounds.slice(0,TOTAL_ROUNDS).map((pairs,ri)=>{
-    const r=ri+1;
-    const pairings=pairs.map(([A,B],pi)=>{
-      // Alternate colors each round; also swap board index for variety
-      const white=(r%2===1)?A:B, black=(r%2===1)?B:A;
-      return {bye:false,whiteId:white,blackId:black,gameId:'r'+r+'_'+white+'_'+black};
-    });
-    return {round:r, pairings};
-  });
+  return schedule;
 }
 
 function emptyGame(whiteId,blackId,round,startClocksAt,runId){
@@ -800,7 +832,8 @@ function buildTournamentPayload(scheduledStartMs){
   const runId='run_'+startAt+'_'+Math.random().toString(36).slice(2,8);
   const sched=scheduledStartMs!=null?scheduledStartMs:getScheduledStartMs();
   setScheduledStartMs(sched);
-  const players=ROSTER.map(p=>({...p,startRating:p.rating,score:0,played:0}));
+  const base=rosterWithLiveRatings();
+  const players=base.map(p=>({...p,startRating:p.rating,score:0,played:0,stars:p.stars||0}));
   const schedule=buildSchedule(players);
   const seen=new Set();
   schedule.forEach(rd=>rd.pairings.forEach(p=>{
@@ -874,6 +907,7 @@ async function ensureTournamentStarted(){
 
     // No tournament document exists: this is the only automatic creation path.
     // It creates Round 1 once, and subsequent visits reuse the same document.
+    await loadPlayerStats();
     const payload=buildTournamentPayload();
     await ref.set(payload);
     toast('Round 1 paired — good luck!');
@@ -952,7 +986,7 @@ async function confirmResetTournament(){
   if(btn){btn.disabled=true;btn.textContent='Resetting…';}
   try{
     if(clockTimer){clearInterval(clockTimer);clockTimer=null;}
-    activeGameId=null;specGameId=null;resumeAttempted=false;advancing=false;
+    activeGameId=null;specGameId=null;replayMode=false;resumeAttempted=false;advancing=false;
     finishedCelebrated=false;resultShownFor={};
     clearSavedGame();
     const startEl=document.getElementById('reset-start-at');
@@ -962,6 +996,7 @@ async function confirmResetTournament(){
       if(!isNaN(parsed)&&parsed>0) startMs=parsed;
     }
     setScheduledStartMs(startMs);
+    await loadPlayerStats();
     const ref=db.collection('mcps_tournaments').doc(DOC_ID);
     const payload=buildTournamentPayload(startMs);
     await ref.set(payload);
@@ -1060,9 +1095,10 @@ function showLogin(){
   if(nowMs()<DOORS_OPEN_AT()){routeByTime();return;}
   hideAll();document.getElementById('screen-login').classList.remove('hidden');
   selectedLoginId=null;
-  document.getElementById('player-pick-list').innerHTML=ROSTER.map(p=>
+  const list=rosterWithLiveRatings();
+  document.getElementById('player-pick-list').innerHTML=list.map(p=>
     `<button type="button" class="player-card" data-id="${p.id}" onclick="selectPlayer('${p.id}')">
-      <div class="font-black text-white">${esc(p.name)}</div>
+      <div class="font-black text-white">${esc(p.name)}${starsLabel(p.stars)}</div>
       <div class="text-xs text-amber-300/90 font-bold mt-0.5">Rating ${p.rating}</div>
     </button>`
   ).join('');
@@ -1112,8 +1148,16 @@ let chatMsgsCache=[];
 function chatCol(){
   return db.collection('mcps_tournaments').doc(DOC_ID).collection('chat');
 }
+const CHAT_AFTER_FINISH_MS=5*60*1000; // 5 minutes after tournament ends
 function isChatOpen(){
-  return !!(T && T.status==='break');
+  if(!T) return false;
+  if(T.status==='break') return true;
+  if(T.status==='finished'){
+    const end=tsMillis(T.finishedAt)||tsMillis(T.updated)||0;
+    if(!end) return true; // just finished, allow until finishedAt is written
+    return (Date.now()-end)<CHAT_AFTER_FINISH_MS;
+  }
+  return false;
 }
 function chatSenderName(){
   if(me&&me.name) return me.name;
@@ -1129,13 +1173,15 @@ function updateChatUI(){
   const input=document.getElementById('chat-input');
   const nameEl=document.getElementById('chat-name');
   if(pill){
-    pill.textContent=open?'Open · break':'Closed';
+    pill.textContent=open?(T&&T.status==='finished'?'Open · 5 min':'Open · break'):'Closed';
     pill.style.borderColor=open?'rgba(52,211,153,.45)':'rgba(255,255,255,.12)';
     pill.style.color=open?'#6ee7b7':'#94a3b8';
   }
-  if(hint) hint.textContent=open
-    ?'Break chat is open — be kind and respectful'
-    :'Open only during break · closed while games run';
+  if(hint){
+    if(open && T&&T.status==='finished') hint.textContent='Post-event chat open for 5 minutes — discuss games & announcements';
+    else if(open) hint.textContent='Break chat is open — be kind and respectful';
+    else hint.textContent='Open on break + 5 min after finals · closed while games run';
+  }
   if(compose) compose.classList.toggle('chat-locked', !open);
   if(input){ input.disabled=!open; input.placeholder=open?'Message during break…':'Chat unlocks on break'; }
   if(nameEl){
@@ -1154,9 +1200,10 @@ function renderChatMessages(docs){
   }
   box.innerHTML=docs.map(m=>{
     const t=m.at?new Date(typeof m.at.toMillis==='function'?m.at.toMillis():m.at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';
-    return `<div class="chat-msg" data-id="${esc(m.id)}">
+    const coach=!!m.coach;
+    return `<div class="chat-msg${coach?' coach':''}" data-id="${esc(m.id)}">
       <button type="button" class="cdel" title="Delete" onclick="openDeleteChatMsg('${esc(m.id)}')">Delete</button>
-      <div class="cfrom">${esc(m.from||'Someone')}</div>
+      <div class="cfrom">${coach?'🏅 Coach · ':''}${esc(m.from||'Someone')}</div>
       <div class="cbody">${esc(m.text||'')}</div>
       <div class="ctime">${esc(t)}</div>
     </div>`;
@@ -1178,26 +1225,35 @@ function listenChat(){
     console.error('chat', err);
   });
 }
-async function sendChatMsg(){
-  if(!isChatOpen()){ toast('Chat is only open during break'); return; }
+async function sendChatMsg(asCoach){
+  if(!isChatOpen()){ toast('Chat opens on break and for 5 minutes after the event'); return; }
   const input=document.getElementById('chat-input');
-  const text=(input&&input.value||'').trim();
-  if(!text){ toast('Type a message first'); return; }
-  if(text.length>280){ toast('Message too long'); return; }
-  const from=chatSenderName();
-  if(!me){
+  const msg=(input&&input.value||'').trim();
+  if(!msg){ toast('Type a message first'); return; }
+  if(msg.length>280){ toast('Message too long'); return; }
+  let coach=!!asCoach;
+  if(coach){
+    const passEl=document.getElementById('chat-coach-pass');
+    const pass=(passEl&&passEl.value||'').trim();
+    if(pass!==RESET_PASSWORD){ toast('Wrong coach password'); return; }
+  }
+  let from=chatSenderName();
+  if(coach) from='Coach';
+  else if(!me){
     const nameEl=document.getElementById('chat-name');
     if(nameEl&&!(nameEl.value||'').trim()){ toast('Enter your name (coach / visitor)'); nameEl.focus(); return; }
   }
   try{
     await chatCol().add({
-      text:text.slice(0,280),
+      text:msg.slice(0,280),
       from:from.slice(0,40),
       fromId:me?me.id:null,
+      coach:coach,
       at:firebase.firestore.FieldValue.serverTimestamp(),
       runId:T&&T.runId?T.runId:null
     });
     if(input) input.value='';
+    if(coach) toast('Coach message sent');
   }catch(e){
     console.error(e);
     toast('Could not send — try again');
@@ -1364,6 +1420,7 @@ function listenTournament(){
       if(T.status==='break') updateBreakTimer();
     }
     else if(T.status==='finished'){
+      try{updateChatUI();}catch(e){}
       if(document.getElementById('screen-finished')&&
          !document.getElementById('screen-finished').classList.contains('hidden')){
         updateFinishedContent();
@@ -1427,7 +1484,7 @@ function updateFinishedContent(){
   const rows=sortedPlayers();
   const champ=rows[0];
   const el=id=>document.getElementById(id);
-  if(el('champ-name')) el('champ-name').textContent=champ?champ.name:'—';
+  if(el('champ-name')) el('champ-name').textContent=champ?(champ.name+starsLabel((PLAYER_STATS[champ.id]||{}).stars||champ.stars||0)):'—';
   if(el('champ-sub')) el('champ-sub').textContent=champ?((champ.score||0)+' pts · Rating '+(champ.rating||0)+' · Gold medal on Tuesday'):'';
   const setP=(n,nameId,ptsId)=>{
     const p=rows[n];
@@ -1468,6 +1525,29 @@ function spawnConfetti(){
     layer.appendChild(d);
   }
 }
+async function persistEndOfTournamentStats(){
+  if(!T||!T.players) return;
+  try{
+    await loadPlayerStats();
+    // Save latest ratings from this event
+    (T.players||[]).forEach(p=>{
+      if(!PLAYER_STATS[p.id]) PLAYER_STATS[p.id]={name:p.name,rating:p.rating,stars:0};
+      PLAYER_STATS[p.id].rating=p.rating||PLAYER_STATS[p.id].rating||1500;
+      PLAYER_STATS[p.id].name=p.name;
+    });
+    // Champion gets one star (once per finished runId)
+    const rows=(T.players||[]).slice().sort((a,b)=>(b.score||0)-(a.score||0));
+    const champ=rows[0];
+    const awardKey='starAwarded_'+(T.runId||'x');
+    if(champ&&champ.id&&!T[awardKey]){
+      PLAYER_STATS[champ.id].stars=(PLAYER_STATS[champ.id].stars||0)+1;
+      try{
+        await db.collection('mcps_tournaments').doc(DOC_ID).update({[awardKey]:true});
+      }catch(e){}
+    }
+    await savePlayerStats();
+  }catch(e){ console.error('persist stats', e); }
+}
 function renderFinished(){
   const fin=document.getElementById('screen-finished');
   const already=fin&&!fin.classList.contains('hidden');
@@ -1476,11 +1556,13 @@ function renderFinished(){
     fin.classList.remove('hidden');
   }
   updateFinishedContent();
+  try{listenChat();updateChatUI();}catch(e){}
   if(!finishedCelebrated){
     finishedCelebrated=true;
     playSfx(SOUND_GAMEEND,0.9);
     speakDotun();
     spawnConfetti();
+    persistEndOfTournamentStats();
   }
 }
 
@@ -1492,7 +1574,7 @@ async function showFinalStandings(){
     await reconcilePendingResults();
     // Ensure tournament marked finished
     if(T&&T.status!=='finished'){
-      await db.collection('mcps_tournaments').doc(DOC_ID).update({status:'finished',breakEndsAt:null});
+      await db.collection('mcps_tournaments').doc(DOC_ID).update({status:'finished',breakEndsAt:null,finishedAt:Date.now()});
     }
     // Wait for snapshot
     for(let i=0;i<10;i++){
@@ -1585,7 +1667,7 @@ function renderLobby(){
     if(proceedBtn) proceedBtn.classList.add('hidden');
     if(finalBtn) finalBtn.classList.remove('hidden');
     recomputeAllScores().then(()=>{
-      db.collection('mcps_tournaments').doc(DOC_ID).update({status:'finished',breakEndsAt:null}).catch(()=>{});
+      db.collection('mcps_tournaments').doc(DOC_ID).update({status:'finished',breakEndsAt:null,finishedAt:Date.now()}).catch(()=>{});
     });
   } else {
     bb.classList.add('hidden');
@@ -1665,7 +1747,7 @@ function renderLobby(){
     const delta=(p.rating||0)-(p.startRating||p.rating||0);
     return `<tr>
       <td class="${cls}">${i+1}</td>
-      <td class="font-bold text-white">${esc(p.name)}${me&&me.id===p.id?' <span class="text-amber-400 text-[10px]">YOU</span>':''}</td>
+      <td class="font-bold text-white">${esc(p.name)}${starsLabel(p.stars||(PLAYER_STATS[p.id]||{}).stars||0)}${me&&me.id===p.id?' <span class="text-amber-400 text-[10px]">YOU</span>':''}</td>
       <td class="font-black text-amber-300">${p.score||0}</td>
       <td>${p.rating||0}</td>
       <td class="${delta>0?'text-emerald-400':delta<0?'text-rose-400':'text-slate-500'}">${(delta>=0?'+':'')+delta}</td>
@@ -1718,7 +1800,7 @@ async function startNextRoundNow(){
     }
 
     if(cur>=TOTAL_ROUNDS&&isTrulyComplete(d)){
-      tx.update(ref,{status:'finished',breakEndsAt:null});
+      tx.update(ref,{status:'finished',breakEndsAt:null,finishedAt:Date.now()});
       return;
     }
     const next=cur+1;
@@ -1726,7 +1808,7 @@ async function startNextRoundNow(){
     const nrd=(d.schedule||[]).find(r=>r.round===next);
     if(!nrd){
       console.warn('Schedule missing round', next);
-      if(isTrulyComplete(d)) tx.update(ref,{status:'finished',breakEndsAt:null});
+      if(isTrulyComplete(d)) tx.update(ref,{status:'finished',breakEndsAt:null,finishedAt:Date.now()});
       return;
     }
     // Guard against skip: next must be exactly cur+1 (already enforced)
@@ -2128,7 +2210,7 @@ async function maybeAdvanceRound(force){
         });
         // Finish ONLY after the 5th round is fully complete
         if(rdNum>=TOTAL_ROUNDS){
-          Object.assign(patch,{status:'finished',breakEndsAt:null});
+          Object.assign(patch,{status:'finished',breakEndsAt:null,finishedAt:Date.now()});
         } else {
           // Normal break = 2 min. If every board already flagged long ago (empty arena),
           // start break already expired so the next open tab advances without waiting.
@@ -2141,7 +2223,7 @@ async function maybeAdvanceRound(force){
               const anchor=tsMillis(gg.lastMoveAt)||tsMillis(gg.clockStartedAt)||Date.now();
               return Math.floor((Date.now()-anchor)/1000)-base; // seconds past flag
             }));
-            if(maxOver>BREAK_SEC+30) breakMs=0; // catch-up: skip leftover break wait
+            if(maxOver>30*60) breakMs=0; // only skip break if boards were dead 30+ min (empty arena)
           }catch(e){}
           const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+breakMs);
           Object.assign(patch,{status:'break',breakEndsAt:ends});
@@ -2519,9 +2601,27 @@ async function confirmResign(){
   await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.status']:'done',['games.'+activeGameId+'.result']:result});
   await finalizeResult(activeGameId,result);
 }
+function fullMoveCount(g){
+  if(!g) return 0;
+  try{
+    if(g.pgn){
+      const c=new Chess();
+      // pgn may be SAN list without headers
+      const parts=String(g.pgn).trim().split(/\s+/).filter(Boolean);
+      return Math.floor(parts.length/2); // approx full moves
+    }
+  }catch(e){}
+  return 0;
+}
 async function offerDraw(){
   if(!activeGameId||!me||!T) return;
   if(T.status!=='playing'){ toast('Break in progress — clocks frozen'); return; }
+  const g=T.games[activeGameId];
+  const moves=fullMoveCount(g);
+  if(moves<30){
+    toast('Draw offers only after 30 moves (now '+moves+')');
+    return;
+  }
   await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.drawOfferFrom']:me.id});
   toast('Draw offered');
 }
@@ -2538,8 +2638,61 @@ async function declineDraw(){
   toast('Draw declined');
 }
 
+
+/* ---- Spectator replay (finished games) ---- */
+let replayMode=false, replayIdx=0, replayFens=['start'], replaySans=[];
+function buildReplayFromGame(g){
+  replayFens=['start'];
+  replaySans=[];
+  replayIdx=0;
+  try{
+    const c=new Chess();
+    const parts=String(g.pgn||'').trim().split(/\s+/).filter(Boolean);
+    parts.forEach(san=>{
+      const mv=c.move(san,{sloppy:true});
+      if(mv){ replaySans.push(mv.san); replayFens.push(c.fen()); }
+    });
+  }catch(e){ console.warn('replay parse', e); }
+  // Always end on final fen if present
+  if(g.fen&&replayFens[replayFens.length-1]!==g.fen){
+    replayFens.push(g.fen);
+  }
+}
+function startReplay(){
+  if(!specGameId||!T) return;
+  const g=T.games[specGameId];
+  if(!g||!(g.status==='done'||g.result)){ toast('Replay available when the game is finished'); return; }
+  buildReplayFromGame(g);
+  replayMode=true;
+  replayIdx=0;
+  applyReplayFrame();
+  toast('Replay mode — use arrows');
+}
+function applyReplayFrame(){
+  if(!specBoard) return;
+  const fen=replayFens[Math.max(0,Math.min(replayIdx,replayFens.length-1))]||'start';
+  try{specBoard.position(fen,false);}catch(e){}
+  const lab=document.getElementById('replay-label');
+  if(lab){
+    if(replayIdx<=0) lab.textContent='Start position';
+    else lab.textContent='Move '+replayIdx+(replaySans[replayIdx-1]?(' · '+replaySans[replayIdx-1]):'');
+  }
+}
+function replayToStart(){ if(!replayMode) startReplay(); replayIdx=0; applyReplayFrame(); }
+function replayPrev(){ if(!replayMode) startReplay(); replayIdx=Math.max(0,replayIdx-1); applyReplayFrame(); }
+function replayNext(){ if(!replayMode) startReplay(); replayIdx=Math.min(replayFens.length-1,replayIdx+1); applyReplayFrame(); }
+function replayToEnd(){ if(!replayMode) startReplay(); replayIdx=replayFens.length-1; applyReplayFrame(); }
+function updateReplayPanel(g){
+  const panel=document.getElementById('replay-panel');
+  if(!panel) return;
+  const done=g&&(g.status==='done'||g.result);
+  panel.classList.toggle('hidden', !done);
+  if(!done){ replayMode=false; }
+}
+
 function spectateGame(gameId){
   specGameId=gameId;
+  replayMode=false; replayIdx=0;
   hideAll();document.getElementById('screen-spec').classList.remove('hidden');
   syncSpecBoard(true);
   if(clockTimer) clearInterval(clockTimer);
@@ -2558,7 +2711,10 @@ function syncSpecBoard(){
   document.getElementById('spec-side-top').textContent='⬛ Black';
   document.getElementById('spec-name-top').textContent=b.name||'?';
   document.getElementById('spec-rating-top').textContent='Rating '+(b.rating||0);
-  if(!specBoard){
+    updateReplayPanel(g);
+  if(replayMode && specGameId===Object.keys(T.games||{}).find(k=>k===specGameId)){
+    // Stay on manual replay frame while user steps through
+  } else if(!specBoard){
     specBoard=ChessBoard('spec-board',{position:g.fen||'start',draggable:false,pieceTheme:pieceThemeUrl()});
   } else {
     const prev=specBoard.fen&&specBoard.fen();
@@ -2567,7 +2723,7 @@ function syncSpecBoard(){
       const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
       playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
     }
-    specBoard.position(next,true);
+    if(!replayMode) specBoard.position(next,true);
   }
   const live=clocksAreLive(g);
   const frozenEl=document.getElementById('spec-clock-frozen');
@@ -2608,6 +2764,7 @@ function updateSpecClocks(){
     overlay.style.display='none';
     loadMe();
     resumeAttempted=false;
+    loadPlayerStats().then(()=>{}).catch(()=>{});
     // Always subscribe so Restart start-time is shared across every phone
     if(typeof listenTournament==='function') listenTournament();
     routeByTime();
