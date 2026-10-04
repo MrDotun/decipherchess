@@ -175,7 +175,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-3">Rules</div>
       <ul class="text-sm text-slate-300 space-y-2">
         <li>⏱️ <strong class="text-white">10+2 rapid</strong></li>
-        <li>⏰ Clocks start on the first move — no time lost waiting to open the board</li>
+        <li>⏰ Clock runs from pairing while the round is live — be on time</li>
         <li>🧊 <strong class="text-white">Clocks freeze on break</strong> — no time lost between rounds</li>
         <li>🔄 Rounds advance only 1 → 2 → 3 → 4 → 5 → 6 (no skips)</li>
         <li>📊 Live standings · ratings update each game and carry to the next event</li>
@@ -424,7 +424,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
 <div id="screen-spec" class="hidden min-h-screen pb-8">
   <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#07090f]/95 backdrop-blur-xl px-4 py-3 flex items-center justify-between">
     <button type="button" class="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white" onclick="backToLobby()">← Lobby</button>
-    <div class="flex items-center gap-2 text-xs font-black text-rose-400" id="spec-live-badge"><span class="live-dot"></span> LIVE</div>
+    <div class="flex items-center gap-2 text-xs font-black text-rose-400"><span class="live-dot"></span> LIVE</div>
     <div class="text-[11px] font-bold text-slate-500">Spectator</div>
   </nav>
   <div class="max-w-xl mx-auto px-3 py-3">
@@ -784,12 +784,9 @@ function emptyGame(whiteId,blackId,round,startClocksAt,runId){
     result:null,
     whiteTime:BASE_TIME,blackTime:BASE_TIME,
     clockPaused:false,
-    // Fair: clocks only start on the FIRST MOVE (no time lost waiting to open the board)
-    clocksStarted:false,
-    clockStartedAt:null,
-    lastMoveAt:null,
-    finalWhiteTime:null,
-    finalBlackTime:null,
+    // Clocks start at pairing so late arrivals still face a running clock
+    clockStartedAt:startClocksAt||Date.now(),
+    lastMoveAt:startClocksAt||Date.now(),
     drawOfferFrom:null,whiteEloDelta:null,blackEloDelta:null,eloApplied:false
   };
 }
@@ -797,16 +794,8 @@ function emptyGame(whiteId,blackId,round,startClocksAt,runId){
 
 /** Clocks only run while the tournament is LIVE and the game is active.
  *  During break / finished / paused, remaining time is frozen — never ticks. */
-/** True once the first move has been played (legacy games: any pgn counts as started). */
-function gameClocksStarted(g){
-  if(!g) return false;
-  if(g.clocksStarted===true) return true;
-  if(g.clocksStarted===false) return false;
-  // Older games created before this fix: only run clocks if moves exist
-  return !!(g.pgn && String(g.pgn).trim());
-}
 function clocksAreLive(g){
-  return !!(T && T.status==='playing' && g && g.status==='active' && !g.clockPaused && gameClocksStarted(g));
+  return !!(T && T.status==='playing' && g && g.status==='active' && !g.clockPaused);
 }
 
 function frozenRemaining(g){
@@ -1823,12 +1812,6 @@ async function startNextRoundNow(){
     if(d.status==='playing'){ advancedTo=cur; return; }
     if(d.status!=='break'){ advancedTo=cur; return; }
 
-    // Honour the full break length (do not leave early)
-    const end=tsMillis(d.breakEndsAt);
-    if(end && Date.now()<end){
-      return; // still on break
-    }
-
     // Current round MUST be fully finished before leaving break
     const curRd=(d.schedule||[]).find(r=>r.round===cur);
     if(!curRd || !roundAllFinished(curRd, d.games)){
@@ -1942,11 +1925,10 @@ async function proceedToNextRound(){
 }
 
 function gameRemainingSec(g){
-  // No countdown until first move, or during break / finished / paused
-  if(!g||!gameClocksStarted(g)||!clocksAreLive(g)) return 9999;
+  // Never count down during break, finished, or paused — time is frozen
+  if(!clocksAreLive(g)) return 9999;
   const base=g.turn==='w'?(g.whiteTime||BASE_TIME):(g.blackTime||BASE_TIME);
   const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||Date.now();
-  if(!anchor) return base;
   const elapsed=Math.floor((Date.now()-anchor)/1000);
   return base-elapsed;
 }
@@ -1979,28 +1961,18 @@ async function checkTimedOutGames(){
         const cur=(state.games||{})[gid];
         if(!cur||cur.status!=='active') return;
         if(T&&T.runId&&cur.runId!==T.runId) return;
-        // Never flag a game before the first move (clocks not started)
-        if(!gameClocksStarted(cur)) return;
+        // Recompute remaining from server fields (no clocksAreLive dependency)
         const base=cur.turn==='w'?(cur.whiteTime||BASE_TIME):(cur.blackTime||BASE_TIME);
-        const anchor=tsMillis(cur.lastMoveAt)||tsMillis(cur.clockStartedAt)||0;
-        if(!anchor) return;
+        const anchor=tsMillis(cur.lastMoveAt)||tsMillis(cur.clockStartedAt)||Date.now();
         const left=base-Math.floor((Date.now()-anchor)/1000);
-        if(left>-1) return; // need full zero + tiny grace against lag
+        if(left>0) return;
         const res=cur.turn==='w'?'0-1':'1-0';
-        // Snapshot both clocks at flag time
-        let fW=cur.whiteTime||BASE_TIME, fB=cur.blackTime||BASE_TIME;
-        if(cur.turn==='w') fW=0; else fB=0;
         const players=(state.players||[]).map(p=>({...p}));
         const w=players.find(p=>p.id===cur.whiteId);
         const b=players.find(p=>p.id===cur.blackId);
         const updates={
           ['games.'+gid+'.status']:'done',
-          ['games.'+gid+'.result']:res,
-          ['games.'+gid+'.finalWhiteTime']:fW,
-          ['games.'+gid+'.finalBlackTime']:fB,
-          ['games.'+gid+'.whiteTime']:fW,
-          ['games.'+gid+'.blackTime']:fB,
-          ['games.'+gid+'.clockPaused']:true
+          ['games.'+gid+'.result']:res
         };
         if(w&&b&&!cur.eloApplied){
           let scoreW=res==='1-0'?1:(res==='0-1'?0:0.5);
@@ -2056,21 +2028,15 @@ async function catchUpTournament(){
     if(T.status==='playing'){
       await checkTimedOutGames();
       await reconcilePendingResults();
-      // force only finishes a completed round → break (does not skip break timer)
+      // Use latest local T if snapshot already refreshed
       await maybeAdvanceRound(true);
     }
+    // Re-read status from T (snapshot may have updated mid-flight)
     if(T&&T.status==='break'){
       const end=tsMillis(T.breakEndsAt);
-      if(!end){
-        // Ensure a full 2:00 break exists
-        try{
-          const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000);
-          await db.collection('mcps_tournaments').doc(DOC_ID).update({breakEndsAt:ends});
-        }catch(e){}
-      } else if(Date.now()>=end){
+      if(!T.breakEndsAt || Date.now()>=end){
         await startNextRoundNow();
       }
-      // else: still in the 2-minute break — do nothing
     }
   }catch(e){
     console.error('catchUp', e);
@@ -2301,19 +2267,10 @@ async function maybeAdvanceRound(force){
     return;
   }
 
-  // Break timer finished → start next round.
-  // NEVER skip the 2-minute break because force=true (that caused instant Round 2/3).
+  // Break timer finished → start next round (direct write — reliable)
   if(T.status==='break'){
     const end=tsMillis(T.breakEndsAt);
-    // Require a real end time in the past. If missing, SET a full break instead of advancing.
-    if(!T.breakEndsAt || !end){
-      try{
-        const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000);
-        await db.collection('mcps_tournaments').doc(DOC_ID).update({breakEndsAt:ends});
-      }catch(e){}
-      return;
-    }
-    if(Date.now()>=end){
+    if(!T.breakEndsAt || Date.now()>=end || force){
       advancing=true;
       try{
         await startNextRoundNow();
@@ -2397,10 +2354,6 @@ function updatePlayStatus(){
   const live=clocksAreLive(g);
   if(frozenEl) frozenEl.classList.toggle('hidden', live || g.status==='done');
   if(g.status==='done'){document.getElementById('play-status').textContent='Game over · '+g.result;return;}
-  if(!gameClocksStarted(g) && g.status==='active' && T&&T.status==='playing'){
-    document.getElementById('play-status').textContent='Make the first move — clocks start then (full 10:00)';
-    return;
-  }
   if(!live){
     document.getElementById('play-status').textContent=(T&&T.status==='break')?'Break — clocks frozen':'Waiting…';
     return;
@@ -2497,20 +2450,14 @@ async function pushMove(move, prevFen){
 
       const now=Date.now();
       let wt=g.whiteTime||BASE_TIME, bt=g.blackTime||BASE_TIME;
-      const firstMove=!gameClocksStarted(g);
-      if(firstMove){
-        // First move of the game: start clocks NOW — no time charged for waiting
-        wt=BASE_TIME; bt=BASE_TIME;
+      const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||now;
+      const elapsed=Math.max(0,Math.floor((now-anchor)/1000));
+      if(moveColor==='w'){
+        if(wt-elapsed<=-2) throw new Error('Flag — time is up');
+        wt=Math.max(0,wt-elapsed)+INC;
       } else {
-        const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||now;
-        const elapsed=Math.max(0,Math.floor((now-anchor)/1000));
-        if(moveColor==='w'){
-          if(wt-elapsed<=-2) throw new Error('Flag — time is up');
-          wt=Math.max(0,wt-elapsed)+INC;
-        } else {
-          if(bt-elapsed<=-2) throw new Error('Flag — time is up');
-          bt=Math.max(0,bt-elapsed)+INC;
-        }
+        if(bt-elapsed<=-2) throw new Error('Flag — time is up');
+        bt=Math.max(0,bt-elapsed)+INC;
       }
 
       const updates={
@@ -2521,17 +2468,10 @@ async function pushMove(move, prevFen){
         ['games.'+gid+'.whiteTime']:wt,
         ['games.'+gid+'.blackTime']:bt,
         ['games.'+gid+'.lastMoveAt']:now,
-        ['games.'+gid+'.clockStartedAt']:firstMove?now:(g.clockStartedAt||now),
-        ['games.'+gid+'.clocksStarted']:true,
         ['games.'+gid+'.clockPaused']:false,
         ['games.'+gid+'.drawOfferFrom']:null
       };
-      if(endResult){
-        updates['games.'+gid+'.result']=endResult;
-        updates['games.'+gid+'.finalWhiteTime']=wt;
-        updates['games.'+gid+'.finalBlackTime']=bt;
-        updates['games.'+gid+'.clockPaused']=true;
-      }
+      if(endResult) updates['games.'+gid+'.result']=endResult;
       tx.update(ref, updates);
       finalWt=wt; finalBt=bt; finalNow=now; wrote=true;
     });
@@ -2636,16 +2576,12 @@ function startClocks(){
 function updateClockDisplay(){
   if(!activeGameId||!T) return;
   const g=T.games[activeGameId];if(!g)return;
-  let wt=g.finalWhiteTime!=null?g.finalWhiteTime:(g.whiteTime||BASE_TIME);
-  let bt=g.finalBlackTime!=null?g.finalBlackTime:(g.blackTime||BASE_TIME);
-  // Tick ONLY after first move, while live (never before move 1, never on break)
+  let wt=g.whiteTime||BASE_TIME, bt=g.blackTime||BASE_TIME;
+  // Tick ONLY while tournament is playing and game is live (frozen on break)
   if(clocksAreLive(g)){
     const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||Date.now();
     const elapsed=Math.floor((Date.now()-anchor)/1000);
-    if(g.turn==='w') wt=Math.max(0,(g.whiteTime||BASE_TIME)-elapsed);
-    else bt=Math.max(0,(g.blackTime||BASE_TIME)-elapsed);
-  } else if(!gameClocksStarted(g) && g.status==='active'){
-    wt=BASE_TIME; bt=BASE_TIME;
+    if(g.turn==='w') wt=Math.max(0,wt-elapsed); else bt=Math.max(0,bt-elapsed);
   }
   const myColor=me&&g.whiteId===me.id?'w':'b';
   const topIsWhite=myColor==='b';
@@ -2800,18 +2736,7 @@ function syncSpecBoard(){
   const live=clocksAreLive(g);
   const frozenEl=document.getElementById('spec-clock-frozen');
   if(frozenEl) frozenEl.classList.toggle('hidden', live || g.status==='done');
-  const badge=document.getElementById('spec-live-badge');
-  if(badge){
-    if(g.status==='done'||g.result){
-      badge.innerHTML='FINAL';
-      badge.className='text-xs font-black text-amber-400';
-    } else {
-      badge.innerHTML='<span class="live-dot"></span> LIVE';
-      badge.className='flex items-center gap-2 text-xs font-black text-rose-400';
-    }
-  }
-  if(g.status==='done'||g.result) document.getElementById('spec-status').textContent='Final '+g.result;
-  else if(!gameClocksStarted(g)) document.getElementById('spec-status').textContent='Waiting for first move — clocks not started';
+  if(g.status==='done') document.getElementById('spec-status').textContent='Final '+g.result;
   else if(!live) document.getElementById('spec-status').textContent=(T&&T.status==='break')?'Break — clocks frozen':'Paused';
   else document.getElementById('spec-status').textContent=(g.turn==='w'?'White':'Black')+' to move';
   updateSpecClocks();
@@ -2819,15 +2744,11 @@ function syncSpecBoard(){
 function updateSpecClocks(){
   if(!specGameId||!T) return;
   const g=T.games[specGameId];if(!g)return;
-  let wt=g.finalWhiteTime!=null?g.finalWhiteTime:(g.whiteTime||BASE_TIME);
-  let bt=g.finalBlackTime!=null?g.finalBlackTime:(g.blackTime||BASE_TIME);
+  let wt=g.whiteTime||BASE_TIME, bt=g.blackTime||BASE_TIME;
   if(clocksAreLive(g)){
     const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||Date.now();
     const elapsed=Math.floor((Date.now()-anchor)/1000);
-    if(g.turn==='w') wt=Math.max(0,(g.whiteTime||BASE_TIME)-elapsed);
-    else bt=Math.max(0,(g.blackTime||BASE_TIME)-elapsed);
-  } else if(!gameClocksStarted(g) && g.status==='active'){
-    wt=BASE_TIME; bt=BASE_TIME;
+    if(g.turn==='w') wt=Math.max(0,wt-elapsed); else bt=Math.max(0,bt-elapsed);
   }
   const live=clocksAreLive(g);
   document.getElementById('spec-clock-bottom').textContent=fmtTime(wt);
