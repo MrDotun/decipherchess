@@ -265,7 +265,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
           <input id="chat-coach-pass" type="password" placeholder="Coach password" maxlength="40" autocomplete="off" style="flex:1">
           <button type="button" class="btn-blue" style="padding:12px 14px;white-space:nowrap" onclick="sendChatMsg(true)">Coach msg</button>
         </div>
-        <p class="text-[10px] text-slate-500">Chat open on break + 5 min after finals. Coaches: password <span class="text-amber-300/80">decipher1234</span> · Delete needs same password.</p>
+        <p class="text-[10px] text-slate-500">Players: break + 5 min after finals. Coaches message anytime with password. Delete uses the same password.</p>
       </div>
     </div>
 
@@ -1151,16 +1151,20 @@ function chatCol(){
   return db.collection('mcps_tournaments').doc(DOC_ID).collection('chat');
 }
 const CHAT_AFTER_FINISH_MS=5*60*1000; // 5 minutes after tournament ends
-function isChatOpen(){
+/** Players may chat only on break or within 5 minutes after finals. */
+function isPlayerChatOpen(){
   if(!T) return false;
   if(T.status==='break') return true;
   if(T.status==='finished'){
     const end=tsMillis(T.finishedAt)||tsMillis(T.updated)||0;
-    if(!end) return true; // just finished, allow until finishedAt is written
+    if(!end) return true;
     return (Date.now()-end)<CHAT_AFTER_FINISH_MS;
   }
   return false;
 }
+/** Legacy name used by UI lock for player compose */
+function isChatOpen(){ return isPlayerChatOpen(); }
+
 function chatSenderName(){
   if(me&&me.name) return me.name;
   const el=document.getElementById('chat-name');
@@ -1180,17 +1184,24 @@ function updateChatUI(){
     pill.style.color=open?'#6ee7b7':'#94a3b8';
   }
   if(hint){
-    if(open && T&&T.status==='finished') hint.textContent='Post-event chat open for 5 minutes — discuss games & announcements';
-    else if(open) hint.textContent='Break chat is open — be kind and respectful';
-    else hint.textContent='Open on break + 5 min after finals · closed while games run';
+    if(open && T&&T.status==='finished') hint.textContent='Post-event chat (5 min) · coaches can message anytime';
+    else if(open) hint.textContent='Break chat open · coaches can also message anytime with password';
+    else hint.textContent='Players: break + 5 min after finals · Coaches: anytime (password)';
   }
-  if(compose) compose.classList.toggle('chat-locked', !open);
-  if(input){ input.disabled=!open; input.placeholder=open?'Message during break…':'Chat unlocks on break'; }
+  // Player input locks when not break/post-final; coach controls stay usable
+  if(input){
+    input.disabled=!open;
+    input.placeholder=open?'Message during break…':'Players chat on break only';
+  }
   if(nameEl){
     const needName=!me;
     nameEl.classList.toggle('hidden', !needName);
     nameEl.disabled=!open;
   }
+  const coachPass=document.getElementById('chat-coach-pass');
+  if(coachPass) coachPass.disabled=false;
+  // Do not lock whole compose — coaches must message during live rounds
+  if(compose) compose.classList.remove('chat-locked');
 }
 function renderChatMessages(docs){
   const box=document.getElementById('chat-messages');
@@ -1228,22 +1239,25 @@ function listenChat(){
   });
 }
 async function sendChatMsg(asCoach){
-  if(!isChatOpen()){ toast('Chat opens on break and for 5 minutes after the event'); return; }
-  const input=document.getElementById('chat-input');
-  const msg=(input&&input.value||'').trim();
-  if(!msg){ toast('Type a message first'); return; }
-  if(msg.length>280){ toast('Message too long'); return; }
-  let coach=!!asCoach;
+  const coach=!!asCoach;
+  // Coaches may post anytime with password; players only on break / 5 min after finals
+  if(!coach && !isPlayerChatOpen()){
+    toast('Players can chat on break and for 5 minutes after the event');
+    return;
+  }
   if(coach){
     const passEl=document.getElementById('chat-coach-pass');
     const pass=(passEl&&passEl.value||'').trim();
     if(pass!==RESET_PASSWORD){ toast('Wrong coach password'); return; }
   }
-  let from=chatSenderName();
-  if(coach) from='Coach';
-  else if(!me){
+  const input=document.getElementById('chat-input');
+  const msg=(input&&input.value||'').trim();
+  if(!msg){ toast('Type a message first'); return; }
+  if(msg.length>280){ toast('Message too long'); return; }
+  let from=coach?'Coach':chatSenderName();
+  if(!coach && !me){
     const nameEl=document.getElementById('chat-name');
-    if(nameEl&&!(nameEl.value||'').trim()){ toast('Enter your name (coach / visitor)'); nameEl.focus(); return; }
+    if(nameEl&&!(nameEl.value||'').trim()){ toast('Enter your name'); nameEl.focus(); return; }
   }
   try{
     await chatCol().add({
@@ -1255,7 +1269,7 @@ async function sendChatMsg(asCoach){
       runId:T&&T.runId?T.runId:null
     });
     if(input) input.value='';
-    if(coach) toast('Coach message sent');
+    toast(coach?'Coach message sent':'Message sent');
   }catch(e){
     console.error(e);
     toast('Could not send — try again');
@@ -1768,10 +1782,14 @@ function updateBreakTimer(){
   if(left<=0){
     if(hintEl) hintEl.textContent='Break over — starting next round…';
     if(btn) btn.classList.remove('hidden');
-    // Auto-advance — do not require anyone to click Proceed
-    maybeAdvanceRound(true);
+    // Auto-advance once break timer fully elapsed (full 2:00 always granted first)
+    if(!window._breakAdvanceArmed){
+      window._breakAdvanceArmed=true;
+      maybeAdvanceRound(true).finally(()=>{ setTimeout(()=>{ window._breakAdvanceArmed=false; },2000); });
+    }
   } else {
-    if(hintEl) hintEl.textContent='Next round pairs when the timer hits zero';
+    window._breakAdvanceArmed=false;
+    if(hintEl) hintEl.textContent='2-minute break — clocks are frozen';
     if(btn) btn.classList.add('hidden');
   }
   // Female voice reads the countdown during the break
@@ -2214,20 +2232,8 @@ async function maybeAdvanceRound(force){
         if(rdNum>=TOTAL_ROUNDS){
           Object.assign(patch,{status:'finished',breakEndsAt:null,finishedAt:Date.now()});
         } else {
-          // Normal break = 2 min. If every board already flagged long ago (empty arena),
-          // start break already expired so the next open tab advances without waiting.
-          let breakMs=BREAK_SEC*1000;
-          try{
-            const maxOver=Math.max(0,...rdd.pairings.filter(p=>!p.bye).map(p=>{
-              const gg=(d.games||{})[p.gameId];
-              if(!gg) return 0;
-              const base=gg.turn==='w'?(gg.whiteTime||BASE_TIME):(gg.blackTime||BASE_TIME);
-              const anchor=tsMillis(gg.lastMoveAt)||tsMillis(gg.clockStartedAt)||Date.now();
-              return Math.floor((Date.now()-anchor)/1000)-base; // seconds past flag
-            }));
-            if(maxOver>30*60) breakMs=0; // only skip break if boards were dead 30+ min (empty arena)
-          }catch(e){}
-          const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+breakMs);
+          // Always a full 2-minute break between rounds (never skip)
+          const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000);
           Object.assign(patch,{status:'break',breakEndsAt:ends});
         }
         // Freeze remaining time on every active board so nothing ticks on break
