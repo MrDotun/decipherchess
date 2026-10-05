@@ -2133,6 +2133,48 @@ async function repairFalseResults(){
   }
 }
 
+/**
+ * If any board in the current round is still active, the event must be PLAYING.
+ * Repairing phantom results can leave status=break while kids still need to play —
+ * that froze clocks for everyone. One unfinished board must not park the whole arena.
+ */
+async function ensureRoundPlayable(){
+  if(!T) return;
+  if(T.status==='finished'||T.status==='scheduled') return;
+  const rdNum=T.currentRound||1;
+  const rd=(T.schedule||[]).find(r=>r.round===rdNum);
+  if(!rd) return;
+  const games=T.games||{};
+  let hasActive=false;
+  for(const p of rd.pairings){
+    if(p.bye) continue;
+    const g=games[p.gameId];
+    if(g && g.status==='active' && !g.result){ hasActive=true; break; }
+  }
+  if(!hasActive) return;
+  if(T.status==='playing') return;
+  // Stuck on break (or other) with live boards → reopen play and unfreeze clocks
+  try{
+    const patch={
+      status:'playing',
+      breakEndsAt:null,
+      updated:firebase.firestore.FieldValue.serverTimestamp()
+    };
+    // Unpause every active game clock
+    rd.pairings.forEach(p=>{
+      if(p.bye||!p.gameId) return;
+      const g=games[p.gameId];
+      if(g && g.status==='active' && !g.result){
+        patch['games.'+p.gameId+'.clockPaused']=false;
+        // Refresh lastMoveAt so elapsed does not include the frozen break period
+        patch['games.'+p.gameId+'.lastMoveAt']=Date.now();
+      }
+    });
+    await db.collection('mcps_tournaments').doc(DOC_ID).update(patch);
+    console.warn('Reopened play — active boards found while status was', T.status);
+  }catch(e){ console.error('ensureRoundPlayable', e); }
+}
+
 let catchingUp=false;
 async function catchUpTournament(){
   if(!T||catchingUp) return;
@@ -2142,15 +2184,23 @@ async function catchUpTournament(){
       await activateScheduledIfDue();
       return;
     }
+    // Always unstick: active boards must not sit under a frozen break
+    await repairFalseResults();
+    await ensureRoundPlayable();
+
     if(T.status==='playing'){
-      await repairFalseResults();
       await checkTimedOutGames();
       await reconcilePendingResults();
-      // force only finishes a completed round → break (does not skip break timer)
       await maybeAdvanceRound(true);
     }
     if(T&&T.status==='break'){
-      await repairFalseResults();
+      // Only stay on break if EVERY board in the round is finished
+      const rdNum=T.currentRound||1;
+      const rd=(T.schedule||[]).find(r=>r.round===rdNum);
+      if(rd && !roundAllFinished(rd, T.games)){
+        await ensureRoundPlayable();
+        return;
+      }
       const end=tsMillis(T.breakEndsAt);
       if(!end){
         try{
