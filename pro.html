@@ -89,6 +89,15 @@
                             <label class="text-[10px] font-bold text-slate-500 uppercase">FEN (Feed to AI)</label>
                             <input type="text" id="fen-output" class="w-full p-3 rounded-lg text-xs mt-1 text-emerald-400" readonly placeholder="FEN will appear here...">
                         </div>
+                        <div id="main-engine" class="mt-3 glass p-3 rounded-xl text-left">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-bold uppercase text-slate-500 tracking-widest">Stockfish</span>
+                                <span id="main-engine-status" class="text-[10px] text-slate-500">—</span>
+                            </div>
+                            <div id="main-engine-lines" class="space-y-1.5 text-xs font-mono text-slate-300 min-h-[3rem]">
+                                <p class="text-slate-600 italic">Click a move to see engine lines…</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -102,12 +111,12 @@
                 
             </div>
 
-            <!-- Batch review: boards for selected moves + your ideas for the AI -->
+            <!-- Batch review: note only key moves -->
             <div id="batch-review" class="hidden glass p-6 rounded-2xl space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
                     <div>
-                        <h2 class="text-lg font-bold gold-text">Review batch &amp; your ideas</h2>
-                        <p class="text-xs text-slate-400">Click each move to see the board. Write why the moves are played — the AI will polish your English.</p>
+                        <h2 class="text-lg font-bold gold-text">Help the AI on key moves</h2>
+                        <p class="text-xs text-slate-400">Click a move → see the board → write a short note only if the idea is hard. Leave empty for clear moves. The AI will use your notes and write simple correct English.</p>
                     </div>
                     <span id="batch-count" class="text-[10px] uppercase tracking-widest text-slate-500"></span>
                 </div>
@@ -117,13 +126,28 @@
                             <div id="review-board" style="width: 100%;"></div>
                         </div>
                         <p id="review-move-label" class="mt-3 text-sm text-emerald-400 font-semibold text-center"></p>
-                        <p id="review-fen" class="mt-1 text-[10px] text-slate-500 break-all text-center"></p>
+                        <div class="mt-2 flex items-center justify-center gap-2">
+                            <button type="button" id="btn-review-prev" onclick="reviewStep(-1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold uppercase disabled:opacity-30 disabled:cursor-not-allowed" title="Previous move">◀ Prev</button>
+                            <span id="review-ply-label" class="text-[10px] text-slate-500 min-w-[4rem] text-center">—</span>
+                            <button type="button" id="btn-review-next" onclick="reviewStep(1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold uppercase disabled:opacity-30 disabled:cursor-not-allowed" title="Next move">Next ▶</button>
+                        </div>
+                        <p id="review-fen" class="mt-2 text-[10px] text-slate-500 break-all text-center"></p>
+                        <div id="review-engine" class="mt-3 glass p-3 rounded-xl text-left">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-bold uppercase text-slate-500 tracking-widest">Stockfish</span>
+                                <span id="review-engine-status" class="text-[10px] text-slate-500">—</span>
+                            </div>
+                            <div id="review-engine-lines" class="space-y-1.5 text-xs font-mono text-slate-300 min-h-[4.5rem]">
+                                <p class="text-slate-600 italic">Select a move to load engine lines…</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="lg:w-2/3 space-y-3">
-                        <label class="text-xs font-bold uppercase text-slate-500">Selected moves (click to view board)</label>
+                        <label class="text-xs font-bold uppercase text-slate-500">Batch moves (click one)</label>
                         <div id="review-move-list" class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[220px] overflow-y-auto pr-1"></div>
-                        <label class="text-xs font-bold uppercase text-slate-500">Your ideas / summary for the AI</label>
-                        <textarea id="user-guide" rows="6" class="w-full p-4 rounded-xl text-sm" placeholder="Write in your own words: tactical ideas, why moves are played, plans… The AI will keep your ideas and fix the English into simple correct sentences."></textarea>
+                        <label class="text-xs font-bold uppercase text-slate-500">Your note for this move only (optional)</label>
+                        <textarea id="move-note" rows="4" class="w-full p-4 rounded-xl text-sm" placeholder="Only for key moves. Example: rook goes to a2 so after axb5 the a-file opens and hits our queen. Leave empty if obvious."></textarea>
+                        <p id="notes-saved-count" class="text-[10px] text-slate-500">0 notes saved</p>
                     </div>
                 </div>
             </div>
@@ -165,7 +189,13 @@
         let selEnd = null;
         let isDbLoaded = false;
         let reviewIndex = null; // which selected move is shown on review board
+        let userNotes = {}; // chunkId -> short note from the player
         let dynamicMasterDb = {};
+        let engineCache = {}; // fen -> engine result
+        let reviewEngineToken = 0; // cancel stale async fetches
+        let mainEngineToken = 0;
+        let reviewLine = []; // [{fen, label, isFocus}] built for current review chunk
+        let reviewLineIdx = 0;
 
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -436,14 +466,20 @@
             }
         }
 
-        // Compact ASCII board from FEN so the AI actually sees the position
-        // Rank 8 at top, rank 1 at bottom (standard diagram). Uppercase = White, lowercase = Black.
+        // One clear board diagram from FEN (only format sent to the AI)
+        // Standard orientation: Black's rank 8 at TOP, White's rank 1 at BOTTOM. a-file LEFT, h-file RIGHT.
+        // Uppercase = White piece, lowercase = Black piece. a1 is a dark square.
         function fenToAsciiBoard(fen) {
             if (!fen || !isValidFen(fen)) return "";
             try {
-                const rows = fen.trim().split(/\s+/)[0].split("/");
+                const parts = fen.trim().split(/\s+/);
+                const rows = parts[0].split("/");
                 if (rows.length !== 8) return "";
-                const lines = ["  a b c d e f g h"];
+                const lines = [
+                    "Orientation: rank 8 top, rank 1 bottom | a-file left, h-file right | a1 dark",
+                    "UPPERCASE=White  lowercase=Black  .=empty",
+                    "  +-----------------+",
+                ];
                 for (let r = 0; r < 8; r++) {
                     let row = "";
                     for (const ch of rows[r]) {
@@ -453,9 +489,11 @@
                             row += " " + ch;
                         }
                     }
-                    lines.push(`${8 - r}${row}`);
+                    lines.push(`${8 - r} |${row} |`);
                 }
-                const turn = fen.trim().split(/\s+/)[1] === "b" ? "Black" : "White";
+                lines.push("  +-----------------+");
+                lines.push("    a b c d e f g h");
+                const turn = parts[1] === "b" ? "Black" : "White";
                 lines.push(`Side to move: ${turn}`);
                 return lines.join("\n");
             } catch (e) {
@@ -478,9 +516,9 @@
             }
             let cont = "";
             if (data.continuationArr && data.continuationArr.length) {
-                cont = data.continuationArr.slice(0, 7).join(" ");
+                cont = data.continuationArr.slice(0, 5).join(" ");
             } else if (data.continuation) {
-                cont = String(data.continuation).split(" ").slice(0, 7).join(" ");
+                cont = String(data.continuation).split(" ").slice(0, 5).join(" ");
             }
             const firstMove = data.san || data.move || (cont ? cont.split(" ")[0] : "");
             return {
@@ -506,7 +544,7 @@
                             fen: fen,
                             depth: 18,
                             maxThinkingTime: 90,
-                            variants: 3
+                            variants: 5
                         })
                     });
                     
@@ -521,11 +559,11 @@
                     // Support both single-object and array responses (MultiPV)
                     let lines = [];
                     if (Array.isArray(data)) {
-                        lines = data.map(parseEngineLine).filter(Boolean).slice(0, 3);
+                        lines = data.map(parseEngineLine).filter(Boolean).slice(0, 5);
                     } else if (data.lines && Array.isArray(data.lines)) {
-                        lines = data.lines.map(parseEngineLine).filter(Boolean).slice(0, 3);
+                        lines = data.lines.map(parseEngineLine).filter(Boolean).slice(0, 5);
                     } else if (data.pvs && Array.isArray(data.pvs)) {
-                        lines = data.pvs.map(parseEngineLine).filter(Boolean).slice(0, 3);
+                        lines = data.pvs.map(parseEngineLine).filter(Boolean).slice(0, 5);
                     } else {
                         const one = parseEngineLine(data);
                         if (one) lines = [one];
@@ -809,7 +847,7 @@
                 const nextSans = [];
                 const nextFull = [];
                 let j = i + 1;
-                while (j < chunks.length && nextFull.length < 7) {
+                while (j < chunks.length && nextFull.length < 4) {
                     const nxt = chunks[j];
                     if (nxt.variationLevel < c.variationLevel) break;
                     if (nxt.variationLevel > c.variationLevel) {
@@ -835,8 +873,11 @@
             board.position('start', false);
             document.getElementById('fen-output').value = "";
             document.getElementById('batch-review').classList.add('hidden');
-            const ug = document.getElementById('user-guide');
-            if (ug) ug.value = "";
+            userNotes = {};
+            const mn = document.getElementById('move-note');
+            if (mn) mn.value = "";
+            const nsc = document.getElementById('notes-saved-count');
+            if (nsc) nsc.innerText = "0 notes saved";
 
             updateUI();
             saveState();
@@ -865,20 +906,138 @@
             return Array.from(mustInclude).sort((a, b) => a - b);
         }
 
-        function showReviewPosition(chunkIndex) {
-            reviewIndex = chunkIndex;
-            const c = globalChunks[chunkIndex];
+        function saveCurrentMoveNote() {
+            if (reviewIndex === null) return;
+            const c = globalChunks[reviewIndex];
             if (!c) return;
-            const fen = (c.moveParsed !== false && isValidFen(c.fenAfter)) ? c.fenAfter : c.fen;
-            document.getElementById('review-move-label').innerText = `${c.moveNum}. ${c.target}`;
+            const val = (document.getElementById('move-note')?.value || "").trim();
+            if (val) userNotes[c.id] = val;
+            else delete userNotes[c.id];
+            const n = Object.keys(userNotes).length;
+            const el = document.getElementById('notes-saved-count');
+            if (el) el.innerText = n === 0 ? "0 notes saved" : `${n} note${n > 1 ? "s" : ""} saved`;
+            // mark list items that have notes
+            document.querySelectorAll('#review-move-list .review-item').forEach(el2 => {
+                const idx = parseInt(el2.dataset.idx, 10);
+                const id = globalChunks[idx]?.id;
+                el2.classList.toggle('ring-1', !!(id && userNotes[id]));
+                el2.classList.toggle('ring-yellow-500', !!(id && userNotes[id]));
+            });
+        }
+
+        function formatEngineLines(engineData) {
+            if (!engineData || engineData.invalid || !engineData.lines || !engineData.lines.length) {
+                return '<p class="text-slate-500 italic">No engine lines</p>';
+            }
+            return engineData.lines.slice(0, 5).map((ln, i) => {
+                const ev = (ln.eval !== undefined && ln.eval !== null) ? String(ln.eval) : '?';
+                const moves = `${ln.san || ''} ${ln.continuation || ''}`.trim().split(/\s+/).filter(Boolean).slice(0, 4).join(' ');
+                const rank = i === 0 ? 'text-emerald-400' : 'text-slate-300';
+                return `<div class="${rank}"><span class="text-slate-500">#${i + 1}</span> <span class="gold-text font-bold">${ev}</span> <span>${moves || '—'}</span></div>`;
+            }).join('');
+        }
+
+        async function loadEngineForPanel(fen, linesElId, statusElId, tokenRef) {
+            const linesEl = document.getElementById(linesElId);
+            const statusEl = document.getElementById(statusElId);
+            if (!linesEl || !statusEl) return;
+            if (!fen || !isValidFen(fen)) {
+                linesEl.innerHTML = '<p class="text-slate-500 italic">Invalid FEN</p>';
+                statusEl.innerText = '—';
+                return;
+            }
+            const myToken = ++tokenRef.n;
+            if (engineCache[fen]) {
+                linesEl.innerHTML = formatEngineLines(engineCache[fen]);
+                statusEl.innerText = 'cached';
+                return;
+            }
+            linesEl.innerHTML = '<p class="text-slate-500"><span class="spinner"></span>Analyzing…</p>';
+            statusEl.innerText = 'depth 18…';
+            const data = await getEngineRefutation(fen);
+            if (myToken !== tokenRef.n) return; // stale
+            if (data && !data.invalid) engineCache[fen] = data;
+            linesEl.innerHTML = formatEngineLines(data);
+            statusEl.innerText = (data && !data.invalid) ? 'ready' : 'failed';
+        }
+
+        function buildReviewLine(chunkIndex) {
+            const c = globalChunks[chunkIndex];
+            if (!c) return { positions: [], focusIdx: 0 };
+            const chess = new Chess();
+            const positions = [{ fen: chess.fen(), label: "Start", ply: 0 }];
+            const path = c.pathArray || [];
+            let focusIdx = 0;
+            for (let i = 0; i < path.length; i++) {
+                const m = chess.move(path[i], { sloppy: true });
+                if (!m) break;
+                const moveNum = Math.floor(i / 2) + 1;
+                const label = (i % 2 === 0) ? `${moveNum}. ${m.san}` : `${moveNum}... ${m.san}`;
+                positions.push({ fen: chess.fen(), label, ply: i + 1 });
+                // focus = position AFTER the reviewed move
+                if (i === path.length - 1) focusIdx = positions.length - 1;
+            }
+            // append next moves of this variation (for stepping forward)
+            const nextArr = (c.nextMoves && c.nextMoves.length) ? c.nextMoves : [];
+            for (let i = 0; i < nextArr.length; i++) {
+                const m = chess.move(nextArr[i], { sloppy: true });
+                if (!m) break;
+                const ply = path.length + i;
+                const moveNum = Math.floor(ply / 2) + 1;
+                const label = (ply % 2 === 0) ? `${moveNum}. ${m.san}` : `${moveNum}... ${m.san}`;
+                positions.push({ fen: chess.fen(), label, ply: ply + 1 });
+            }
+            // if path was empty, try fenAfter as focus
+            if (path.length === 0 && c.fenAfter && isValidFen(c.fenAfter)) {
+                positions.push({ fen: c.fenAfter, label: `${c.moveNum}. ${c.target}`, ply: 1 });
+                focusIdx = positions.length - 1;
+            }
+            return { positions, focusIdx };
+        }
+
+        function applyReviewLinePosition() {
+            if (!reviewLine.length) return;
+            reviewLineIdx = Math.max(0, Math.min(reviewLineIdx, reviewLine.length - 1));
+            const pos = reviewLine[reviewLineIdx];
+            const fen = pos.fen;
+            document.getElementById('review-move-label').innerText = pos.label || "";
             document.getElementById('review-fen').innerText = fen || "";
+            const plyLabel = document.getElementById('review-ply-label');
+            if (plyLabel) plyLabel.innerText = `${reviewLineIdx + 1} / ${reviewLine.length}`;
+            const prevBtn = document.getElementById('btn-review-prev');
+            const nextBtn = document.getElementById('btn-review-next');
+            if (prevBtn) prevBtn.disabled = reviewLineIdx <= 0;
+            if (nextBtn) nextBtn.disabled = reviewLineIdx >= reviewLine.length - 1;
             if (fen && isValidFen(fen) && reviewBoard) {
                 reviewBoard.position(fen, false);
             }
-            // highlight active item in list
+            loadEngineForPanel(fen, 'review-engine-lines', 'review-engine-status', { get n() { return reviewEngineToken; }, set n(v) { reviewEngineToken = v; } });
+        }
+
+        function reviewStep(delta) {
+            if (!reviewLine.length) return;
+            const next = reviewLineIdx + delta;
+            if (next < 0 || next >= reviewLine.length) return;
+            reviewLineIdx = next;
+            applyReviewLinePosition();
+        }
+
+        function showReviewPosition(chunkIndex) {
+            // save note for previous move before switching
+            saveCurrentMoveNote();
+            reviewIndex = chunkIndex;
+            const c = globalChunks[chunkIndex];
+            if (!c) return;
+            const noteEl = document.getElementById('move-note');
+            if (noteEl) noteEl.value = userNotes[c.id] || "";
             document.querySelectorAll('#review-move-list .review-item').forEach(el => {
                 el.classList.toggle('selected-start', parseInt(el.dataset.idx, 10) === chunkIndex);
             });
+            // Build replay line (path to this move + next moves) and land on the focus position
+            const built = buildReviewLine(chunkIndex);
+            reviewLine = built.positions;
+            reviewLineIdx = built.focusIdx;
+            applyReviewLinePosition();
         }
 
         function updateBatchReview() {
@@ -896,15 +1055,22 @@
                 const c = globalChunks[i];
                 const div = document.createElement('div');
                 div.className = 'review-item chunk-card glass p-2 rounded-lg cursor-pointer';
+                if (userNotes[c.id]) {
+                    div.className += ' ring-1 ring-yellow-500';
+                }
                 div.dataset.idx = i;
                 div.innerHTML = `<p class="text-[9px] gold-text font-bold">${c.id}</p><p class="text-xs font-semibold truncate">${c.moveNum}. ${c.target}</p>`;
                 div.onclick = () => showReviewPosition(i);
                 list.appendChild(div);
             });
-            // show first selected position
             if (indices.length) showReviewPosition(indices[0]);
-            // resize review board after panel becomes visible
             setTimeout(() => { if (reviewBoard) reviewBoard.resize(); }, 50);
+            // autosave note while typing
+            const noteEl = document.getElementById('move-note');
+            if (noteEl && !noteEl._bound) {
+                noteEl.addEventListener('input', saveCurrentMoveNote);
+                noteEl._bound = true;
+            }
         }
 
         function selectChunk(index) {
@@ -916,6 +1082,7 @@
                 if (isValidFen(fen)) {
                     board.position(fen, false);
                 }
+                loadEngineForPanel(fen, 'main-engine-lines', 'main-engine-status', { get n() { return mainEngineToken; }, set n(v) { mainEngineToken = v; } });
                 document.getElementById('batch-review').classList.add('hidden');
             } else {
                 selEnd = Math.max(selStart, index);
@@ -942,7 +1109,8 @@
             const repertoireSide = (document.getElementById('repertoire-side')?.value || 'black').toLowerCase();
             const weSide = repertoireSide === 'white' ? 'White' : 'Black';
             const theySide = repertoireSide === 'white' ? 'Black' : 'White';
-            const userGuide = (document.getElementById('user-guide')?.value || "").trim();
+            // save note for the move currently open in the review panel
+            saveCurrentMoveNote();
 
             const selectedIndices = getSelectedIndices();
             let batchData = [];
@@ -1005,52 +1173,110 @@
                     gmVerdict = "GM marks the position equal.";
                 }
 
-                // FEN + ASCII board + next moves with signs; at variation end also OUR PLAN from engine
-                const nextFull = (c.nextMovesFull && c.nextMovesFull.length)
-                    ? c.nextMovesFull.join(" ")
-                    : ((c.nextMoves && c.nextMoves.length) ? c.nextMoves.join(" ") : "(end of line)");
+                // Previous 2 moves (context) and next 4 moves with White/Black labels
+                const pathArr = c.pathArray || [];
+                // pathArr includes the move just played; previous moves = all but last
+                const prevSans = pathArr.length > 1 ? pathArr.slice(Math.max(0, pathArr.length - 3), pathArr.length - 1) : [];
+                let prevFull = "(start of line)";
+                if (prevSans.length) {
+                    // ply index of first prev move = pathArr.length - 1 - prevSans.length
+                    let ply = pathArr.length - 1 - prevSans.length;
+                    const parts = [];
+                    for (let pi = 0; pi < prevSans.length; pi++) {
+                        const moveNum = Math.floor(ply / 2) + 1;
+                        const isWhite = (ply % 2 === 0);
+                        if (isWhite) {
+                            parts.push(`${moveNum}. ${prevSans[pi]} (White)`);
+                        } else {
+                            parts.push(`${moveNum}... ${prevSans[pi]} (Black)`);
+                        }
+                        ply++;
+                    }
+                    prevFull = parts.join("  ");
+                }
+
+                const nextArr = (c.nextMovesFull && c.nextMovesFull.length)
+                    ? c.nextMovesFull
+                    : (c.nextMoves || []);
+                let nextFull = "(end of line)";
+                if (nextArr.length) {
+                    // pathArray includes the move just played; next ply index = path length
+                    let ply = pathArr.length;
+                    const parts = [];
+                    for (let ni = 0; ni < nextArr.length; ni++) {
+                        const moveNum = Math.floor(ply / 2) + 1;
+                        const isWhite = (ply % 2 === 0);
+                        if (isWhite) {
+                            parts.push(`${moveNum}. ${nextArr[ni]} (White)`);
+                        } else {
+                            parts.push(`${moveNum}... ${nextArr[ni]} (Black)`);
+                        }
+                        ply++;
+                    }
+                    nextFull = parts.join("  ");
+                }
 
                 // FEN after the move (exact board the note is about). Validated.
                 const fenToSend = (c.moveParsed !== false && isValidFen(c.fenAfter))
                     ? c.fenAfter
                     : (isValidFen(c.fen) ? c.fen : null);
 
-                const asciiBoard = fenToSend ? fenToAsciiBoard(fenToSend) : "";
-
                 let lineOutput = `[ID: ${c.id}]
 MOVE: ${c.moveNum}. ${c.target}
-BY: ${sideJustPlayed} | we = ${weSide}
-NEXT: ${nextFull}
-FEN: ${fenToSend || "UNRELIABLE"}`;
-                if (asciiBoard) {
-                    lineOutput += `\nBOARD:\n${asciiBoard}`;
+BY: ${sideJustPlayed} (${sideJustPlayed === weSide ? "our move" : "their move"}) | we = ${weSide}
+PREV: ${prevFull}
+NEXT: ${nextFull}`;
+                if (fenToSend) {
+                    lineOutput += `\nFEN: ${fenToSend}`;
+                } else {
+                    lineOutput += `\nFEN: unavailable`;
+                }
+                // Optional note from the player on key moves only
+                if (userNotes[c.id]) {
+                    lineOutput += `\nYOUR NOTE: ${userNotes[c.id]}`;
                 }
 
-                // End of a closed variation → engine gives our next ideas (up to 7 moves)
-                if (c.isVariationEnd && fenToSend) {
+                // Multi-PV Stockfish: best line + weaker replies often reveal the tactical plan
+                // (e.g. after Qf3+Bc4, a passive reply shows mate on f7). Run on our moves,
+                // variation ends, and annotated critical moves.
+                const wantEngine = !!fenToSend && (
+                    c.isVariationEnd ||
+                    sideJustPlayed === weSide ||
+                    isBadMove ||
+                    hasGood ||
+                    hasBrilliant ||
+                    hasDubious
+                );
+                if (wantEngine) {
                     engineCalls++;
                     btnText.innerHTML = `<div class="spinner"></div>Engine [${currentStep}/${totalSelectedMoves}]...`;
-                    await delay(300);
+                    await delay(250);
                     const engineData = await getEngineRefutation(fenToSend);
                     if (engineData && !engineData.invalid && engineData.lines && engineData.lines.length > 0) {
-                        const stm = sideToMoveAfter; // side to move after this move
+                        const stm = sideToMoveAfter;
                         const ourMoves = [];
-                        const ideas = [];
+                        const pvBlocks = [];
                         engineData.lines.forEach((ln, idx) => {
                             const fullPv = `${ln.san || ""} ${ln.continuation || ""}`.trim();
-                            const pvMoves = fullPv.split(/\s+/).filter(Boolean).slice(0, 7);
-                            ideas.push(pvMoves.join(" "));
-                            // Collect our side's moves from the PV (every other move depending on stm)
+                            const pvMoves = fullPv.split(/\s+/).filter(Boolean).slice(0, 5);
+                            const ev = (ln.eval !== undefined && ln.eval !== null) ? String(ln.eval) : "?";
+                            pvBlocks.push(`#${idx + 1} [${ev}] ${pvMoves.join(" ")}`);
                             pvMoves.forEach((m, i) => {
                                 const isOur = (stm === weSide) ? (i % 2 === 0) : (i % 2 === 1);
                                 if (isOur && !ourMoves.includes(m)) ourMoves.push(m);
                             });
                         });
-                        lineOutput += `\nOUR PLAN (engine ideas after this line ends — up to 7 moves): ${ideas.filter(Boolean).join(" | ") || "(none)"}`;
-                        lineOutput += `\nOUR MOVES: ${ourMoves.slice(0, 7).join(" ") || "(none)"}`;
-                        statsText.innerText = `[${c.moveNum}.${c.target}] plan ok`;
+                        // Weaker PVs (2+) vs best (#1) — these often expose the threat if the opponent errs
+                        lineOutput += `\nENGINE multi-PV (side to move: ${stm}; #1 = best defence, weaker lines often reveal the threat/plan): ${pvBlocks.join(" | ")}`;
+                        if (c.isVariationEnd || sideJustPlayed === weSide) {
+                            lineOutput += `\nOUR MOVES from engine: ${ourMoves.slice(0, 5).join(" ") || "(none)"}`;
+                        }
+                        if (c.isVariationEnd) {
+                            lineOutput += `\nOUR PLAN (end of variation): ${pvBlocks.slice(0, 3).join(" | ")}`;
+                        }
+                        statsText.innerText = `[${c.moveNum}.${c.target}] engine ok`;
                     } else {
-                        lineOutput += `\nOUR PLAN: (none)`;
+                        lineOutput += `\nENGINE: (none)`;
                         statsText.innerText = `[${c.moveNum}.${c.target}] no engine`;
                     }
                 } else {
@@ -1067,18 +1293,23 @@ FEN: ${fenToSend || "UNRELIABLE"}`;
             progressFill.style.width = '100%';
             const batchString = batchData.join("\n\n");
             
-            const guideBlock = userGuide
-                ? `\nPLAYER GUIDE (from a strong player — keep these ideas, fix the English into very simple correct sentences):\n${userGuide}\n`
-                : "";
+            const fullPrompt = `You are a 2700+ human GM writing notes for a chess course. We play ${weSide}. They play ${theySide}.
 
-            const fullPrompt = `You are a 2700+ human GM writing notes for a chess course. We play ${weSide}.
-${guideBlock}
-Each item has MOVE (with signs), BY, NEXT (the plan of the line), FEN, and BOARD.
-BOARD: uppercase = White, lowercase = Black. Rank 8 at top, rank 1 at bottom. a-file left, h-file right.
-At the end of a closed variation you also get OUR PLAN / OUR MOVES — ideas for how we continue after the line ends.
+Each item has MOVE (with signs), BY (who played it), PREV (last 2 moves), NEXT (next 4 moves of this variation, White/Black labeled), FEN, and often ENGINE multi-PV.
 
-Look at the BOARD. Use the PLAYER GUIDE as your main source of ideas when present. Annotate freely like a strong GM. Use very simple but correct English — short everyday words only. 1–3 short sentences.
-Our moves: "we / our". Their moves: say what they want.
+FEN is the exact board after the move. Use only this FEN — do not invent pieces or squares from other lines.
+
+How to see WHY the move was played:
+- Read FEN, PREV, NEXT.
+- ENGINE multi-PV: #1 is the best defence. Weaker lines (#2–#5) often reveal the plan — e.g. after Qf3 and Bc4, a passive reply can show mate on f7. Use those weaker replies to name the real threat (mate, win of material, binding pressure).
+- At variation ends, OUR PLAN / OUR MOVES are engine ideas for us.
+
+Side rule:
+- BY = ${weSide}: only what WE want. Use "we / our".
+- BY = ${theySide}: only what THEY want. Use "${theySide}" or "they". Never write our plans on their move.
+
+Name concrete idea moves when useful (e.g. Qxf7+, Nh5-f4). Very simple but correct English. 1–3 short sentences.
+If YOUR NOTE is present, keep those ideas and fix the English.
 
 Return ONLY a JSON object. Keys = the IDs. Values = the comment text only.
 
@@ -1087,7 +1318,7 @@ ${batchString}`;
 
             navigator.clipboard.writeText(fullPrompt).then(() => {
                 resetCopyBtnUI(btn, btnText, statsText, progressFill, totalSelectedMoves);
-                alert(`Selected Batch Copied!\n${totalSelectedMoves} positions\n${engineCalls} engine plans at variation ends.`);
+                alert(`Selected Batch Copied!\n${totalSelectedMoves} positions\n${engineCalls} engine multi-PV analyses (plan reveal).`);
             }).catch(err => {
                 const textArea = document.createElement("textarea");
                 textArea.value = fullPrompt;
