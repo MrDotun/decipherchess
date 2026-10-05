@@ -3,195 +3,267 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>MCPS Trial · Lichess Arena</title>
+<title>MCPS Trial · Brain Chess National Warmup 2026</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
-  :root { color-scheme: dark; }
-  body { margin:0; background:#07090f; color:#e2e8f0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-  .hero-glow { min-height:100vh; display:flex; align-items:center; justify-content:center; text-align:center;
-    background: radial-gradient(ellipse at 50% 0%, rgba(245,158,11,.18), transparent 55%), #07090f; padding:24px 16px; }
-  .panel { background:rgba(15,23,42,.85); border:1px solid rgba(255,255,255,.08); border-radius:16px; }
-  .btn-gold { background:linear-gradient(135deg,#f59e0b,#d97706); color:#111; font-weight:900; border-radius:12px; padding:12px 16px; }
-  .btn-blue { background:linear-gradient(135deg,#3b82f6,#2563eb); color:#fff; font-weight:900; border-radius:12px; padding:12px 16px; }
-  .btn-soft { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:#e2e8f0; font-weight:800; border-radius:12px; padding:12px 16px; }
-  .btn-danger { background:rgba(244,63,94,.2); border:1px solid rgba(244,63,94,.45); color:#fda4af; font-weight:900; border-radius:12px; padding:12px 16px; }
-  .player-card { width:100%; text-align:left; padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); margin-bottom:8px; }
-  .player-card.selected { border-color:rgba(245,158,11,.6); background:rgba(245,158,11,.1); }
-  input,select { width:100%; background:#0b1220; border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:12px 14px; color:#fff; }
-  .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:80; align-items:center; justify-content:center; padding:16px; }
-  .modal-bg.open { display:flex; }
-  .modal-card { background:#0f172a; border:1px solid rgba(255,255,255,.12); border-radius:20px; padding:20px; max-width:420px; width:100%; text-align:center; }
-  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#1e293b; border:1px solid rgba(245,158,11,.4);
-    color:#fff; padding:10px 16px; border-radius:999px; font-size:13px; font-weight:700; opacity:0; pointer-events:none; transition:.25s; z-index:90; }
-  .toast.show { opacity:1; }
-  .chat-msg { border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px; margin-bottom:8px; background:rgba(255,255,255,.03); }
-  .chat-msg.coach { border-color:rgba(59,130,246,.45); background:rgba(59,130,246,.12); }
-  .chat-msg .cfrom { font-size:11px; font-weight:800; color:#fbbf24; }
-  .chat-msg.coach .cfrom { color:#93c5fd; }
-  .chat-msg .cbody { font-size:14px; color:#e2e8f0; margin-top:2px; }
-  .chat-msg .ctime { font-size:10px; color:#64748b; margin-top:4px; }
-  .chat-msg .cdel { float:right; font-size:10px; font-weight:800; color:#fda4af; }
-  .hidden { display:none !important; }
-  table { width:100%; border-collapse:collapse; }
-  th,td { padding:8px 6px; text-align:left; font-size:13px; }
-  th { color:#94a3b8; font-size:10px; text-transform:uppercase; letter-spacing:.06em; }
-  tr { border-top:1px solid rgba(255,255,255,.06); }
+:root{color-scheme:dark}
+body{margin:0;background:#07090f;color:#e2e8f0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.hero-glow{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px 16px;
+  background:radial-gradient(ellipse at 50% 0%,rgba(245,158,11,.16),transparent 55%),#07090f}
+.panel{background:rgba(15,23,42,.88);border:1px solid rgba(255,255,255,.08);border-radius:16px}
+.btn-gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:#111;font-weight:900;border-radius:12px;padding:12px 16px;border:0;cursor:pointer}
+.btn-blue{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-weight:900;border-radius:12px;padding:12px 16px;border:0;cursor:pointer}
+.btn-soft{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#e2e8f0;font-weight:800;border-radius:12px;padding:12px 16px;cursor:pointer}
+.btn-danger{background:rgba(244,63,94,.18);border:1px solid rgba(244,63,94,.45);color:#fda4af;font-weight:900;border-radius:12px;padding:12px 16px;cursor:pointer}
+.player-card{width:100%;text-align:left;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);margin-bottom:8px;cursor:pointer}
+.player-card.selected{border-color:rgba(245,158,11,.55);background:rgba(245,158,11,.1)}
+input{width:100%;background:#0b1220;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;color:#fff;box-sizing:border-box}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:80;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal-card{background:#0f172a;border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:20px;max-width:420px;width:100%;text-align:center}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid rgba(245,158,11,.4);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:99}
+.toast.show{opacity:1}
+.hidden{display:none!important}
+.player-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pside{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8}
+.pname{font-size:15px;font-weight:900;color:#fff}
+.prating{font-size:11px;color:#fbbf24;font-weight:700}
+.clock{font-variant-numeric:tabular-nums;font-size:22px;font-weight:900;min-width:88px;text-align:right;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.05)}
+.clock.active{background:rgba(245,158,11,.2);color:#fbbf24}
+.clock.low{background:rgba(244,63,94,.25);color:#fda4af}
+.board-wrap{width:100%;max-width:420px;margin:0 auto}
+.chat-msg{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;margin-bottom:8px;background:rgba(255,255,255,.03)}
+.chat-msg.coach{border-color:rgba(59,130,246,.45);background:rgba(59,130,246,.12)}
+.chat-msg .cfrom{font-size:11px;font-weight:800;color:#fbbf24}
+.chat-msg.coach .cfrom{color:#93c5fd}
+.chat-msg .cbody{font-size:14px;margin-top:2px}
+.chat-msg .ctime{font-size:10px;color:#64748b;margin-top:4px}
+.chat-msg .cdel{float:right;font-size:10px;font-weight:800;color:#fda4af;cursor:pointer;background:none;border:0}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#f43f5e;display:inline-block;box-shadow:0 0 0 0 rgba(244,63,94,.6);animation:pulse 1.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(244,63,94,.55)}70%{box-shadow:0 0 0 8px rgba(244,63,94,0)}100%{box-shadow:0 0 0 0 rgba(244,63,94,0)}}
+table{width:100%;border-collapse:collapse} th,td{padding:8px 6px;text-align:left;font-size:13px}
+th{color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+tr{border-top:1px solid rgba(255,255,255,.06)}
 </style>
 </head>
 <body>
 
-<!-- CLOSED -->
 <div id="screen-closed" class="hidden hero-glow">
   <div class="max-w-md w-full px-2">
     <div class="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">Maryland Convent Private School</div>
     <h1 class="text-2xl font-black italic uppercase text-white mb-2">Arena opens soon</h1>
-    <p class="text-slate-400 text-sm mb-4" id="closed-schedule-text">Players may enter from <strong class="text-amber-300" id="closed-doors-label">—</strong>. Round 1 at <strong class="text-amber-300" id="closed-round1-label">—</strong>.</p>
+    <p class="text-slate-400 text-sm mb-4">Players may enter from <strong class="text-amber-300" id="closed-doors-label">—</strong>. Round 1 pairs at <strong class="text-amber-300" id="closed-round1-label">—</strong>.</p>
     <div class="rounded-2xl overflow-hidden border-2 border-amber-400/40 mx-auto max-w-sm mb-4">
-      <img src="Screenshot_20260516-211346.jpg" alt="MCPS Team" class="w-full h-auto object-cover object-top" style="min-height:200px;max-height:360px;width:100%">
+      <img src="Screenshot_20260516-211346.jpg" alt="MCPS Team" style="width:100%;display:block;min-height:200px;max-height:360px;object-fit:cover;object-position:top">
     </div>
     <div class="text-3xl font-black text-amber-400" id="closed-count">--:--</div>
     <div class="text-[10px] uppercase tracking-widest text-slate-500 mt-1 mb-5">Until doors open</div>
-    <button type="button" class="btn-gold w-full max-w-xs mx-auto" onclick="openResetModal()">Restart · set Lichess + time</button>
+    <button type="button" class="btn-gold w-full max-w-xs mx-auto" onclick="openResetModal()">Restart · set new start time</button>
     <p class="text-[10px] text-slate-500 mt-2">Organizer only · password required</p>
   </div>
 </div>
 
-<!-- WAITING -->
 <div id="screen-waiting" class="hidden hero-glow">
   <div class="max-w-md w-full">
     <h1 class="text-2xl font-black italic uppercase text-white mb-1">Please wait</h1>
-    <p class="text-slate-400 text-sm mb-2" id="wait-message">Games are played on Lichess. Clocks are Lichess clocks — fair and reliable.</p>
+    <p class="text-slate-400 text-sm mb-2" id="wait-message">Round 1 pairs soon. Clocks use precise Lichess-style timing.</p>
     <div class="text-3xl font-black text-amber-400" id="wait-count">--:--</div>
-    <div class="text-[10px] uppercase tracking-widest text-slate-500 mt-1" id="wait-label">Until start</div>
-    <p class="text-sm text-amber-300/90 mt-4" id="wait-who"></p>
+    <div class="text-[10px] uppercase tracking-widest text-slate-500 mt-1" id="wait-label">Until Round 1</div>
+    <p class="text-sm text-amber-300 mt-4" id="wait-who"></p>
   </div>
 </div>
 
-<!-- WELCOME -->
 <div id="screen-welcome" class="hidden hero-glow">
   <div class="max-w-md w-full">
     <div class="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">MCPS Trial · Brain Chess</div>
     <h1 class="text-3xl font-black italic uppercase text-white mb-2">National Warmup</h1>
-    <p class="text-slate-400 text-sm mb-4">Games run on <strong class="text-white">Lichess</strong> — professional clocks, no frozen timers, no false flags.</p>
+    <p class="text-slate-400 text-sm mb-3">Your design · Lichess-grade clocks on this site</p>
     <div class="rounded-2xl overflow-hidden border-2 border-amber-400/40 mx-auto max-w-sm mb-4">
-      <img src="Screenshot_20260516-211346.jpg" alt="MCPS Team" class="w-full h-auto object-cover object-top" style="min-height:200px;max-height:360px;width:100%">
+      <img src="Screenshot_20260516-211346.jpg" alt="MCPS Team" style="width:100%;display:block;min-height:200px;max-height:360px;object-fit:cover;object-position:top">
     </div>
-    <div class="panel p-4 mb-4 text-left text-sm text-slate-300 space-y-1.5">
-      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">How it works</div>
-      <div>1. Log in with your school name</div>
-      <div>2. Enter your <strong class="text-white">Lichess username</strong></div>
-      <div>3. Tap <strong class="text-white">Play on Lichess</strong> — clocks & moves are on Lichess</div>
-      <div>4. Return here for standings & chat</div>
-      <div class="text-rose-300/90 text-xs mt-2">Do not cheat or use bots. Anyone caught will be blacklisted.</div>
+    <div class="panel p-4 mb-4 text-left text-sm text-slate-300 space-y-1">
+      <div>⏱️ 10+2 rapid · only the side to move loses time</div>
+      <div>🧊 Full 2-minute break between rounds · clocks frozen then</div>
+      <div>🔄 6 rounds · 7 players · fixed pairings · 1 bye each round</div>
+      <div class="text-rose-300/90 text-xs mt-2">Do not cheat or use bots. Caught = blacklisted.</div>
     </div>
     <button type="button" class="btn-gold w-full mb-2" onclick="showLogin()">Enter arena</button>
     <button type="button" class="btn-soft w-full" onclick="enterAsVisitor()">Watch as visitor</button>
   </div>
 </div>
 
-<!-- LOGIN -->
 <div id="screen-login" class="hidden min-h-screen px-4 py-8">
   <div class="max-w-md mx-auto">
     <button type="button" class="text-xs font-black uppercase text-slate-400 mb-4" onclick="showWelcome()">← Back</button>
-    <h1 class="text-xl font-black text-white mb-1">Who are you?</h1>
-    <p class="text-sm text-slate-400 mb-4">Pick your name, then add your Lichess username.</p>
+    <h1 class="text-xl font-black text-white mb-4">Who are you?</h1>
     <div id="player-pick-list" class="mb-4"></div>
-    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">Your Lichess username</label>
-    <input id="lichess-username" type="text" placeholder="e.g. MagnusCarlsen" class="mb-3" autocomplete="off" autocapitalize="off">
-    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">Password</label>
-    <input id="login-pass" type="password" placeholder="Tournament password" class="mb-4" autocomplete="off">
+    <input id="login-pass" type="password" placeholder="Tournament password (MCPS)" class="mb-4" autocomplete="off">
     <button type="button" class="btn-gold w-full" onclick="doLogin()">Continue</button>
   </div>
 </div>
 
-<!-- LOBBY -->
 <div id="screen-lobby" class="hidden min-h-screen pb-10">
   <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#07090f]/95 backdrop-blur px-4 py-3 flex items-center justify-between">
-    <div class="text-xs font-black uppercase tracking-widest text-amber-400" id="lobby-title-tap">MCPS · Lichess</div>
-    <div class="text-[11px] font-bold text-slate-400" id="lobby-round">Swiss / Arena</div>
+    <div class="text-xs font-black uppercase tracking-widest text-amber-400">MCPS Trial</div>
+    <div class="text-[11px] font-bold text-slate-400" id="lobby-round">Round 1 / 6</div>
     <button type="button" class="text-[11px] font-black text-slate-400" onclick="logout()">Logout</button>
   </nav>
   <div class="max-w-xl mx-auto px-4 py-4 space-y-4">
     <div class="panel p-4">
-      <div class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1">Play here</div>
-      <p class="text-sm text-slate-300 mb-3">All games & clocks run on <strong class="text-white">Lichess</strong>. This page is your lobby, standings, and chat.</p>
-      <a id="lichess-play-link" href="https://lichess.org" target="_blank" rel="noopener" class="btn-gold w-full inline-block text-center mb-2">♟ Play on Lichess</a>
-      <p class="text-[11px] text-slate-500" id="lichess-id-hint">Coach sets the Lichess Swiss/Arena link on Restart.</p>
-      <p class="text-sm text-amber-300 mt-2" id="lobby-who"></p>
-    </div>
-
-    <div class="panel p-4">
-      <div class="flex items-center justify-between mb-2">
-        <div class="text-[10px] font-black uppercase tracking-widest text-amber-400">Standings (Lichess)</div>
-        <button type="button" class="text-[10px] font-bold text-slate-400" onclick="refreshLichessStandings()">Refresh</button>
+      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2" id="lobby-status-label">Status</div>
+      <p class="text-sm text-slate-300" id="lobby-who"></p>
+      <p class="text-xs text-slate-500 mt-1" id="lobby-hint"></p>
+      <div id="break-box" class="hidden mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-400/30">
+        <div class="text-[10px] font-black uppercase text-emerald-300">Break · clocks frozen</div>
+        <div class="text-2xl font-black text-white" id="break-timer">2:00</div>
+        <div class="text-xs text-slate-400" id="break-hint">Next round when timer hits zero</div>
+        <button type="button" class="btn-gold w-full mt-2 hidden" id="btn-proceed-round" onclick="proceedToNextRound()">⚡ Proceed to next round</button>
       </div>
-      <div id="standings-box" class="text-sm text-slate-400">Loading…</div>
     </div>
-
+    <div class="panel p-4">
+      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">Your board</div>
+      <div id="my-game-box" class="text-sm text-slate-400">—</div>
+    </div>
+    <div class="panel p-4">
+      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">This round</div>
+      <div id="pairings-box" class="space-y-2 text-sm"></div>
+    </div>
+    <div class="panel p-4">
+      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">Standings</div>
+      <div id="standings-box"></div>
+    </div>
     <div class="panel p-4">
       <div class="flex items-center justify-between mb-2">
-        <div class="text-[10px] font-black uppercase tracking-widest text-amber-400">Break / lobby chat</div>
-        <span id="chat-pill" class="text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/10 text-slate-400">—</span>
+        <div class="text-[10px] font-black uppercase tracking-widest text-amber-400">Chat</div>
+        <span id="chat-pill" class="text-[10px] font-bold text-slate-400">—</span>
       </div>
       <p class="text-[11px] text-slate-500 mb-2" id="chat-lock-hint"></p>
-      <div id="chat-messages" class="max-h-52 overflow-y-auto mb-3"></div>
-      <div id="chat-compose" class="space-y-2">
-        <input id="chat-name" type="text" placeholder="Your name (visitor)" class="hidden" maxlength="40">
+      <div id="chat-messages" class="max-h-48 overflow-y-auto mb-2"></div>
+      <div class="space-y-2">
+        <input id="chat-name" type="text" placeholder="Name (visitor)" class="hidden" maxlength="40">
         <div class="flex gap-2">
           <input id="chat-input" type="text" placeholder="Message…" maxlength="280" style="flex:1">
-          <button type="button" class="btn-gold" style="padding:12px 14px" onclick="sendChatMsg(false)">Send</button>
+          <button type="button" class="btn-gold" style="padding:12px" onclick="sendChatMsg(false)">Send</button>
         </div>
         <div class="flex gap-2">
           <input id="chat-coach-pass" type="password" placeholder="Coach password" style="flex:1">
-          <button type="button" class="btn-blue" style="padding:12px 14px" onclick="sendChatMsg(true)">Coach</button>
+          <button type="button" class="btn-blue" style="padding:12px" onclick="sendChatMsg(true)">Coach</button>
         </div>
-        <p class="text-[10px] text-slate-500">Players: break + 5 min after end. Coaches: anytime with password.</p>
       </div>
     </div>
-
-    <button type="button" class="btn-soft w-full" onclick="openResetModal()">Restart · new Lichess event</button>
+    <button type="button" class="btn-soft w-full" onclick="openResetModal()">Restart tournament</button>
   </div>
 </div>
 
-<!-- FINISHED -->
+<div id="screen-play" class="hidden min-h-screen pb-8">
+  <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#07090f]/95 backdrop-blur px-4 py-3 flex items-center justify-between">
+    <button type="button" class="text-xs font-black uppercase text-slate-400" onclick="backToLobby()">← Lobby</button>
+    <div class="text-xs font-black text-amber-400">Your board</div>
+    <div class="text-[11px] font-bold text-slate-500" id="play-round-label">R1</div>
+  </nav>
+  <div class="max-w-xl mx-auto px-3 py-3">
+    <div class="player-row mb-2">
+      <div><div class="pside" id="play-side-top">Black</div><div class="pname" id="play-name-top">—</div><div class="prating" id="play-rating-top"></div></div>
+      <div class="clock" id="clock-top">10:00</div>
+    </div>
+    <div class="panel p-2 mb-2"><div class="board-wrap"><div id="board"></div></div></div>
+    <div class="player-row mb-3">
+      <div><div class="pside" id="play-side-bottom">White</div><div class="pname" id="play-name-bottom">—</div><div class="prating" id="play-rating-bottom"></div></div>
+      <div class="clock" id="clock-bottom">10:00</div>
+    </div>
+    <p class="text-center text-sm font-bold text-slate-300 mb-1" id="play-status">—</p>
+    <p class="text-center text-[11px] font-black uppercase tracking-wider text-emerald-300 mb-3 hidden" id="play-clock-frozen">⏱ Clocks frozen — break</p>
+    <div class="grid grid-cols-2 gap-2">
+      <button type="button" class="btn-soft" onclick="offerDraw()">🤝 Draw</button>
+      <button type="button" class="btn-danger" onclick="openResignModal()">🏳️ Resign</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-spec" class="hidden min-h-screen pb-8">
+  <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#07090f]/95 backdrop-blur px-4 py-3 flex items-center justify-between">
+    <button type="button" class="text-xs font-black uppercase text-slate-400" onclick="backToLobby()">← Lobby</button>
+    <div class="flex items-center gap-2 text-xs font-black text-rose-400" id="spec-live-badge"><span class="live-dot"></span> LIVE</div>
+    <div class="text-[11px] font-bold text-slate-500">Spectator</div>
+  </nav>
+  <div class="max-w-xl mx-auto px-3 py-3">
+    <div class="player-row mb-2">
+      <div><div class="pside">Black</div><div class="pname" id="spec-name-top">—</div><div class="prating" id="spec-rating-top"></div></div>
+      <div class="clock" id="spec-clock-top">10:00</div>
+    </div>
+    <div class="panel p-2 mb-2"><div class="board-wrap"><div id="spec-board"></div></div></div>
+    <div class="player-row mb-3">
+      <div><div class="pside">White</div><div class="pname" id="spec-name-bottom">—</div><div class="prating" id="spec-rating-bottom"></div></div>
+      <div class="clock" id="spec-clock-bottom">10:00</div>
+    </div>
+    <p class="text-center text-sm font-bold text-slate-300" id="spec-status">Watching…</p>
+    <p class="text-center text-[11px] font-black uppercase text-emerald-300 mt-1 hidden" id="spec-clock-frozen">⏱ Clocks frozen — break</p>
+    <div id="replay-panel" class="panel p-3 mt-3 hidden">
+      <div class="text-[10px] font-black uppercase text-amber-400 mb-2">Replay</div>
+      <p class="text-xs text-slate-400 mb-2" id="replay-label">Move 0</p>
+      <div class="grid grid-cols-4 gap-2">
+        <button type="button" class="btn-soft" onclick="replayToStart()">⏮</button>
+        <button type="button" class="btn-soft" onclick="replayPrev()">◀</button>
+        <button type="button" class="btn-soft" onclick="replayNext()">▶</button>
+        <button type="button" class="btn-soft" onclick="replayToEnd()">⏭</button>
+      </div>
+      <button type="button" class="btn-gold w-full mt-2" onclick="startReplay()">▶ Replay game</button>
+    </div>
+  </div>
+</div>
+
 <div id="screen-finished" class="hidden min-h-screen px-4 py-10">
   <div class="max-w-md mx-auto text-center">
     <div class="text-5xl mb-3">🏆</div>
-    <h1 class="text-2xl font-black text-white mb-1">Event complete</h1>
+    <h1 class="text-2xl font-black text-white mb-1">Champion</h1>
     <p class="text-amber-300 font-bold text-lg mb-4" id="champ-name">—</p>
     <div id="finished-standings" class="panel p-4 text-left mb-4"></div>
-    <a id="finished-lichess-link" href="https://lichess.org" target="_blank" class="btn-gold w-full inline-block mb-2">View on Lichess</a>
-    <button type="button" class="btn-blue w-full mb-2" onclick="hideAll();document.getElementById('screen-lobby').classList.remove('hidden');listenChat();updateChatUI();">💬 Post-event chat</button>
+    <button type="button" class="btn-blue w-full mb-2" onclick="hideAll();document.getElementById('screen-lobby').classList.remove('hidden');renderLobby();listenChat();">💬 Post-event chat</button>
     <button type="button" class="btn-soft w-full" onclick="openResetModal()">Restart training</button>
   </div>
 </div>
 
-<!-- RESET MODAL -->
-<div id="reset-modal" class="modal-bg">
-  <div class="modal-card" style="border-color:rgba(245,158,11,.35)">
-    <h3 class="text-lg font-black text-white mb-2">Restart · Lichess event</h3>
-    <p class="text-sm text-slate-300 mb-3 text-left">Create a <strong class="text-white">Swiss</strong> or <strong class="text-white">Arena</strong> on Lichess, then paste the link or ID below. All clocks will be Lichess clocks.</p>
-    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block text-left">Lichess Swiss or Arena URL / ID</label>
-    <input id="reset-lichess-id" type="text" placeholder="https://lichess.org/swiss/xxxxx or arena id" class="mb-3" autocomplete="off">
-    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block text-left">Round 1 / doors time (local)</label>
-    <input id="reset-start-at" type="datetime-local" class="mb-3" style="color-scheme:dark">
-    <input id="reset-pass" type="password" placeholder="Password decipher1234" class="mb-3" autocomplete="off">
-    <button type="button" class="btn-danger w-full mb-2" onclick="confirmResetTournament()">Save & restart lobby</button>
-    <button type="button" class="btn-soft w-full" onclick="closeModal('reset-modal')">Cancel</button>
-  </div>
-</div>
+<div id="reset-modal" class="modal-bg"><div class="modal-card">
+  <h3 class="text-lg font-black text-white mb-2">Restart tournament</h3>
+  <p class="text-sm text-slate-300 mb-3 text-left">Clears games and pairs Round 1 again (fixed 7-player schedule).</p>
+  <label class="text-[10px] font-black uppercase text-slate-500 mb-1 block text-left">Round 1 start (local)</label>
+  <input id="reset-start-at" type="datetime-local" class="mb-3" style="color-scheme:dark">
+  <input id="reset-pass" type="password" placeholder="Password decipher1234" class="mb-3" autocomplete="off">
+  <button type="button" class="btn-danger w-full mb-2" onclick="confirmResetTournament()">Restart · Round 1</button>
+  <button type="button" class="btn-soft w-full" onclick="closeModal('reset-modal')">Cancel</button>
+</div></div>
 
-<div id="chat-del-modal" class="modal-bg">
-  <div class="modal-card" style="border-color:rgba(244,63,94,.45)">
-    <h3 class="text-lg font-black text-white">Delete message?</h3>
-    <p class="text-sm text-slate-300 mt-2 mb-3" id="chat-del-preview"></p>
-    <input id="chat-del-pass" type="password" placeholder="Password" class="mb-3">
-    <button type="button" class="btn-danger w-full mb-2" onclick="confirmDeleteChatMsg()">Delete</button>
-    <button type="button" class="btn-soft w-full" onclick="closeModal('chat-del-modal')">Cancel</button>
-  </div>
-</div>
+<div id="resign-modal" class="modal-bg"><div class="modal-card">
+  <h3 class="text-lg font-black text-white">Resign?</h3>
+  <button type="button" class="btn-danger w-full mb-2 mt-3" onclick="confirmResign()">Yes, resign</button>
+  <button type="button" class="btn-soft w-full" onclick="closeModal('resign-modal')">Keep playing</button>
+</div></div>
+<div id="draw-modal" class="modal-bg"><div class="modal-card">
+  <h3 class="text-lg font-black text-white">Draw offer</h3>
+  <p class="text-sm text-slate-300 mt-2 mb-4" id="draw-modal-text">Opponent offers a draw.</p>
+  <button type="button" class="btn-gold w-full mb-2" onclick="acceptDraw()">Accept</button>
+  <button type="button" class="btn-soft w-full" onclick="declineDraw()">Decline</button>
+</div></div>
+<div id="result-modal" class="modal-bg"><div class="modal-card">
+  <div class="text-4xl mb-2" id="result-emoji">🏆</div>
+  <h3 class="text-lg font-black text-white" id="result-title">Result</h3>
+  <p class="text-sm text-slate-300" id="result-sub"></p>
+  <p class="text-amber-300 font-bold mt-1" id="result-elo"></p>
+  <button type="button" class="btn-gold w-full mt-3" onclick="closeModal('result-modal');backToLobby();">Lobby</button>
+</div></div>
+<div id="chat-del-modal" class="modal-bg"><div class="modal-card">
+  <h3 class="text-lg font-black text-white">Delete message?</h3>
+  <p class="text-sm text-slate-300 mt-2 mb-3" id="chat-del-preview"></p>
+  <input id="chat-del-pass" type="password" placeholder="Password" class="mb-3">
+  <button type="button" class="btn-danger w-full mb-2" onclick="confirmDeleteChatMsg()">Delete</button>
+  <button type="button" class="btn-soft w-full" onclick="closeModal('chat-del-modal')">Cancel</button>
+</div></div>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -201,7 +273,15 @@ const db=firebase.firestore();
 const DOC_ID='mcps_try_2026_v2';
 const PASSWORD='MCPS';
 const RESET_PASSWORD='decipher1234';
+const BASE_MS=10*60*1000; // 10 minutes in ms
+const INC_MS=2*1000;      // +2s
+const BREAK_SEC=120;
+const TOTAL_ROUNDS=6;
+const K_FACTOR=24;
 const CHAT_AFTER_FINISH_MS=5*60*1000;
+const PIECE_BASE='https://www.chess.com/chess-themes/pieces/neo/150/';
+const PIECE_FILE={wP:'wp',wR:'wr',wN:'wn',wB:'wb',wQ:'wq',wK:'wk',bP:'bp',bR:'br',bN:'bn',bB:'bb',bQ:'bq',bK:'bk'};
+function pieceThemeUrl(){ return function(p){ return PIECE_BASE+(PIECE_FILE[p]||p)+'.png'; }; }
 
 const ROSTER=[
   {id:'p1',name:'Chierika Onele',rating:1623},
@@ -213,11 +293,52 @@ const ROSTER=[
   {id:'p7',name:'Andrew Uwagbale',rating:1615}
 ];
 
-let me=null, T=null, unsub=null, chatUnsub=null, selectedLoginId=null;
-let phaseTimer=null, standingsTimer=null;
-let chatMsgsCache=[], pendingChatDeleteId=null;
+/** Ratings persist in Firebase across refresh and Restart */
+let PLAYER_STATS={}; // { id: { rating, stars, name } }
+function statsDoc(){ return db.collection('mcps_player_stats').doc(DOC_ID); }
+async function loadPlayerStats(){
+  try{
+    const snap=await statsDoc().get();
+    PLAYER_STATS=snap.exists?(snap.data().players||{}):{};
+  }catch(e){ PLAYER_STATS={}; }
+  ROSTER.forEach(p=>{
+    if(!PLAYER_STATS[p.id]) PLAYER_STATS[p.id]={rating:p.rating,stars:0,name:p.name};
+    else {
+      PLAYER_STATS[p.id].name=p.name;
+      if(PLAYER_STATS[p.id].rating==null) PLAYER_STATS[p.id].rating=p.rating;
+      if(PLAYER_STATS[p.id].stars==null) PLAYER_STATS[p.id].stars=0;
+    }
+  });
+}
+async function savePlayerStatsFromPlayers(players){
+  try{
+    await loadPlayerStats();
+    (players||[]).forEach(p=>{
+      if(!p||!p.id) return;
+      if(!PLAYER_STATS[p.id]) PLAYER_STATS[p.id]={name:p.name,rating:p.rating,stars:0};
+      PLAYER_STATS[p.id].rating=p.rating!=null?p.rating:PLAYER_STATS[p.id].rating;
+      PLAYER_STATS[p.id].name=p.name||PLAYER_STATS[p.id].name;
+    });
+    await statsDoc().set({players:PLAYER_STATS, updated:firebase.firestore.FieldValue.serverTimestamp()}, {merge:true});
+  }catch(e){ console.error('save stats', e); }
+}
+function rosterWithLiveRatings(){
+  return ROSTER.map(p=>{
+    const st=PLAYER_STATS[p.id]||{};
+    return {...p, rating:st.rating!=null?st.rating:p.rating, stars:st.stars||0};
+  });
+}
 
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+let me=null,T=null,unsub=null,chatUnsub=null;
+let board=null,specBoard=null,game=null;
+let activeGameId=null,specGameId=null,selectedLoginId=null;
+let clockTimer=null,phaseTimer=null,tickTimer=null;
+let advancing=false,flaggingGames={},resultShownFor={};
+let chatMsgsCache=[],pendingChatDeleteId=null;
+let replayMode=false,replayIdx=0,replayFens=['start'],replaySans=[];
+let finishedCelebrated=false;
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -226,134 +347,151 @@ function tsMillis(v){
   if(v==null) return 0;
   if(typeof v==='number') return v;
   if(typeof v.toMillis==='function') return v.toMillis();
-  if(v.seconds!=null) return v.seconds*1000;
+  if(v.seconds!=null) return v.seconds*1000+(v.nanoseconds||0)/1e6;
   return Number(v)||0;
+}
+function fmtMs(ms){
+  ms=Math.max(0,Math.floor(ms));
+  const s=Math.ceil(ms/1000);
+  return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
 }
 function fmtCountdown(sec){
   sec=Math.max(0,Math.floor(sec));
-  const d=Math.floor(sec/86400), h=Math.floor((sec%86400)/3600), m=Math.floor((sec%3600)/60), s=sec%60;
+  const d=Math.floor(sec/86400),h=Math.floor((sec%86400)/3600),m=Math.floor((sec%3600)/60),s=sec%60;
   const pad=n=>String(n).padStart(2,'0');
   if(d>0) return d+'d '+pad(h)+'h '+pad(m)+'m '+pad(s)+'s';
   if(h>0) return pad(h)+'h '+pad(m)+'m '+pad(s)+'s';
   return pad(m)+'m '+pad(s)+'s';
 }
-function formatWallTime(ms){
-  try{ return new Date(ms).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}); }catch(e){ return '—'; }
+function formatWallTime(ms){ try{return new Date(ms).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});}catch(e){return '—';} }
+function playerById(id){ return (T&&T.players||ROSTER).find(p=>p.id===id)||{name:'?',rating:0}; }
+function expectedScore(ra,rb){ return 1/(1+Math.pow(10,(rb-ra)/400)); }
+function eloDelta(ra,rb,score){ return Math.round(K_FACTOR*(score-expectedScore(ra,rb))); }
+function moveCountOf(g){ if(!g||!g.pgn) return 0; return String(g.pgn).trim().split(/\s+/).filter(Boolean).length; }
+
+/* ===== Lichess-style clocks (milliseconds, side-to-move only) ===== */
+function clocksLive(g){
+  return !!(T && T.status==='playing' && g && g.status==='active' && !g.clockPaused && !g.result);
+}
+/** Remaining ms for a color: bank minus elapsed only if that color is to move and clocks live */
+function remainingMs(g, color){
+  if(!g) return BASE_MS;
+  if(g.finalWhiteMs!=null && color==='w') return Math.max(0,g.finalWhiteMs);
+  if(g.finalBlackMs!=null && color==='b') return Math.max(0,g.finalBlackMs);
+  const bank=color==='w'?(typeof g.whiteMs==='number'?g.whiteMs:BASE_MS):(typeof g.blackMs==='number'?g.blackMs:BASE_MS);
+  if(!clocksLive(g)) return Math.max(0,bank);
+  const turn=g.turn==='b'?'b':'w';
+  if(turn!==color) return Math.max(0,bank);
+  const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||0;
+  if(!anchor) return Math.max(0,bank);
+  let elapsed=nowMs()-anchor;
+  if(elapsed<0) elapsed=0;
+  if(elapsed>bank+60000) elapsed=bank+60000; // corrupt timestamp guard
+  return bank-elapsed;
+}
+function sideToMoveRemainingMs(g){
+  const side=g&&g.turn==='b'?'b':'w';
+  return remainingMs(g, side);
 }
 
 function getScheduledStartMs(){
   if(T&&T.scheduledStartAt!=null){ const ms=tsMillis(T.scheduledStartAt); if(ms>0) return ms; }
   try{ const s=localStorage.getItem('mcps_trial_start'); if(s){ const n=Number(s); if(n>0) return n; } }catch(e){}
-  return Date.now()-60*1000;
+  return Date.now()-60000;
 }
 function setScheduledStartMs(ms){ try{ localStorage.setItem('mcps_trial_start', String(ms)); }catch(e){} }
 const DOORS_OPEN_AT=()=>getScheduledStartMs()-5*60*1000;
 const ROUND1_AT=()=>getScheduledStartMs();
 
-function hideAll(){['screen-closed','screen-waiting','screen-welcome','screen-login','screen-lobby','screen-finished'].forEach(id=>{const el=document.getElementById(id); if(el) el.classList.add('hidden');});}
-
-function parseLichessRef(raw){
-  const s=String(raw||'').trim();
-  if(!s) return null;
-  // swiss
-  let m=s.match(/lichess\.org\/swiss\/([A-Za-z0-9]+)/i);
-  if(m) return {type:'swiss', id:m[1]};
-  m=s.match(/lichess\.org\/tournament\/([A-Za-z0-9]+)/i);
-  if(m) return {type:'arena', id:m[1]};
-  // bare id — try as swiss first in UI; store as unknown
-  if(/^[A-Za-z0-9]{8,12}$/.test(s)) return {type:'auto', id:s};
-  return {type:'auto', id:s};
-}
-function lichessPlayUrl(){
-  const ref=parseLichessRef(T&&T.lichessRef);
-  if(!ref) return 'https://lichess.org';
-  if(ref.type==='swiss') return 'https://lichess.org/swiss/'+ref.id;
-  if(ref.type==='arena') return 'https://lichess.org/tournament/'+ref.id;
-  // auto: prefer swiss URL pattern; coach can paste full URL
-  return 'https://lichess.org/swiss/'+ref.id;
-}
-function updateLichessLink(){
-  const url=lichessPlayUrl();
-  const a=document.getElementById('lichess-play-link');
-  const b=document.getElementById('finished-lichess-link');
-  if(a){ a.href=url; }
-  if(b){ b.href=url; }
-  const hint=document.getElementById('lichess-id-hint');
-  if(hint){
-    const ref=parseLichessRef(T&&T.lichessRef);
-    hint.textContent=ref ? ('Linked: '+ref.type+' · '+ref.id) : 'No Lichess event linked yet — coach: Restart and paste the Swiss/Arena link.';
-  }
-}
-
-async function fetchLichessStandings(){
-  const ref=parseLichessRef(T&&T.lichessRef);
-  const box=document.getElementById('standings-box');
-  if(!ref){ if(box) box.innerHTML='<p class="text-slate-500">Link a Lichess Swiss or Arena on Restart.</p>'; return; }
-  if(box) box.innerHTML='<p class="text-slate-500">Fetching Lichess…</p>';
-  const endpoints=[];
-  if(ref.type==='swiss'||ref.type==='auto') endpoints.push({type:'swiss', url:'https://lichess.org/api/swiss/'+ref.id});
-  if(ref.type==='arena'||ref.type==='auto') endpoints.push({type:'arena', url:'https://lichess.org/api/tournament/'+ref.id});
-  // results
-  if(ref.type==='swiss'||ref.type==='auto') endpoints.push({type:'swiss-results', url:'https://lichess.org/api/swiss/'+ref.id+'/results'});
-  if(ref.type==='arena'||ref.type==='auto') endpoints.push({type:'arena-results', url:'https://lichess.org/api/tournament/'+ref.id+'/results?nb=20'});
-
-  let meta=null, results=[];
-  for(const ep of endpoints){
-    try{
-      const res=await fetch(ep.url, {headers:{'Accept':'application/json'}});
-      if(!res.ok) continue;
-      if(ep.type==='swiss'||ep.type==='arena'){ meta=await res.json(); meta._type=ep.type; }
+function buildSchedule(players){
+  const order=['p1','p2','p3','p4','p5','p6','p7'];
+  let ids=order.filter(id=>players.some(p=>p.id===id));
+  if(!ids.length) ids=players.map(p=>p.id);
+  const arr=ids.slice();
+  if(arr.length%2===1) arr.push(null);
+  const n=arr.length, half=n/2, schedule=[], a=arr.slice();
+  const maxR=Math.min(TOTAL_ROUNDS, n-1);
+  for(let r=0;r<maxR;r++){
+    const pairings=[];
+    for(let i=0;i<half;i++){
+      const A=a[i], B=a[n-1-i];
+      if(A===null||B===null) pairings.push({bye:true,playerId:A||B,gameId:null});
       else {
-        // ndjson results
-        const text=await res.text();
-        results=text.trim().split('\n').filter(Boolean).map(line=>{ try{return JSON.parse(line);}catch(e){return null;} }).filter(Boolean);
+        const white=r%2===0?A:B, black=r%2===0?B:A;
+        pairings.push({bye:false,whiteId:white,blackId:black,gameId:'r'+(r+1)+'_'+white+'_'+black});
       }
-    }catch(e){ console.warn(ep, e); }
+    }
+    schedule.push({round:r+1,pairings});
+    const fixed=a[0], rest=a.slice(1); rest.unshift(rest.pop());
+    a.splice(0,a.length,fixed,...rest);
   }
-  if(!meta && !results.length){
-    if(box) box.innerHTML='<p class="text-rose-300 text-sm">Could not load Lichess data. Check the ID/link and that the event is public.</p>';
-    return;
-  }
-  let html='';
-  if(meta){
-    html+='<div class="mb-2 text-white font-bold">'+(esc(meta.name||meta.fullName||'Lichess event'))+'</div>';
-    html+='<div class="text-[11px] text-slate-400 mb-3">'+(meta.nbPlayers!=null?meta.nbPlayers+' players · ':'')+(meta.status||meta.isFinished?'':'in progress')+'</div>';
-  }
-  if(results.length){
-    html+='<table><thead><tr><th>#</th><th>Player</th><th>Pts</th></tr></thead><tbody>';
-    results.slice(0,20).forEach((r,i)=>{
-      const name=r.username||r.name||'—';
-      const pts=r.points!=null?r.points:(r.score!=null?r.score:'—');
-      html+='<tr><td class="text-slate-500">'+(r.rank||i+1)+'</td><td class="text-white font-semibold">'+esc(name)+'</td><td class="text-amber-300 font-bold">'+esc(String(pts))+'</td></tr>';
-    });
-    html+='</tbody></table>';
-  } else {
-    html+='<p class="text-slate-500 text-sm">Standings appear when players join and finish games on Lichess.</p>';
-  }
-  if(box) box.innerHTML=html;
-  if(meta && (meta.isFinished || meta.status==='finished')){
-    const champ=results[0];
-    const el=document.getElementById('champ-name');
-    if(el) el.textContent=champ?(champ.username||champ.name||'Champion'):'—';
-  }
+  return schedule;
 }
-function refreshLichessStandings(){ fetchLichessStandings(); }
+function emptyGame(whiteId,blackId,round,startAt,runId){
+  const t0=startAt||Date.now();
+  return {
+    whiteId,blackId,round,runId:runId||null,
+    fen:new Chess().fen(), pgn:'', turn:'w',
+    status:'active', result:null,
+    // Millisecond banks — White's clock runs from pairing
+    whiteMs:BASE_MS, blackMs:BASE_MS,
+    clockPaused:false,
+    clockStartedAt:t0, lastMoveAt:t0,
+    finalWhiteMs:null, finalBlackMs:null,
+    drawOfferFrom:null, eloApplied:false,
+    whiteEloDelta:null, blackEloDelta:null
+  };
+}
+function applyByesForRound(tmp, roundNum){
+  const rd=(tmp.schedule||[]).find(r=>r.round===roundNum);
+  if(!rd) return;
+  rd.pairings.forEach(p=>{
+    if(!p.bye||!p.playerId) return;
+    const pl=tmp.players.find(x=>x.id===p.playerId);
+    if(pl){ pl.score=(pl.score||0)+1; pl.played=(pl.played||0)+1; }
+  });
+}
+function buildTournamentPayload(startMs){
+  const runId='run_'+Date.now();
+  const base=rosterWithLiveRatings();
+  const players=base.map(p=>({...p,startRating:p.rating,score:0,played:0,stars:p.stars||0}));
+  const schedule=buildSchedule(players);
+  const t0=startMs||Date.now();
+  const games={};
+  const r1=schedule.find(r=>r.round===1);
+  if(r1){
+    r1.pairings.forEach(p=>{
+      if(!p.bye&&p.gameId) games[p.gameId]=emptyGame(p.whiteId,p.blackId,1,t0,runId);
+    });
+  }
+  const tmp={players,schedule};
+  applyByesForRound(tmp,1);
+  return {
+    status: Date.now()>=t0 ? 'playing' : 'scheduled',
+    currentRound:1, schedule:tmp.schedule, players:tmp.players, games,
+    runId, scheduledStartAt:t0, breakEndsAt:null, finishedAt:null,
+    engine:'ms-clocks-v1',
+    updated:firebase.firestore.FieldValue.serverTimestamp()
+  };
+}
+
+function hideAll(){['screen-closed','screen-waiting','screen-welcome','screen-login','screen-lobby','screen-play','screen-spec','screen-finished'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('hidden');});}
+function loadMe(){ try{ const s=sessionStorage.getItem('mcps_trial_me')||localStorage.getItem('mcps_trial_me'); if(s) me=JSON.parse(s);}catch(e){me=null;} return me; }
+function saveMe(){ try{ sessionStorage.setItem('mcps_trial_me',JSON.stringify(me)); localStorage.setItem('mcps_trial_me',JSON.stringify(me)); }catch(e){} }
+function clearMe(){ me=null; try{ sessionStorage.removeItem('mcps_trial_me'); localStorage.removeItem('mcps_trial_me'); }catch(e){} }
 
 function updateScheduleLabels(){
   const doors=DOORS_OPEN_AT(), r1=ROUND1_AT();
-  const doorsL=formatWallTime(doors), r1L=formatWallTime(r1);
-  const a=document.getElementById('closed-doors-label'); if(a) a.textContent=doorsL;
-  const b=document.getElementById('closed-round1-label'); if(b) b.textContent=r1L;
-  const w=document.getElementById('wait-message');
-  if(w) w.textContent='Hold tight. Event opens at '+r1L+' — play on Lichess after that.';
+  const a=document.getElementById('closed-doors-label'); if(a) a.textContent=formatWallTime(doors);
+  const b=document.getElementById('closed-round1-label'); if(b) b.textContent=formatWallTime(r1);
 }
-
 function routeByTime(){
   const now=nowMs(), doors=DOORS_OPEN_AT(), r1=ROUND1_AT();
-  try{updateScheduleLabels();}catch(e){}
+  updateScheduleLabels();
+  if(!document.getElementById('screen-play').classList.contains('hidden')) return;
+  if(!document.getElementById('screen-spec').classList.contains('hidden')) return;
   if(!document.getElementById('screen-finished').classList.contains('hidden')) return;
-  if(T&&T.status==='finished'){ showFinished(); return; }
-
+  if(T&&T.status==='finished'){ renderFinished(); return; }
   if(now<doors){
     hideAll(); document.getElementById('screen-closed').classList.remove('hidden');
     document.getElementById('closed-count').textContent=fmtCountdown((doors-now)/1000);
@@ -364,18 +502,34 @@ function routeByTime(){
       hideAll(); document.getElementById('screen-waiting').classList.remove('hidden');
       document.getElementById('wait-who').textContent=me?('Logged in as '+me.name):'';
       document.getElementById('wait-count').textContent=fmtCountdown((r1-now)/1000);
-    } else {
-      if(document.getElementById('screen-login').classList.contains('hidden') && document.getElementById('screen-welcome').classList.contains('hidden')){
-        hideAll(); document.getElementById('screen-welcome').classList.remove('hidden');
-      }
+    } else if(document.getElementById('screen-login').classList.contains('hidden')&&document.getElementById('screen-welcome').classList.contains('hidden')){
+      hideAll(); document.getElementById('screen-welcome').classList.remove('hidden');
     }
     return;
   }
-  // open
-  if(me||loadMe()) enterLobby();
-  else if(document.getElementById('screen-welcome').classList.contains('hidden') && document.getElementById('screen-lobby').classList.contains('hidden')){
-    hideAll(); document.getElementById('screen-welcome').classList.remove('hidden');
+  ensureTournament().then(()=>{
+    if(me||loadMe()) enterLobby();
+    else if(document.getElementById('screen-welcome').classList.contains('hidden')&&document.getElementById('screen-lobby').classList.contains('hidden')){
+      hideAll(); document.getElementById('screen-welcome').classList.remove('hidden');
+    }
+  });
+}
+
+async function ensureTournament(){
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+  const snap=await ref.get();
+  if(snap.exists){
+    T=snap.data(); T.id=DOC_ID;
+    if(T.status==='scheduled' && Date.now()>=getScheduledStartMs()){
+      await ref.update({status:'playing'});
+      T.status='playing';
+    }
+    return;
   }
+  await loadPlayerStats();
+  const payload=buildTournamentPayload(getScheduledStartMs());
+  await ref.set(payload);
+  T=payload; T.id=DOC_ID;
 }
 
 function showWelcome(){ hideAll(); document.getElementById('screen-welcome').classList.remove('hidden'); }
@@ -383,68 +537,32 @@ function showLogin(){
   if(nowMs()<DOORS_OPEN_AT()){ routeByTime(); return; }
   hideAll(); document.getElementById('screen-login').classList.remove('hidden');
   selectedLoginId=null;
-  document.getElementById('player-pick-list').innerHTML=ROSTER.map(p=>
+  const list=rosterWithLiveRatings();
+  document.getElementById('player-pick-list').innerHTML=list.map(p=>
     `<button type="button" class="player-card" data-id="${p.id}" onclick="selectPlayer('${p.id}')">
       <div class="font-black text-white">${esc(p.name)}</div>
-      <div class="text-xs text-amber-300/90 font-bold mt-0.5">Seed rating ${p.rating}</div>
-    </button>`
-  ).join('');
+      <div class="text-xs text-amber-300 font-bold mt-0.5">Rating ${p.rating}</div>
+    </button>`).join('');
 }
-function selectPlayer(id){
-  selectedLoginId=id;
-  document.querySelectorAll('.player-card').forEach(el=>el.classList.toggle('selected', el.getAttribute('data-id')===id));
-}
+function selectPlayer(id){ selectedLoginId=id; document.querySelectorAll('.player-card').forEach(el=>el.classList.toggle('selected', el.getAttribute('data-id')===id)); }
 function doLogin(){
   if(!selectedLoginId){ toast('Select your name'); return; }
-  const pass=(document.getElementById('login-pass').value||'').trim();
-  if(pass!==PASSWORD){ toast('Wrong password'); return; }
-  const lx=(document.getElementById('lichess-username').value||'').trim();
-  if(!lx){ toast('Enter your Lichess username'); return; }
+  if((document.getElementById('login-pass').value||'').trim()!==PASSWORD){ toast('Wrong password'); return; }
   const p=ROSTER.find(x=>x.id===selectedLoginId);
-  me={id:p.id, name:p.name, rating:p.rating, lichess:lx};
-  try{
-    sessionStorage.setItem('mcps_trial_me', JSON.stringify(me));
-    localStorage.setItem('mcps_trial_me', JSON.stringify(me));
-  }catch(e){}
-  // save lichess name on tournament doc map
-  try{
-    db.collection('mcps_tournaments').doc(DOC_ID).set({
-      lichessUsers:{ [me.id]: lx }
-    }, {merge:true});
-  }catch(e){}
-  enterLobby();
+  me={id:p.id,name:p.name,rating:p.rating}; saveMe(); enterLobby();
 }
-function enterAsVisitor(){
-  me=null;
-  try{ sessionStorage.removeItem('mcps_trial_me'); localStorage.removeItem('mcps_trial_me'); }catch(e){}
-  enterLobby();
-}
-function loadMe(){
-  try{
-    const s=sessionStorage.getItem('mcps_trial_me')||localStorage.getItem('mcps_trial_me');
-    if(s) me=JSON.parse(s);
-  }catch(e){ me=null; }
-  return me;
-}
-function logout(){ me=null; try{ sessionStorage.removeItem('mcps_trial_me'); localStorage.removeItem('mcps_trial_me'); }catch(e){} showWelcome(); }
+function enterAsVisitor(){ clearMe(); enterLobby(); }
+function logout(){ clearMe(); showWelcome(); }
 
 function enterLobby(){
   hideAll(); document.getElementById('screen-lobby').classList.remove('hidden');
-  const who=document.getElementById('lobby-who');
-  if(who) who.textContent=me ? (me.name+' · Lichess: '+(me.lichess||'?')) : 'Watching as visitor';
-  updateLichessLink();
-  listenTournament();
-  listenChat();
-  updateChatUI();
-  fetchLichessStandings();
-  if(standingsTimer) clearInterval(standingsTimer);
-  standingsTimer=setInterval(fetchLichessStandings, 30000);
+  listenTournament(); listenChat(); renderLobby(); startTickLoop();
 }
-function showFinished(){
-  hideAll(); document.getElementById('screen-finished').classList.remove('hidden');
-  updateLichessLink();
-  fetchLichessStandings();
-  listenChat(); updateChatUI();
+function backToLobby(){
+  activeGameId=null; specGameId=null; replayMode=false;
+  if(board){ try{board.destroy();}catch(e){} board=null; }
+  if(specBoard){ try{specBoard.destroy();}catch(e){} specBoard=null; }
+  enterLobby();
 }
 
 function listenTournament(){
@@ -452,159 +570,663 @@ function listenTournament(){
   unsub=db.collection('mcps_tournaments').doc(DOC_ID).onSnapshot(doc=>{
     if(!doc.exists){ T=null; return; }
     T=doc.data(); T.id=doc.id;
-    if(T.scheduledStartAt!=null){
-      const ms=tsMillis(T.scheduledStartAt);
-      if(ms>0) setScheduledStartMs(ms);
-    }
-    updateLichessLink();
+    if(T.scheduledStartAt!=null){ const ms=tsMillis(T.scheduledStartAt); if(ms>0) setScheduledStartMs(ms); }
+    ensureRoundPlayable();
+    renderLobby();
+    if(activeGameId) syncPlayBoard();
+    if(specGameId) syncSpecBoard();
+    if(T.status==='break') updateBreakTimer();
+    if(T.status==='playing') checkTimedOutGames();
+    if(T.status==='break') maybeAdvanceFromBreak();
     updateChatUI();
-    try{
-      const onGate=!document.getElementById('screen-closed').classList.contains('hidden')
-        ||!document.getElementById('screen-waiting').classList.contains('hidden');
-      if(onGate) routeByTime();
-    }catch(e){}
-  }, err=>console.error(err));
+  }, e=>console.error(e));
 }
 
-/* ---- Chat ---- */
+function isGameFinished(g){ return !!(g && (g.status==='done' || g.result)); }
+function roundAllFinished(rd, games){
+  if(!rd) return false;
+  return rd.pairings.every(p=> p.bye || isGameFinished((games||{})[p.gameId]));
+}
+
+/** Never stay on break if any board still needs to be played */
+async function ensureRoundPlayable(){
+  if(!T || T.status==='finished' || T.status==='scheduled') return;
+  const rdNum=T.currentRound||1;
+  const rd=(T.schedule||[]).find(r=>r.round===rdNum);
+  if(!rd) return;
+  let hasActive=false;
+  for(const p of rd.pairings){
+    if(p.bye) continue;
+    const g=(T.games||{})[p.gameId];
+    if(g && g.status==='active' && !g.result){ hasActive=true; break; }
+  }
+  if(!hasActive) return;
+  if(T.status==='playing') return;
+  const patch={ status:'playing', breakEndsAt:null };
+  rd.pairings.forEach(p=>{
+    if(p.bye||!p.gameId) return;
+    const g=(T.games||{})[p.gameId];
+    if(g && g.status==='active' && !g.result){
+      patch['games.'+p.gameId+'.clockPaused']=false;
+      // Don't punish for frozen period — reset anchor
+      patch['games.'+p.gameId+'.lastMoveAt']=Date.now();
+    }
+  });
+  try{ await db.collection('mcps_tournaments').doc(DOC_ID).update(patch); }catch(e){}
+}
+
+function renderLobby(){
+  if(!T) return;
+  const rdNum=T.currentRound||1;
+  document.getElementById('lobby-round').textContent='Round '+rdNum+' / '+TOTAL_ROUNDS;
+  document.getElementById('lobby-who').textContent=me?('Playing as '+me.name):'Visitor';
+  document.getElementById('lobby-status-label').textContent=T.status||'—';
+  document.getElementById('lobby-hint').textContent=
+    T.status==='playing'?'Games live · only the side to move loses time':
+    T.status==='break'?'2-minute break · all clocks frozen':
+    T.status==='finished'?'Event finished':'';
+
+  const bb=document.getElementById('break-box');
+  if(T.status==='break'){ bb.classList.remove('hidden'); updateBreakTimer(); }
+  else bb.classList.add('hidden');
+
+  const rd=(T.schedule||[]).find(r=>r.round===rdNum);
+  const pb=document.getElementById('pairings-box');
+  if(rd){
+    pb.innerHTML=rd.pairings.map(p=>{
+      if(p.bye) return `<div class="text-slate-400">Bye — ${esc(playerById(p.playerId).name)}</div>`;
+      const g=(T.games||{})[p.gameId];
+      const w=playerById(p.whiteId), b=playerById(p.blackId);
+      const done=isGameFinished(g);
+      const label=done?('Final '+(g.result||'')):'Live';
+      return `<button type="button" class="player-card" onclick="openBoard('${p.gameId}')">
+        <div class="font-bold text-white">${esc(w.name)} <span class="text-slate-500">vs</span> ${esc(b.name)}</div>
+        <div class="text-xs text-amber-300 mt-0.5">${label}</div>
+      </button>`;
+    }).join('');
+  } else pb.innerHTML='—';
+
+  // my game
+  const myBox=document.getElementById('my-game-box');
+  if(me && rd){
+    const mine=rd.pairings.find(p=>!p.bye&&(p.whiteId===me.id||p.blackId===me.id));
+    const bye=rd.pairings.find(p=>p.bye&&p.playerId===me.id);
+    if(bye) myBox.innerHTML='You have a <strong class="text-white">bye</strong> this round (+1 point).';
+    else if(mine){
+      const opp=mine.whiteId===me.id?playerById(mine.blackId):playerById(mine.whiteId);
+      const color=mine.whiteId===me.id?'White':'Black';
+      myBox.innerHTML=`<button type="button" class="btn-gold w-full" onclick="openBoard('${mine.gameId}')">Play as ${color} vs ${esc(opp.name)}</button>`;
+    } else myBox.textContent='No board this round';
+  } else myBox.textContent=me?'—':'Log in to see your board';
+
+  // standings
+  const rows=(T.players||[]).slice().sort((a,b)=>(b.score||0)-(a.score||0)||(b.rating||0)-(a.rating||0));
+  document.getElementById('standings-box').innerHTML=`<table><thead><tr><th>#</th><th>Name</th><th>Pts</th><th>Rat</th></tr></thead><tbody>${
+    rows.map((p,i)=>`<tr><td class="text-slate-500">${i+1}</td><td class="text-white font-semibold">${esc(p.name)}</td><td class="text-amber-300 font-bold">${p.score||0}</td><td>${p.rating||0}</td></tr>`).join('')
+  }</tbody></table>`;
+
+  if(T.status==='finished') renderFinished();
+}
+
+function openBoard(gid){
+  if(!T||!T.games[gid]) return;
+  const g=T.games[gid];
+  if(me && (g.whiteId===me.id||g.blackId===me.id) && g.status==='active'){
+    activeGameId=gid; hideAll(); document.getElementById('screen-play').classList.remove('hidden');
+    syncPlayBoard(); startTickLoop();
+  } else {
+    specGameId=gid; hideAll(); document.getElementById('screen-spec').classList.remove('hidden');
+    syncSpecBoard(); startTickLoop();
+  }
+}
+
+function startTickLoop(){
+  if(tickTimer) clearInterval(tickTimer);
+  tickTimer=setInterval(()=>{
+    if(activeGameId){ updatePlayClocks(); const g=T&&T.games[activeGameId]; if(g&&clocksLive(g)&&sideToMoveRemainingMs(g)<=0) checkTimedOutGames(); }
+    if(specGameId) updateSpecClocks();
+    if(T&&T.status==='break') updateBreakTimer();
+    if(T&&T.status==='playing') checkTimedOutGames();
+  },200);
+}
+
+function syncPlayBoard(){
+  if(!activeGameId||!T) return;
+  const g=T.games[activeGameId]; if(!g) return;
+  const myColor=g.whiteId===me.id?'w':'b';
+  const orient=myColor==='w'?'white':'black';
+  if(!game) game=new Chess();
+  try{ game.load(g.fen||'start'); }catch(e){ game.reset(); }
+  if(!board){
+    board=ChessBoard('board',{
+      position:g.fen||'start', orientation:orient, draggable:true, pieceTheme:pieceThemeUrl(),
+      onDragStart:(source,piece)=>{
+        if(!clocksLive(g)) return false;
+        if(g.status!=='active') return false;
+        if(game.game_over()) return false;
+        if((game.turn()==='w'&&piece.search(/^b/)!==-1)||(game.turn()==='b'&&piece.search(/^w/)!==-1)) return false;
+        if(game.turn()!==myColor) return false;
+        return true;
+      },
+      onDrop:(source,target)=>{
+        const move=game.move({from:source,to:target,promotion:'q'});
+        if(move===null) return 'snapback';
+        pushMove(activeGameId, move);
+      },
+      onSnapEnd:()=>{ board.position(game.fen()); }
+    });
+  } else {
+    board.orientation(orient);
+    board.position(g.fen||'start', false);
+  }
+  // names: top = opponent
+  const oppId=myColor==='w'?g.blackId:g.whiteId;
+  const meP=playerById(me.id), opp=playerById(oppId);
+  document.getElementById('play-name-top').textContent=opp.name;
+  document.getElementById('play-rating-top').textContent='Rating '+(opp.rating||'');
+  document.getElementById('play-side-top').textContent=myColor==='w'?'Black':'White';
+  document.getElementById('play-name-bottom').textContent=meP.name;
+  document.getElementById('play-rating-bottom').textContent='Rating '+(meP.rating||'');
+  document.getElementById('play-side-bottom').textContent=myColor==='w'?'White':'Black';
+  document.getElementById('play-round-label').textContent='R'+(g.round||T.currentRound||1);
+  updatePlayClocks();
+  if(g.status==='done'||g.result){
+    if(!resultShownFor[activeGameId]){ resultShownFor[activeGameId]=true; showGameResult(g); }
+  }
+  if(g.drawOfferFrom&&g.drawOfferFrom!==me.id&&g.status==='active'&&T.status==='playing'){
+    document.getElementById('draw-modal-text').textContent=playerById(g.drawOfferFrom).name+' offers a draw.';
+    openModal('draw-modal');
+  }
+}
+function updatePlayClocks(){
+  if(!activeGameId||!T) return;
+  const g=T.games[activeGameId]; if(!g) return;
+  const myColor=g.whiteId===me.id?'w':'b';
+  const wt=remainingMs(g,'w'), bt=remainingMs(g,'b');
+  const topIsBlack=myColor==='w';
+  const topEl=document.getElementById('clock-top'), botEl=document.getElementById('clock-bottom');
+  topEl.textContent=fmtMs(topIsBlack?bt:wt);
+  botEl.textContent=fmtMs(topIsBlack?wt:bt);
+  const live=clocksLive(g);
+  topEl.className='clock'+(live&&((topIsBlack&&g.turn==='b')||(!topIsBlack&&g.turn==='w'))?' active':'')+(live&&(topIsBlack?bt:wt)<30000?' low':'');
+  botEl.className='clock'+(live&&((topIsBlack&&g.turn==='w')||(!topIsBlack&&g.turn==='b'))?' active':'')+(live&&(topIsBlack?wt:bt)<30000?' low':'');
+  const fr=document.getElementById('play-clock-frozen');
+  if(fr) fr.classList.toggle('hidden', T.status!=='break');
+  document.getElementById('play-status').textContent=
+    !live?(T.status==='break'?'Break — clocks frozen':(g.result?'Final '+g.result:'Paused')):
+    (game.turn()===myColor?'Your turn':'Opponent\'s turn');
+}
+
+function syncSpecBoard(){
+  if(!specGameId||!T) return;
+  const g=T.games[specGameId]; if(!g) return;
+  if(!specBoard) specBoard=ChessBoard('spec-board',{position:g.fen||'start',draggable:false,pieceTheme:pieceThemeUrl()});
+  else if(!replayMode) specBoard.position(g.fen||'start', true);
+  document.getElementById('spec-name-top').textContent=playerById(g.blackId).name;
+  document.getElementById('spec-rating-top').textContent='Rating '+(playerById(g.blackId).rating||'');
+  document.getElementById('spec-name-bottom').textContent=playerById(g.whiteId).name;
+  document.getElementById('spec-rating-bottom').textContent='Rating '+(playerById(g.whiteId).rating||'');
+  const done=isGameFinished(g);
+  const badge=document.getElementById('spec-live-badge');
+  if(badge){ badge.innerHTML=done?'FINAL':'<span class="live-dot"></span> LIVE'; badge.className=done?'text-xs font-black text-amber-400':'flex items-center gap-2 text-xs font-black text-rose-400'; }
+  document.getElementById('spec-status').textContent=done?('Final '+g.result):(clocksLive(g)?((g.turn==='w'?'White':'Black')+' to move'):(T.status==='break'?'Break — clocks frozen':'Paused'));
+  document.getElementById('replay-panel').classList.toggle('hidden', !done);
+  updateSpecClocks();
+}
+function updateSpecClocks(){
+  if(!specGameId||!T) return;
+  const g=T.games[specGameId]; if(!g) return;
+  const wt=remainingMs(g,'w'), bt=remainingMs(g,'b');
+  const live=clocksLive(g);
+  const top=document.getElementById('spec-clock-top'), bot=document.getElementById('spec-clock-bottom');
+  top.textContent=fmtMs(bt); bot.textContent=fmtMs(wt);
+  top.className='clock'+(live&&g.turn==='b'?' active':'')+(live&&bt<30000?' low':'');
+  bot.className='clock'+(live&&g.turn==='w'?' active':'')+(live&&wt<30000?' low':'');
+  const fr=document.getElementById('spec-clock-frozen');
+  if(fr) fr.classList.toggle('hidden', T.status!=='break');
+}
+
+async function pushMove(gid, move){
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+  const localSan=move.san, localFen=game.fen(), localTurn=game.turn();
+  let endStatus='active', endResult=null;
+  if(game.in_checkmate()){ endStatus='done'; endResult=game.turn()==='w'?'0-1':'1-0'; }
+  else if(game.in_draw()||game.in_stalemate()||game.in_threefold_repetition()||game.insufficient_material()){ endStatus='done'; endResult='1/2-1/2'; }
+  try{
+    await db.runTransaction(async tx=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists) throw new Error('missing');
+      const state=snap.data();
+      if(state.status!=='playing') throw new Error('Clocks frozen — break');
+      const g=(state.games||{})[gid];
+      if(!g||g.status!=='active') throw new Error('Game over');
+      if(T&&T.runId&&g.runId&&g.runId!==T.runId) throw new Error('Tournament reset');
+      const moveColor=move.color; // 'w' or 'b'
+      if((g.turn||'w')!==moveColor) throw new Error('Not your turn');
+      const now=Date.now();
+      let wMs=typeof g.whiteMs==='number'?g.whiteMs:BASE_MS;
+      let bMs=typeof g.blackMs==='number'?g.blackMs:BASE_MS;
+      const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||now;
+      let elapsed=now-anchor;
+      if(elapsed<0) elapsed=0;
+      const bank=moveColor==='w'?wMs:bMs;
+      if(elapsed>bank+60000) elapsed=bank+60000;
+      if(moveColor==='w'){
+        if(wMs-elapsed<=-2000) throw new Error('Flag');
+        wMs=Math.max(0,wMs-elapsed)+INC_MS;
+      } else {
+        if(bMs-elapsed<=-2000) throw new Error('Flag');
+        bMs=Math.max(0,bMs-elapsed)+INC_MS;
+      }
+      const updates={
+        ['games.'+gid+'.fen']:localFen,
+        ['games.'+gid+'.pgn']:(g.pgn?g.pgn+' ':'')+localSan,
+        ['games.'+gid+'.turn']:localTurn,
+        ['games.'+gid+'.status']:endStatus,
+        ['games.'+gid+'.whiteMs']:wMs,
+        ['games.'+gid+'.blackMs']:bMs,
+        ['games.'+gid+'.lastMoveAt']:now,
+        ['games.'+gid+'.clockPaused']:false,
+        ['games.'+gid+'.drawOfferFrom']:null
+      };
+      if(endResult){
+        updates['games.'+gid+'.result']=endResult;
+        updates['games.'+gid+'.finalWhiteMs']=wMs;
+        updates['games.'+gid+'.finalBlackMs']=bMs;
+        updates['games.'+gid+'.clockPaused']=true;
+      }
+      tx.update(ref, updates);
+    });
+    if(endStatus==='done') await finalizeResult(gid, endResult);
+  }catch(e){
+    toast(e.message||'Move failed');
+    try{ game.undo(); if(board) board.position(game.fen()); }catch(e2){}
+    if(String(e.message||'').indexOf('Flag')>=0) checkTimedOutGames();
+  }
+}
+
+async function checkTimedOutGames(){
+  if(!T||T.status!=='playing') return;
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+  for(const gid of Object.keys(T.games||{})){
+    const g=T.games[gid];
+    if(!g||g.status!=='active'||flaggingGames[gid]) continue;
+    if(!clocksLive(g)) continue;
+    if(sideToMoveRemainingMs(g)>0) continue;
+    flaggingGames[gid]=true;
+    try{
+      await db.runTransaction(async tx=>{
+        const snap=await tx.get(ref);
+        if(!snap.exists) return;
+        const state=snap.data();
+        if(state.status!=='playing') return;
+        const cur=(state.games||{})[gid];
+        if(!cur||cur.status!=='active') return;
+        const side=cur.turn==='b'?'b':'w';
+        const bank=side==='w'?(typeof cur.whiteMs==='number'?cur.whiteMs:BASE_MS):(typeof cur.blackMs==='number'?cur.blackMs:BASE_MS);
+        const anchor=tsMillis(cur.lastMoveAt)||tsMillis(cur.clockStartedAt)||0;
+        if(!anchor) return;
+        let elapsed=Date.now()-anchor;
+        if(elapsed<0) elapsed=0;
+        if(elapsed>bank+60000) elapsed=bank+60000;
+        if(bank-elapsed>0) return; // still has time
+        const res=side==='w'?'0-1':'1-0';
+        let fW=typeof cur.whiteMs==='number'?cur.whiteMs:BASE_MS;
+        let fB=typeof cur.blackMs==='number'?cur.blackMs:BASE_MS;
+        if(side==='w') fW=0; else fB=0;
+        const players=(state.players||[]).map(p=>({...p}));
+        const updates={
+          ['games.'+gid+'.status']:'done',
+          ['games.'+gid+'.result']:res,
+          ['games.'+gid+'.finalWhiteMs']:fW,
+          ['games.'+gid+'.finalBlackMs']:fB,
+          ['games.'+gid+'.whiteMs']:fW,
+          ['games.'+gid+'.blackMs']:fB,
+          ['games.'+gid+'.clockPaused']:true
+        };
+        if(!cur.eloApplied){
+          const w=players.find(p=>p.id===cur.whiteId), b=players.find(p=>p.id===cur.blackId);
+          if(w&&b){
+            const scoreW=res==='1-0'?1:0;
+            const dW=eloDelta(w.rating||1500,b.rating||1500,scoreW);
+            const dB=eloDelta(b.rating||1500,w.rating||1500,1-scoreW);
+            w.rating=(w.rating||1500)+dW; b.rating=(b.rating||1500)+dB;
+            w.score=(w.score||0)+scoreW; b.score=(b.score||0)+(1-scoreW);
+            w.played=(w.played||0)+1; b.played=(b.played||0)+1;
+            updates.players=players;
+            updates['games.'+gid+'.eloApplied']=true;
+            updates['games.'+gid+'.whiteEloDelta']=dW;
+            updates['games.'+gid+'.blackEloDelta']=dB;
+          }
+        }
+        tx.update(ref, updates);
+      });
+      try{
+        const snap2=await ref.get();
+        if(snap2.exists) await savePlayerStatsFromPlayers((snap2.data().players)||[]);
+      }catch(e){}
+      setTimeout(()=>maybeAdvanceRound(),300);
+    }catch(e){ console.error(e); }
+    finally{ setTimeout(()=>{ delete flaggingGames[gid]; },4000); }
+  }
+}
+
+async function finalizeResult(gameId, result){
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+  try{
+    await db.runTransaction(async tx=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists) return;
+      const state=snap.data();
+      const g=(state.games||{})[gameId];
+      if(!g||g.eloApplied) return;
+      const players=(state.players||[]).map(p=>({...p}));
+      const w=players.find(p=>p.id===g.whiteId), b=players.find(p=>p.id===g.blackId);
+      if(!w||!b) return;
+      let scoreW=0.5;
+      if(result==='1-0') scoreW=1; else if(result==='0-1') scoreW=0;
+      const dW=eloDelta(w.rating||1500,b.rating||1500,scoreW);
+      const dB=eloDelta(b.rating||1500,w.rating||1500,1-scoreW);
+      w.rating=(w.rating||1500)+dW; b.rating=(b.rating||1500)+dB;
+      w.score=(w.score||0)+scoreW; b.score=(b.score||0)+(1-scoreW);
+      w.played=(w.played||0)+1; b.played=(b.played||0)+1;
+      tx.update(ref,{
+        players,
+        ['games.'+gameId+'.eloApplied']:true,
+        ['games.'+gameId+'.whiteEloDelta']:dW,
+        ['games.'+gameId+'.blackEloDelta']:dB,
+        ['games.'+gameId+'.status']:'done',
+        ['games.'+gameId+'.result']:result
+      });
+    });
+  }catch(e){ console.error(e); }
+  // Persist ratings so refresh / restart keeps them
+  try{
+    const snap=await db.collection('mcps_tournaments').doc(DOC_ID).get();
+    if(snap.exists) await savePlayerStatsFromPlayers((snap.data().players)||[]);
+  }catch(e){}
+  setTimeout(()=>maybeAdvanceRound(),400);
+}
+
+async function maybeAdvanceRound(){
+  if(!T||T.status!=='playing'||advancing) return;
+  const rdNum=T.currentRound||1;
+  const rd=(T.schedule||[]).find(r=>r.round===rdNum);
+  if(!rd||!roundAllFinished(rd,T.games)) return;
+  advancing=true;
+  try{
+    const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+    if(rdNum>=TOTAL_ROUNDS){
+      await ref.update({status:'finished',breakEndsAt:null,finishedAt:Date.now()});
+    } else {
+      // ALWAYS full 2-minute break — freeze clocks by status only
+      const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000);
+      const patch={status:'break',breakEndsAt:ends};
+      rd.pairings.forEach(p=>{
+        if(p.bye||!p.gameId) return;
+        patch['games.'+p.gameId+'.clockPaused']=true;
+      });
+      await ref.update(patch);
+    }
+  }catch(e){ console.error(e); }
+  finally{ advancing=false; }
+}
+
+function updateBreakTimer(){
+  if(!T||T.status!=='break') return;
+  const end=tsMillis(T.breakEndsAt);
+  const left=Math.max(0,Math.ceil((end-Date.now())/1000));
+  const el=document.getElementById('break-timer'); if(el) el.textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
+  const btn=document.getElementById('btn-proceed-round');
+  const hint=document.getElementById('break-hint');
+  if(left<=0){
+    if(hint) hint.textContent='Break over — starting next round…';
+    if(btn) btn.classList.remove('hidden');
+    maybeAdvanceFromBreak();
+  } else {
+    if(hint) hint.textContent='2-minute break — clocks frozen for everyone';
+    if(btn) btn.classList.add('hidden');
+  }
+}
+async function maybeAdvanceFromBreak(){
+  if(!T||T.status!=='break') return;
+  const end=tsMillis(T.breakEndsAt);
+  if(end && Date.now()<end) return;
+  await startNextRoundNow();
+}
+async function proceedToNextRound(){ await maybeAdvanceFromBreak(); }
+
+async function startNextRoundNow(){
+  if(advancing) return;
+  advancing=true;
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+  try{
+    await db.runTransaction(async tx=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists) return;
+      const d=snap.data();
+      if(d.status!=='break') return;
+      const end=tsMillis(d.breakEndsAt);
+      if(end && Date.now()<end) return;
+      const cur=d.currentRound||1;
+      const curRd=(d.schedule||[]).find(r=>r.round===cur);
+      if(!curRd||!roundAllFinished(curRd,d.games)) return;
+      if(cur>=TOTAL_ROUNDS){ tx.update(ref,{status:'finished',breakEndsAt:null,finishedAt:Date.now()}); return; }
+      const next=cur+1;
+      const nrd=(d.schedule||[]).find(r=>r.round===next);
+      if(!nrd) return;
+      const startAt=Date.now();
+      const players=(d.players||[]).map(p=>({...p}));
+      const tmp={players,schedule:d.schedule};
+      applyByesForRound(tmp,next);
+      const updates={status:'playing',currentRound:next,breakEndsAt:null,players:tmp.players};
+      nrd.pairings.forEach(p=>{
+        if(!p.bye&&p.gameId) updates['games.'+p.gameId]=emptyGame(p.whiteId,p.blackId,next,startAt,d.runId);
+      });
+      tx.update(ref, updates);
+    });
+  }catch(e){ console.error(e); }
+  finally{ advancing=false; }
+}
+
+function showGameResult(g){
+  if(!me) return;
+  const myColor=g.whiteId===me.id?'w':'b';
+  let won=false,draw=false;
+  if(g.result==='1/2-1/2') draw=true;
+  else if(g.result==='1-0'&&myColor==='w') won=true;
+  else if(g.result==='0-1'&&myColor==='b') won=true;
+  document.getElementById('result-emoji').textContent=draw?'🤝':(won?'🏆':'💪');
+  document.getElementById('result-title').textContent=draw?'Draw':(won?'You win!':'Game over');
+  document.getElementById('result-sub').textContent=draw?'Shared point.':(won?'Great game.':'See standings in the lobby.');
+  const d=myColor==='w'?g.whiteEloDelta:g.blackEloDelta;
+  document.getElementById('result-elo').textContent=d!=null?('Rating '+(d>=0?'+':'')+d):'';
+  openModal('result-modal');
+}
+async function persistEndStats(){
+  if(!T||!T.players) return;
+  try{
+    await loadPlayerStats();
+    (T.players||[]).forEach(p=>{
+      if(!PLAYER_STATS[p.id]) PLAYER_STATS[p.id]={name:p.name,rating:p.rating,stars:0};
+      PLAYER_STATS[p.id].rating=p.rating!=null?p.rating:PLAYER_STATS[p.id].rating;
+      PLAYER_STATS[p.id].name=p.name;
+    });
+    const rows=(T.players||[]).slice().sort((a,b)=>(b.score||0)-(a.score||0));
+    const champ=rows[0];
+    const key='starAwarded_'+(T.runId||'x');
+    if(champ&&champ.id&&!T[key]){
+      PLAYER_STATS[champ.id].stars=(PLAYER_STATS[champ.id].stars||0)+1;
+      try{ await db.collection('mcps_tournaments').doc(DOC_ID).update({[key]:true}); }catch(e){}
+    }
+    await statsDoc().set({players:PLAYER_STATS, updated:firebase.firestore.FieldValue.serverTimestamp()}, {merge:true});
+  }catch(e){ console.error(e); }
+}
+function renderFinished(){
+  hideAll(); document.getElementById('screen-finished').classList.remove('hidden');
+  const rows=(T.players||[]).slice().sort((a,b)=>(b.score||0)-(a.score||0));
+  document.getElementById('champ-name').textContent=rows[0]?rows[0].name:'—';
+  document.getElementById('finished-standings').innerHTML=`<table><thead><tr><th>#</th><th>Name</th><th>Pts</th><th>Rat</th></tr></thead><tbody>${
+    rows.map((p,i)=>`<tr><td>${i+1}</td><td class="text-white font-bold">${esc(p.name)}</td><td class="text-amber-300">${p.score||0}</td><td>${p.rating||0}</td></tr>`).join('')
+  }</tbody></table>`;
+  if(!finishedCelebrated){
+    finishedCelebrated=true;
+    persistEndStats();
+  }
+}
+
+function openResignModal(){ openModal('resign-modal'); }
+async function confirmResign(){
+  closeModal('resign-modal');
+  if(!activeGameId||!me||!T||T.status!=='playing') return;
+  const g=T.games[activeGameId]; if(!g||g.status!=='active') return;
+  const result=g.whiteId===me.id?'0-1':'1-0';
+  await db.collection('mcps_tournaments').doc(DOC_ID).update({
+    ['games.'+activeGameId+'.status']:'done',
+    ['games.'+activeGameId+'.result']:result,
+    ['games.'+activeGameId+'.clockPaused']:true,
+    ['games.'+activeGameId+'.finalWhiteMs']:remainingMs(g,'w'),
+    ['games.'+activeGameId+'.finalBlackMs']:remainingMs(g,'b')
+  });
+  await finalizeResult(activeGameId, result);
+}
+async function offerDraw(){
+  if(!activeGameId||!me||!T||T.status!=='playing') return;
+  const g=T.games[activeGameId];
+  if(moveCountOf(g)<60){ toast('Draw offers only after 30 moves'); return; }
+  await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.drawOfferFrom']:me.id});
+  toast('Draw offered');
+}
+async function acceptDraw(){
+  closeModal('draw-modal');
+  if(!activeGameId) return;
+  await db.collection('mcps_tournaments').doc(DOC_ID).update({
+    ['games.'+activeGameId+'.status']:'done',
+    ['games.'+activeGameId+'.result']:'1/2-1/2',
+    ['games.'+activeGameId+'.drawOfferFrom']:null,
+    ['games.'+activeGameId+'.clockPaused']:true
+  });
+  await finalizeResult(activeGameId,'1/2-1/2');
+}
+async function declineDraw(){
+  closeModal('draw-modal');
+  if(activeGameId) await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.drawOfferFrom']:null});
+}
+
+/* Replay */
+function buildReplayFromGame(g){
+  replayFens=['start']; replaySans=[]; replayIdx=0;
+  try{
+    const c=new Chess();
+    String(g.pgn||'').trim().split(/\s+/).filter(Boolean).forEach(san=>{
+      const mv=c.move(san,{sloppy:true});
+      if(mv){ replaySans.push(mv.san); replayFens.push(c.fen()); }
+    });
+  }catch(e){}
+}
+function startReplay(){ if(!specGameId||!T) return; const g=T.games[specGameId]; if(!isGameFinished(g)) return; buildReplayFromGame(g); replayMode=true; replayIdx=0; applyReplayFrame(); }
+function applyReplayFrame(){ if(!specBoard) return; const fen=replayFens[Math.max(0,Math.min(replayIdx,replayFens.length-1))]||'start'; try{specBoard.position(fen,false);}catch(e){} const lab=document.getElementById('replay-label'); if(lab) lab.textContent=replayIdx<=0?'Start':('Move '+replayIdx+(replaySans[replayIdx-1]?' · '+replaySans[replayIdx-1]:'')); }
+function replayToStart(){ if(!replayMode) startReplay(); replayIdx=0; applyReplayFrame(); }
+function replayPrev(){ if(!replayMode) startReplay(); replayIdx=Math.max(0,replayIdx-1); applyReplayFrame(); }
+function replayNext(){ if(!replayMode) startReplay(); replayIdx=Math.min(replayFens.length-1,replayIdx+1); applyReplayFrame(); }
+function replayToEnd(){ if(!replayMode) startReplay(); replayIdx=replayFens.length-1; applyReplayFrame(); }
+
+/* Chat */
 function chatCol(){ return db.collection('mcps_tournaments').doc(DOC_ID).collection('chat'); }
 function isPlayerChatOpen(){
-  if(!T) return true; // lobby chat open for coordination during Lichess play
+  if(!T) return false;
+  // Like Lichess: chat opens for the full 2-minute break between rounds
   if(T.status==='break') return true;
   if(T.status==='finished'){
-    const end=tsMillis(T.finishedAt)||tsMillis(T.updated)||0;
-    if(!end) return true;
-    return (Date.now()-end)<CHAT_AFTER_FINISH_MS;
+    const end=tsMillis(T.finishedAt)||0;
+    return !end || (Date.now()-end)<CHAT_AFTER_FINISH_MS;
   }
-  // Allow player chat while event is live (games are on Lichess; lobby is coordination)
-  if(T.status==='playing'||T.status==='scheduled'||!T.status) return true;
   return false;
-}
-function isChatOpen(){ return isPlayerChatOpen(); }
-function chatSenderName(){
-  if(me&&me.name) return me.name;
-  const el=document.getElementById('chat-name');
-  return ((el&&el.value)||'').trim()||'Visitor';
 }
 function updateChatUI(){
   const open=isPlayerChatOpen();
   const pill=document.getElementById('chat-pill');
+  if(pill){
+    if(open && T&&T.status==='break'){ pill.textContent='Open · break'; pill.style.color='#6ee7b7'; }
+    else if(open){ pill.textContent='Open · 5 min'; pill.style.color='#6ee7b7'; }
+    else { pill.textContent='Closed · games on'; pill.style.color='#94a3b8'; }
+  }
   const hint=document.getElementById('chat-lock-hint');
+  if(hint){
+    if(open && T&&T.status==='break') hint.textContent='Break chat open (2 min) — like Lichess · be kind';
+    else if(open) hint.textContent='Post-event chat open for 5 minutes';
+    else hint.textContent='Player chat unlocks on the 2-minute break · Coaches can message anytime with password';
+  }
   const input=document.getElementById('chat-input');
+  if(input){
+    input.disabled=!open;
+    input.placeholder=open?'Message during break…':'Chat opens on break';
+  }
   const nameEl=document.getElementById('chat-name');
-  if(pill){ pill.textContent=open?'Open':'Closed'; pill.style.color=open?'#6ee7b7':'#94a3b8'; }
-  if(hint) hint.textContent=open?'Lobby chat open · be respectful':'Chat closed';
-  if(input){ input.disabled=!open; }
-  if(nameEl){ nameEl.classList.toggle('hidden', !!me); nameEl.disabled=!open; }
-}
-function renderChatMessages(docs){
-  const box=document.getElementById('chat-messages');
-  if(!box) return;
-  chatMsgsCache=docs||[];
-  if(!docs.length){ box.innerHTML='<p class="text-sm text-slate-500 text-center py-3">No messages yet.</p>'; return; }
-  box.innerHTML=docs.map(m=>{
-    const t=m.at?new Date(typeof m.at.toMillis==='function'?m.at.toMillis():m.at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';
-    const coach=!!m.coach;
-    return `<div class="chat-msg${coach?' coach':''}">
-      <button type="button" class="cdel" onclick="openDeleteChatMsg('${esc(m.id)}')">Delete</button>
-      <div class="cfrom">${coach?'🏅 Coach · ':''}${esc(m.from||'Someone')}</div>
-      <div class="cbody">${esc(m.text||'')}</div>
-      <div class="ctime">${esc(t)}</div>
-    </div>`;
-  }).join('');
-  box.scrollTop=box.scrollHeight;
+  if(nameEl){ nameEl.classList.toggle('hidden',!!me); nameEl.disabled=!open; }
 }
 function listenChat(){
   if(chatUnsub) return;
   const input=document.getElementById('chat-input');
   if(input&&!input._wired){ input._wired=true; input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendChatMsg(false);} }); }
   chatUnsub=chatCol().orderBy('at','asc').limitToLast(80).onSnapshot(snap=>{
-    const rows=[]; snap.forEach(doc=>rows.push(Object.assign({id:doc.id}, doc.data())));
-    renderChatMessages(rows);
-  }, err=>console.error('chat',err));
+    const rows=[]; snap.forEach(d=>rows.push(Object.assign({id:d.id},d.data())));
+    const box=document.getElementById('chat-messages'); if(!box) return;
+    chatMsgsCache=rows;
+    box.innerHTML=rows.length?rows.map(m=>{
+      const t=m.at?new Date(typeof m.at.toMillis==='function'?m.at.toMillis():m.at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';
+      const coach=!!m.coach;
+      return `<div class="chat-msg${coach?' coach':''}"><button type="button" class="cdel" onclick="openDeleteChatMsg('${esc(m.id)}')">Delete</button><div class="cfrom">${coach?'🏅 Coach · ':''}${esc(m.from||'')}</div><div class="cbody">${esc(m.text||'')}</div><div class="ctime">${esc(t)}</div></div>`;
+    }).join(''):'<p class="text-sm text-slate-500 text-center py-3">No messages yet.</p>';
+    box.scrollTop=box.scrollHeight;
+  },e=>console.error(e));
 }
 async function sendChatMsg(asCoach){
   const coach=!!asCoach;
-  if(!coach && !isPlayerChatOpen()){ toast('Chat closed'); return; }
-  if(coach){
-    const pass=(document.getElementById('chat-coach-pass').value||'').trim();
-    if(pass!==RESET_PASSWORD){ toast('Wrong coach password'); return; }
-  }
+  if(!coach && !isPlayerChatOpen()){ toast('Chat opens on break and 5 min after finals'); return; }
+  if(coach){ const pass=(document.getElementById('chat-coach-pass').value||'').trim(); if(pass!==RESET_PASSWORD){ toast('Wrong password'); return; } }
   const input=document.getElementById('chat-input');
-  const msg=(input&&input.value||'').trim();
-  if(!msg){ toast('Type a message'); return; }
-  let from=coach?'Coach':chatSenderName();
-  if(!coach && !me){
-    const nameEl=document.getElementById('chat-name');
-    if(nameEl&&!(nameEl.value||'').trim()){ toast('Enter your name'); return; }
-  }
-  try{
-    await chatCol().add({
-      text:msg.slice(0,280), from:from.slice(0,40), fromId:me?me.id:null, coach,
-      at:firebase.firestore.FieldValue.serverTimestamp()
-    });
-    if(input) input.value='';
-  }catch(e){ toast('Could not send'); }
+  const msg=(input&&input.value||'').trim(); if(!msg){ toast('Type a message'); return; }
+  let from=coach?'Coach':(me?me.name:((document.getElementById('chat-name').value||'').trim()||'Visitor'));
+  if(!coach&&!me&&!(document.getElementById('chat-name').value||'').trim()){ toast('Enter your name'); return; }
+  await chatCol().add({text:msg.slice(0,280),from:from.slice(0,40),fromId:me?me.id:null,coach,at:firebase.firestore.FieldValue.serverTimestamp()});
+  if(input) input.value='';
 }
-function openDeleteChatMsg(id){
-  pendingChatDeleteId=id;
-  const m=chatMsgsCache.find(x=>x.id===id);
-  document.getElementById('chat-del-preview').textContent=m?('Delete: "'+(m.text||'').slice(0,80)+'"'):'';
-  document.getElementById('chat-del-pass').value='';
-  openModal('chat-del-modal');
-}
+function openDeleteChatMsg(id){ pendingChatDeleteId=id; const m=chatMsgsCache.find(x=>x.id===id); document.getElementById('chat-del-preview').textContent=m?m.text:''; document.getElementById('chat-del-pass').value=''; openModal('chat-del-modal'); }
 async function confirmDeleteChatMsg(){
-  const pass=(document.getElementById('chat-del-pass').value||'').trim();
-  if(pass!==RESET_PASSWORD){ toast('Wrong password'); return; }
+  if((document.getElementById('chat-del-pass').value||'').trim()!==RESET_PASSWORD){ toast('Wrong password'); return; }
   if(pendingChatDeleteId) await chatCol().doc(pendingChatDeleteId).delete().catch(()=>{});
   closeModal('chat-del-modal');
 }
 
 function openResetModal(){
   const inp=document.getElementById('reset-start-at');
-  if(inp){
-    const d=new Date(Date.now()+10*60*1000);
-    const local=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
-    inp.value=local;
-  }
-  const lx=document.getElementById('reset-lichess-id');
-  if(lx && T&&T.lichessRef) lx.value=T.lichessRef;
+  if(inp){ const d=new Date(Date.now()+5*60*1000); inp.value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16); }
   document.getElementById('reset-pass').value='';
   openModal('reset-modal');
 }
 async function confirmResetTournament(){
-  const pass=(document.getElementById('reset-pass').value||'').trim();
-  if(pass!==RESET_PASSWORD){ toast('Wrong password'); return; }
-  const lx=(document.getElementById('reset-lichess-id').value||'').trim();
-  if(!lx){ toast('Paste Lichess Swiss or Arena link/ID'); return; }
+  if((document.getElementById('reset-pass').value||'').trim()!==RESET_PASSWORD){ toast('Wrong password'); return; }
   const startVal=document.getElementById('reset-start-at').value;
   const startMs=startVal?new Date(startVal).getTime():Date.now();
-  if(!startMs){ toast('Invalid start time'); return; }
   setScheduledStartMs(startMs);
-  const payload={
-    status:'playing',
-    scheduledStartAt:startMs,
-    lichessRef:lx,
-    runId:'run_'+Date.now(),
-    finishedAt:null,
-    breakEndsAt:null,
-    updated:firebase.firestore.FieldValue.serverTimestamp(),
-    engine:'lichess'
-  };
-  await db.collection('mcps_tournaments').doc(DOC_ID).set(payload, {merge:true});
-  T=Object.assign(T||{}, payload);
+  await loadPlayerStats();
+  const payload=buildTournamentPayload(startMs);
+  await db.collection('mcps_tournaments').doc(DOC_ID).set(payload);
+  T=payload; T.id=DOC_ID;
+  finishedCelebrated=false; resultShownFor={};
   closeModal('reset-modal');
-  toast('Lichess event linked');
-  updateLichessLink();
+  toast('Tournament restarted');
   routeByTime();
-  if(me||loadMe()) enterLobby();
 }
 
 (function boot(){
   loadMe();
+  loadPlayerStats().then(()=>{}).catch(()=>{});
   listenTournament();
   routeByTime();
-  phaseTimer=setInterval(routeByTime, 500);
+  phaseTimer=setInterval(routeByTime,500);
+  startTickLoop();
 })();
 </script>
 </body>
