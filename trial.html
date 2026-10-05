@@ -175,7 +175,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-3">Rules</div>
       <ul class="text-sm text-slate-300 space-y-2">
         <li>⏱️ <strong class="text-white">10+2 rapid</strong></li>
-        <li>⏰ Clocks start on the first move — no time lost waiting to open the board</li>
+        <li>⏰ White’s clock runs from pairing · Black’s clock starts after White moves · only the side to move can flag</li>
         <li>🧊 <strong class="text-white">Clocks freeze on break</strong> — no time lost between rounds</li>
         <li>🔄 Rounds advance only 1 → 2 → 3 → 4 → 5 → 6 (no skips)</li>
         <li>📊 Live standings · ratings update each game and carry to the next event</li>
@@ -777,6 +777,7 @@ function buildSchedule(players){
 }
 
 function emptyGame(whiteId,blackId,round,startClocksAt,runId){
+  const t0=startClocksAt||Date.now();
   return {
     whiteId,blackId,round,runId:runId||null,
     fen:new Chess().fen(),pgn:'',turn:'w',
@@ -784,10 +785,11 @@ function emptyGame(whiteId,blackId,round,startClocksAt,runId){
     result:null,
     whiteTime:BASE_TIME,blackTime:BASE_TIME,
     clockPaused:false,
-    // Fair: clocks only start on the FIRST MOVE (no time lost waiting to open the board)
-    clocksStarted:false,
-    clockStartedAt:null,
-    lastMoveAt:null,
+    // White's clock runs from pairing. Black's bank is full until White moves.
+    // No-show with White: White can flag at 0. Black never loses before they have a turn.
+    clocksStarted:true,
+    clockStartedAt:t0,
+    lastMoveAt:t0,
     finalWhiteTime:null,
     finalBlackTime:null,
     drawOfferFrom:null,whiteEloDelta:null,blackEloDelta:null,eloApplied:false
@@ -797,16 +799,33 @@ function emptyGame(whiteId,blackId,round,startClocksAt,runId){
 
 /** Clocks only run while the tournament is LIVE and the game is active.
  *  During break / finished / paused, remaining time is frozen — never ticks. */
-/** True once the first move has been played (legacy games: any pgn counts as started). */
+/** Number of half-moves stored in pgn */
+function moveCountOf(g){
+  if(!g||!g.pgn) return 0;
+  return String(g.pgn).trim().split(/\s+/).filter(Boolean).length;
+}
 function gameClocksStarted(g){
   if(!g) return false;
-  if(g.clocksStarted===true) return true;
+  if(g.clockPaused) return false;
+  // Live from pairing unless explicitly paused / not started
   if(g.clocksStarted===false) return false;
-  // Older games created before this fix: only run clocks if moves exist
-  return !!(g.pgn && String(g.pgn).trim());
+  return true;
 }
 function clocksAreLive(g){
   return !!(T && T.status==='playing' && g && g.status==='active' && !g.clockPaused && gameClocksStarted(g));
+}
+/** Seconds left for the side to move — never invents time loss for the other side */
+function sideToMoveRemaining(g){
+  if(!g||!clocksAreLive(g)) return 9999;
+  const side=(g.turn==='b')?'b':'w';
+  const bank=side==='w'?(typeof g.whiteTime==='number'?g.whiteTime:BASE_TIME):(typeof g.blackTime==='number'?g.blackTime:BASE_TIME);
+  const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||0;
+  if(!anchor) return bank;
+  let elapsed=Math.floor((Date.now()-anchor)/1000);
+  if(elapsed<0) elapsed=0;
+  // Cap so a corrupt timestamp cannot wipe a clock in one tick
+  if(elapsed>bank+60) elapsed=bank+60;
+  return bank-elapsed;
 }
 
 function frozenRemaining(g){
@@ -1942,16 +1961,10 @@ async function proceedToNextRound(){
 }
 
 function gameRemainingSec(g){
-  // No countdown until first move, or during break / finished / paused
-  if(!g||!gameClocksStarted(g)||!clocksAreLive(g)) return 9999;
-  const base=g.turn==='w'?(g.whiteTime||BASE_TIME):(g.blackTime||BASE_TIME);
-  const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||Date.now();
-  if(!anchor) return base;
-  const elapsed=Math.floor((Date.now()-anchor)/1000);
-  return base-elapsed;
+  return sideToMoveRemaining(g);
 }
 
-/** Flag every board whose clock has already hit zero (works after long offline gaps). */
+/** Flag only the side to move, and only when their bank is truly empty. */
 async function checkTimedOutGames(){
   if(!T||T.status!=='playing') return;
   const games=T.games||{};
@@ -1960,17 +1973,16 @@ async function checkTimedOutGames(){
     const g=games[gid];
     if(!g||g.status!=='active') continue;
     if(flaggingGames[gid]) continue;
-    if(gameRemainingSec(g)>0) continue;
+    if(!clocksAreLive(g)) continue;
+    // Must be clearly out of time (side to move only)
+    if(sideToMoveRemaining(g)>0) continue;
     expired.push(gid);
   }
   if(!expired.length) return;
   const ref=db.collection('mcps_tournaments').doc(DOC_ID);
   for(const gid of expired){
     flaggingGames[gid]=true;
-    const g=games[gid];
-    const result=g.turn==='w'?'0-1':'1-0';
     try{
-      let applied=false;
       await db.runTransaction(async (tx)=>{
         const snap=await tx.get(ref);
         if(!snap.exists) return;
@@ -1979,17 +1991,24 @@ async function checkTimedOutGames(){
         const cur=(state.games||{})[gid];
         if(!cur||cur.status!=='active') return;
         if(T&&T.runId&&cur.runId!==T.runId) return;
-        // Never flag a game before the first move (clocks not started)
-        if(!gameClocksStarted(cur)) return;
-        const base=cur.turn==='w'?(cur.whiteTime||BASE_TIME):(cur.blackTime||BASE_TIME);
+        if(cur.clockPaused) return;
+        if(state.status!=='playing') return;
+        const side=cur.turn==='b'?'b':'w';
+        const bank=side==='w'?(typeof cur.whiteTime==='number'?cur.whiteTime:BASE_TIME):(typeof cur.blackTime==='number'?cur.blackTime:BASE_TIME);
         const anchor=tsMillis(cur.lastMoveAt)||tsMillis(cur.clockStartedAt)||0;
         if(!anchor) return;
-        const left=base-Math.floor((Date.now()-anchor)/1000);
-        if(left>-1) return; // need full zero + tiny grace against lag
-        const res=cur.turn==='w'?'0-1':'1-0';
-        // Snapshot both clocks at flag time
-        let fW=cur.whiteTime||BASE_TIME, fB=cur.blackTime||BASE_TIME;
-        if(cur.turn==='w') fW=0; else fB=0;
+        let elapsed=Math.floor((Date.now()-anchor)/1000);
+        if(elapsed<0) elapsed=0;
+        if(elapsed>bank+60) elapsed=bank+60;
+        const left=bank-elapsed;
+        // Still has time → do NOT flag (fixes "I had time but lost")
+        if(left>0) return;
+        // Only the side to move loses. No moves + White to move → White flags (0-1).
+        // Black cannot flag until it is Black's turn (after White has moved).
+        const res=side==='w'?'0-1':'1-0';
+        let fW=(typeof cur.whiteTime==='number'?cur.whiteTime:BASE_TIME);
+        let fB=(typeof cur.blackTime==='number'?cur.blackTime:BASE_TIME);
+        if(side==='w') fW=0; else fB=0;
         const players=(state.players||[]).map(p=>({...p}));
         const w=players.find(p=>p.id===cur.whiteId);
         const b=players.find(p=>p.id===cur.blackId);
@@ -2000,7 +2019,8 @@ async function checkTimedOutGames(){
           ['games.'+gid+'.finalBlackTime']:fB,
           ['games.'+gid+'.whiteTime']:fW,
           ['games.'+gid+'.blackTime']:fB,
-          ['games.'+gid+'.clockPaused']:true
+          ['games.'+gid+'.clockPaused']:true,
+          ['games.'+gid+'.endedBy']:'timeout'
         };
         if(w&&b&&!cur.eloApplied){
           let scoreW=res==='1-0'?1:(res==='0-1'?0:0.5);
@@ -2018,32 +2038,101 @@ async function checkTimedOutGames(){
           updates['games.'+gid+'.blackEloDelta']=dB;
         }
         tx.update(ref, updates);
-        applied=true;
       });
-      if(!applied){
-        await ref.update({
-          ['games.'+gid+'.status']:'done',
-          ['games.'+gid+'.result']:result
-        }).catch(()=>{});
-        await finalizeResult(gid,result);
-      }
+      // NO non-transaction fallback that can force a result without checks
     }catch(e){
       console.error('time forfeit',e);
-      try{
-        await ref.update({['games.'+gid+'.status']:'done',['games.'+gid+'.result']:result});
-        await finalizeResult(gid,result);
-      }catch(e2){ console.error('forfeit fallback',e2); }
     } finally {
       setTimeout(()=>{ delete flaggingGames[gid]; },5000);
     }
   }
 }
 
+
 /**
  * Catch up after the arena was left empty: flag dead clocks, end the round,
  * and auto-leave an expired break — no player click required.
  * (Still needs at least one open browser tab; pure offline needs Cloud Functions.)
  */
+/**
+ * Undo bogus results: any "finished" game that still has ZERO moves is illegal
+ * (starting position cannot be a real 1-0 / 0-1). Reset it so kids can play.
+ */
+let repairingFalse=false;
+async function repairFalseResults(){
+  if(!T||repairingFalse) return;
+  if(T.status!=='playing'&&T.status!=='break') return;
+  const games=T.games||{};
+  const bad=[];
+  for(const gid of Object.keys(games)){
+    const g=games[gid];
+    if(!g) continue;
+    if(!(g.status==='done'||g.result)) continue;
+    if(moveCountOf(g)>=1) continue;
+    // Zero moves: only White can legitimately lose (0-1 no-show). Any 1-0 is impossible.
+    if(g.result==='0-1') continue; // valid White no-show
+    bad.push(gid);
+  }
+  if(!bad.length) return;
+  repairingFalse=true;
+  const ref=db.collection('mcps_tournaments').doc(DOC_ID);
+  try{
+    for(const gid of bad){
+      try{
+        await db.runTransaction(async (tx)=>{
+          const snap=await tx.get(ref);
+          if(!snap.exists) return;
+          const state=snap.data();
+          const cur=(state.games||{})[gid];
+          if(!cur) return;
+          if(moveCountOf(cur)>=1) return; // real game now
+          if(!(cur.status==='done'||cur.result)) return;
+          // Roll back scores if elo was applied for this phantom result
+          const players=(state.players||[]).map(p=>({...p}));
+          if(cur.eloApplied&&cur.result){
+            const w=players.find(p=>p.id===cur.whiteId);
+            const b=players.find(p=>p.id===cur.blackId);
+            if(w&&b){
+              let scoreW=cur.result==='1-0'?1:(cur.result==='0-1'?0:0.5);
+              w.score=Math.max(0,(w.score||0)-scoreW);
+              b.score=Math.max(0,(b.score||0)-(1-scoreW));
+              w.played=Math.max(0,(w.played||0)-1);
+              b.played=Math.max(0,(b.played||0)-1);
+              if(cur.whiteEloDelta!=null) w.rating=(w.rating||1500)-(cur.whiteEloDelta||0);
+              if(cur.blackEloDelta!=null) b.rating=(b.rating||1500)-(cur.blackEloDelta||0);
+            }
+          }
+          const updates={
+            players,
+            ['games.'+gid+'.status']:'active',
+            ['games.'+gid+'.result']:null,
+            ['games.'+gid+'.eloApplied']:false,
+            ['games.'+gid+'.whiteEloDelta']:null,
+            ['games.'+gid+'.blackEloDelta']:null,
+            ['games.'+gid+'.whiteTime']:BASE_TIME,
+            ['games.'+gid+'.blackTime']:BASE_TIME,
+            ['games.'+gid+'.finalWhiteTime']:null,
+            ['games.'+gid+'.finalBlackTime']:null,
+            ['games.'+gid+'.clocksStarted']:false,
+            ['games.'+gid+'.clockStartedAt']:null,
+            ['games.'+gid+'.lastMoveAt']:null,
+            ['games.'+gid+'.clockPaused']:false,
+            ['games.'+gid+'.endedBy']:null,
+            ['games.'+gid+'.fen']:new Chess().fen(),
+            ['games.'+gid+'.pgn']:'',
+            ['games.'+gid+'.turn']:'w',
+            ['games.'+gid+'.drawOfferFrom']:null
+          };
+          tx.update(ref, updates);
+        });
+        console.warn('Repaired false result on', gid);
+      }catch(e){ console.error('repair', gid, e); }
+    }
+  } finally {
+    repairingFalse=false;
+  }
+}
+
 let catchingUp=false;
 async function catchUpTournament(){
   if(!T||catchingUp) return;
@@ -2054,15 +2143,16 @@ async function catchUpTournament(){
       return;
     }
     if(T.status==='playing'){
+      await repairFalseResults();
       await checkTimedOutGames();
       await reconcilePendingResults();
       // force only finishes a completed round → break (does not skip break timer)
       await maybeAdvanceRound(true);
     }
     if(T&&T.status==='break'){
+      await repairFalseResults();
       const end=tsMillis(T.breakEndsAt);
       if(!end){
-        // Ensure a full 2:00 break exists
         try{
           const ends=firebase.firestore.Timestamp.fromMillis(Date.now()+BREAK_SEC*1000);
           await db.collection('mcps_tournaments').doc(DOC_ID).update({breakEndsAt:ends});
@@ -2070,7 +2160,6 @@ async function catchUpTournament(){
       } else if(Date.now()>=end){
         await startNextRoundNow();
       }
-      // else: still in the 2-minute break — do nothing
     }
   }catch(e){
     console.error('catchUp', e);
@@ -2397,10 +2486,6 @@ function updatePlayStatus(){
   const live=clocksAreLive(g);
   if(frozenEl) frozenEl.classList.toggle('hidden', live || g.status==='done');
   if(g.status==='done'){document.getElementById('play-status').textContent='Game over · '+g.result;return;}
-  if(!gameClocksStarted(g) && g.status==='active' && T&&T.status==='playing'){
-    document.getElementById('play-status').textContent='Make the first move — clocks start then (full 10:00)';
-    return;
-  }
   if(!live){
     document.getElementById('play-status').textContent=(T&&T.status==='break')?'Break — clocks frozen':'Waiting…';
     return;
@@ -2496,21 +2581,25 @@ async function pushMove(move, prevFen){
       if((g.turn||'w')!==moveColor) throw new Error('Wait for your turn');
 
       const now=Date.now();
-      let wt=g.whiteTime||BASE_TIME, bt=g.blackTime||BASE_TIME;
-      const firstMove=!gameClocksStarted(g);
-      if(firstMove){
-        // First move of the game: start clocks NOW — no time charged for waiting
-        wt=BASE_TIME; bt=BASE_TIME;
+      // Always read times from the transaction snapshot (not a stale client cache)
+      let wt=(typeof g.whiteTime==='number')?g.whiteTime:BASE_TIME;
+      let bt=(typeof g.blackTime==='number')?g.blackTime:BASE_TIME;
+      // Deduct ONLY the mover's elapsed time since lastMoveAt. Opponent bank untouched.
+      const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||now;
+      let elapsed=Math.max(0,Math.floor((now-anchor)/1000));
+      // Guard against corrupt timestamps wiping a clock
+      const bankNow=moveColor==='w'?wt:bt;
+      if(elapsed>bankNow+60) elapsed=bankNow+60;
+      if(moveColor==='w'){
+        const left=wt-elapsed;
+        if(left<=-2) throw new Error('Flag — time is up');
+        wt=Math.max(0,left)+INC;
+        // bt unchanged
       } else {
-        const anchor=tsMillis(g.lastMoveAt)||tsMillis(g.clockStartedAt)||now;
-        const elapsed=Math.max(0,Math.floor((now-anchor)/1000));
-        if(moveColor==='w'){
-          if(wt-elapsed<=-2) throw new Error('Flag — time is up');
-          wt=Math.max(0,wt-elapsed)+INC;
-        } else {
-          if(bt-elapsed<=-2) throw new Error('Flag — time is up');
-          bt=Math.max(0,bt-elapsed)+INC;
-        }
+        const left=bt-elapsed;
+        if(left<=-2) throw new Error('Flag — time is up');
+        bt=Math.max(0,left)+INC;
+        // wt unchanged
       }
 
       const updates={
@@ -2521,7 +2610,7 @@ async function pushMove(move, prevFen){
         ['games.'+gid+'.whiteTime']:wt,
         ['games.'+gid+'.blackTime']:bt,
         ['games.'+gid+'.lastMoveAt']:now,
-        ['games.'+gid+'.clockStartedAt']:firstMove?now:(g.clockStartedAt||now),
+        ['games.'+gid+'.clockStartedAt']:g.clockStartedAt||now,
         ['games.'+gid+'.clocksStarted']:true,
         ['games.'+gid+'.clockPaused']:false,
         ['games.'+gid+'.drawOfferFrom']:null
@@ -2531,6 +2620,7 @@ async function pushMove(move, prevFen){
         updates['games.'+gid+'.finalWhiteTime']=wt;
         updates['games.'+gid+'.finalBlackTime']=bt;
         updates['games.'+gid+'.clockPaused']=true;
+        updates['games.'+gid+'.endedBy']='mate_or_draw';
       }
       tx.update(ref, updates);
       finalWt=wt; finalBt=bt; finalNow=now; wrote=true;
@@ -2644,8 +2734,6 @@ function updateClockDisplay(){
     const elapsed=Math.floor((Date.now()-anchor)/1000);
     if(g.turn==='w') wt=Math.max(0,(g.whiteTime||BASE_TIME)-elapsed);
     else bt=Math.max(0,(g.blackTime||BASE_TIME)-elapsed);
-  } else if(!gameClocksStarted(g) && g.status==='active'){
-    wt=BASE_TIME; bt=BASE_TIME;
   }
   const myColor=me&&g.whiteId===me.id?'w':'b';
   const topIsWhite=myColor==='b';
@@ -2811,7 +2899,7 @@ function syncSpecBoard(){
     }
   }
   if(g.status==='done'||g.result) document.getElementById('spec-status').textContent='Final '+g.result;
-  else if(!gameClocksStarted(g)) document.getElementById('spec-status').textContent='Waiting for first move — clocks not started';
+  else if(!clocksAreLive(g)) document.getElementById('spec-status').textContent=(T&&T.status==='break')?'Break — clocks frozen':'Paused';
   else if(!live) document.getElementById('spec-status').textContent=(T&&T.status==='break')?'Break — clocks frozen':'Paused';
   else document.getElementById('spec-status').textContent=(g.turn==='w'?'White':'Black')+' to move';
   updateSpecClocks();
@@ -2826,8 +2914,6 @@ function updateSpecClocks(){
     const elapsed=Math.floor((Date.now()-anchor)/1000);
     if(g.turn==='w') wt=Math.max(0,(g.whiteTime||BASE_TIME)-elapsed);
     else bt=Math.max(0,(g.blackTime||BASE_TIME)-elapsed);
-  } else if(!gameClocksStarted(g) && g.status==='active'){
-    wt=BASE_TIME; bt=BASE_TIME;
   }
   const live=clocksAreLive(g);
   document.getElementById('spec-clock-bottom').textContent=fmtTime(wt);
