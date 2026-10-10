@@ -35,6 +35,14 @@ input:focus{border-color:rgba(232,197,71,.5)}
 .highlight-select{box-shadow:inset 0 0 0 4px rgba(255,255,0,.9)!important}
 .highlight-legal{position:relative}
 .highlight-legal::after{content:'';position:absolute;left:50%;top:50%;width:18%;height:18%;min-width:9px;min-height:9px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(0,0,0,.28);pointer-events:none;z-index:2}
+/* Last move: chess.com-style amber wash on from/to squares */
+.highlight-last{box-shadow:inset 0 0 0 3px rgba(250,204,21,.75)!important}
+.board-b72b1 .white-1e1d7.highlight-last,
+#board .white-1e1d7.highlight-last,
+#spec-board .white-1e1d7.highlight-last{background-color:#f6f669!important}
+.board-b72b1 .black-3c85d.highlight-last,
+#board .black-3c85d.highlight-last,
+#spec-board .black-3c85d.highlight-last{background-color:#baca2b!important}
 .side-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:800}
 .side-white{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#f8fafc}
 .side-black{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.12);color:#e2e8f0}
@@ -530,18 +538,41 @@ const BREAK_SEC=120;
 const K_FACTOR=20;
 const TOTAL_ROUNDS=5; // full RR for 6 players (each plays 5 games)
 const DOTUN=['audio/well-done.mp3','audio/well-done-chap.mp3','audio/great-job.mp3','audio/excellent.mp3','audio/that-was-a-strong-game.mp3'];
-// Chess pieces: Wikipedia set as primary (clear white vs black colours, reliable CDN).
-// Chess.com neo as secondary fallback if wiki images fail.
+// Chess pieces: Wikipedia set as primary (clear white vs black colours).
+// Stable theme fn + preload so pieces never flash blank on each move.
 const WIKI_PIECE_BASE='https://chessboardjs.com/img/chesspieces/wikipedia/';
 const CHESSCOM_PIECE_BASE='https://www.chess.com/chess-themes/pieces/neo/150/';
 const PIECE_FILE={wP:'wp',wR:'wr',wN:'wn',wB:'wb',wQ:'wq',wK:'wk',bP:'bp',bR:'br',bN:'bn',bB:'bb',bQ:'bq',bK:'bk'};
-function pieceThemeUrl(){
-  return function(p){
-    const code=PIECE_FILE[p]||p;
-    // Primary: Wikipedia — distinct light (white) and dark (black) pieces
-    return WIKI_PIECE_BASE+code+'.png';
+const PIECE_THEME_FN=function(p){
+  const code=PIECE_FILE[p]||String(p||'').toLowerCase();
+  return WIKI_PIECE_BASE+code+'.png';
+};
+function pieceThemeUrl(){ return PIECE_THEME_FN; }
+/** Shared ChessBoard options — appearSpeed 0 prevents pieces vanishing on redraw */
+function boardOptions(position, orientation){
+  return {
+    position:position||'start',
+    orientation:orientation||'white',
+    draggable:false,
+    pieceTheme:PIECE_THEME_FN,
+    appearSpeed:0,
+    moveSpeed:150,
+    snapbackSpeed:0,
+    snapSpeed:0,
+    trashSpeed:0
   };
 }
+function preloadPieceImages(){
+  try{
+    Object.keys(PIECE_FILE).forEach(function(k){
+      const im=new Image();
+      im.src=WIKI_PIECE_BASE+PIECE_FILE[k]+'.png';
+      const im2=new Image();
+      im2.src=CHESSCOM_PIECE_BASE+PIECE_FILE[k]+'.png';
+    });
+  }catch(e){}
+}
+preloadPieceImages();
 document.addEventListener('error',function(e){
   const img=e&&e.target;
   if(!img||img.tagName!=='IMG')return;
@@ -549,18 +580,36 @@ document.addEventListener('error',function(e){
   const m=src.match(/\/([wb][prnbqk])\.png(?:[?#].*)?$/i);
   if(!m) return;
   const code=m[1].toLowerCase();
-  // If Wikipedia failed, try Chess.com neo (still colour-correct)
   if(src.includes('chessboardjs.com')){
     const neo=CHESSCOM_PIECE_BASE+code+'.png';
     if(img.src!==neo) img.src=neo;
     return;
   }
-  // If Chess.com also failed, last resort: try Wikipedia again once
   if(src.includes('chess.com')){
     const wiki=WIKI_PIECE_BASE+code+'.png';
     if(img.src!==wiki) img.src=wiki;
   }
 },true);
+
+/** Update board widgets without full wipe when possible. */
+function safeBoardPosition(b, fen, preferMove){
+  if(!b||!fen) return;
+  const next=fenPieces(fen);
+  let cur='';
+  try{ cur=fenPieces(b.fen&&b.fen()); }catch(e){}
+  if(cur===next) return; // already correct — do not touch DOM
+  // Instant set (false) = no piece disappear / reload flash
+  try{ b.position(fen, false); }catch(e){
+    try{ b.position(next, false); }catch(e2){}
+  }
+}
+function safeBoardMove(b, from, to){
+  if(!b||!from||!to) return false;
+  try{
+    const ok=b.move(from+'-'+to);
+    return ok!==false;
+  }catch(e){ return false; }
+}
 
 const SOUND_MOVE='https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3';
 const SOUND_CAPTURE='https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/capture.mp3';
@@ -2299,20 +2348,51 @@ async function openGame(gameId){
 /** Compare only piece placement — ignore en passant / clocks in FEN so server echo does not re-animate. */
 function fenPieces(f){ return String(f||'').split(/\s+/)[0]||''; }
 
+/** Last move from/to from stored PGN (for highlight). */
+function lastMoveFromPgn(pgn){
+  if(!(pgn||'').trim()) return null;
+  try{
+    const c=new Chess();
+    const tokens=(pgn||'').trim().split(/\s+/).filter(t=>t&&!/^\d+\.+$/.test(t));
+    let last=null;
+    for(let i=0;i<tokens.length;i++){
+      const m=c.move(tokens[i],{sloppy:true});
+      if(m) last=m;
+    }
+    return last?{from:last.from,to:last.to,san:last.san}:null;
+  }catch(e){ return null; }
+}
+
+/** Apply last-move highlight on play or spectator board. Does not clear select/legal dots. */
+function applyLastMoveHighlight(boardSel, pgnOrMove){
+  const root=boardSel||'#board';
+  try{ $(root+' .square-55d63').removeClass('highlight-last'); }catch(e){}
+  let from=null, to=null;
+  if(pgnOrMove&&typeof pgnOrMove==='object'&&pgnOrMove.from){
+    from=pgnOrMove.from; to=pgnOrMove.to;
+  } else {
+    const lm=lastMoveFromPgn(pgnOrMove);
+    if(lm){ from=lm.from; to=lm.to; }
+  }
+  if(from) try{ $(root+' .square-'+from).addClass('highlight-last'); }catch(e){}
+  if(to) try{ $(root+' .square-'+to).addClass('highlight-last'); }catch(e){}
+}
+
 function initPlayBoard(){
   const g=T.games[activeGameId];if(!g)return;
   game=new Chess(g.fen);
   const myColor=g.whiteId===me.id?'w':'b';
   const orient=myColor==='b'?'black':'white';
   if(!board){
-    board=ChessBoard('board',{position:g.fen,orientation:orient,draggable:false,pieceTheme:pieceThemeUrl()});
+    board=ChessBoard('board', boardOptions(g.fen, orient));
     $('#board').on('click','[class*="square-"]',function(){const sq=$(this).attr('data-square');if(sq)onSquareClick(sq);});
   } else {
-    board.orientation(orient);
-    // No animation on init/resync — avoids twitch
-    if(fenPieces(board.fen&&board.fen())!==fenPieces(g.fen)) board.position(g.fen,false);
+    try{
+      if(board.orientation()!==orient) board.orientation(orient);
+    }catch(e){ try{ board.orientation(orient); }catch(e2){} }
+    safeBoardPosition(board, g.fen);
   }
-  // resize only once when board is first created (calling every time causes layout twitch)
+  applyLastMoveHighlight('#board', g.pgn);
   updatePlayLabels();updatePlayStatus();updateClockDisplay();
 }
 
@@ -2337,30 +2417,46 @@ function updatePlayLabels(){
 function syncPlayBoard(){
   if(!activeGameId||!T) return;
   const g=T.games[activeGameId];if(!g)return;
-  if(!game) initPlayBoard();
-  else {
-    const serverPieces=fenPieces(g.fen);
-    const localPieces=fenPieces(game.fen());
-    const boardPieces=fenPieces(board&&board.fen&&board.fen());
-    if(serverPieces!==localPieces){
-      // Real new position (usually opponent move) — animate once
-      const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
-      playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
-      game.load(g.fen);
-      if(boardPieces!==serverPieces) board.position(g.fen,true);
-    } else if(g.fen!==game.fen()){
-      // Same pieces, FEN metadata differs — quiet load, never re-draw board
-      try{game.load(g.fen);}catch(e){}
+  if(!game||!board){ initPlayBoard(); return; }
+
+  const serverPieces=fenPieces(g.fen);
+  const localPieces=fenPieces(game.fen());
+  let boardPieces='';
+  try{ boardPieces=fenPieces(board.fen&&board.fen()); }catch(e){}
+
+  if(serverPieces!==localPieces){
+    // Opponent (or recovery) — update engine, then board WITHOUT full animated rebuild
+    const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
+    const lm=lastMoveFromPgn(g.pgn);
+    playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
+    try{ game.load(g.fen); }catch(e){ game=new Chess(g.fen); }
+    if(boardPieces!==serverPieces){
+      // Prefer single-piece move animation; fall back to instant position (never wipe+fade)
+      let moved=false;
+      if(lm&&lm.from&&lm.to) moved=safeBoardMove(board, lm.from, lm.to);
+      if(!moved) safeBoardPosition(board, g.fen);
+      // If still wrong after move (e.g. promotion), force instant correct position
+      try{
+        if(fenPieces(board.fen&&board.fen())!==serverPieces) safeBoardPosition(board, g.fen);
+      }catch(e){ safeBoardPosition(board, g.fen); }
     }
-    // If local already matches server pieces, do nothing to the board (stops twitch on own-move echo)
+  } else if(g.fen!==game.fen()){
+    try{ game.load(g.fen); }catch(e){}
   }
+  // Own-move server echo: pieces already match — never call position() again
+
+  applyLastMoveHighlight('#board', g.pgn);
   updatePlayLabels();updatePlayStatus();updateClockDisplay();
   if(g.drawOfferFrom&&g.drawOfferFrom!==me.id&&g.status==='active'&&T.status==='playing'){
-    document.getElementById('draw-modal-text').textContent=playerById(g.drawOfferFrom).name+' offers a draw.';
-    openModal('draw-modal');
+    if(canOfferDrawNow()){
+      document.getElementById('draw-modal-text').textContent=playerById(g.drawOfferFrom).name+' offers a draw.';
+      openModal('draw-modal');
+    } else {
+      // Ignore early draw offers (before move 30)
+      db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.drawOfferFrom']:null}).catch(()=>{});
+    }
   }
   if(g.status==='done'&&!resultShownFor[activeGameId]){resultShownFor[activeGameId]=true;showGameResult(g);}
-  // If break began while still on the board, freeze UI (do not keep ticking)
   if(T.status==='break'||T.status==='finished'){
     updateClockDisplay();
     updatePlayStatus();
@@ -2383,7 +2479,7 @@ function updatePlayStatus(){
   document.getElementById('play-status').textContent=t;
 }
 
-function clearHighlights(){$('#board .square-55d63').removeClass('highlight-select highlight-legal');}
+function clearHighlights(){$('#board .square-55d63').removeClass('highlight-select highlight-legal'); /* keep highlight-last */}
 
 function onSquareClick(sq){
   if(!game||!me||!activeGameId||!T) return;
@@ -2410,8 +2506,14 @@ function onSquareClick(sq){
       sourceSquare=null;clearHighlights();
       if(move){
         playMoveSound(!!move.captured, game.in_check());
-        // Animate once locally; server snapshot must not re-animate the same pieces
-        board.position(game.fen(),true);
+        // Move only the piece — do not rebuild the whole board (that caused the flash)
+        let moved=safeBoardMove(board, move.from, move.to);
+        if(!moved) safeBoardPosition(board, game.fen());
+        // Promotion / odd cases: ensure final position is correct, still no animated wipe
+        try{
+          if(fenPieces(board.fen&&board.fen())!==fenPieces(game.fen())) safeBoardPosition(board, game.fen());
+        }catch(e){ safeBoardPosition(board, game.fen()); }
+        applyLastMoveHighlight('#board', {from:move.from,to:move.to});
         pushMove(move, prevFen);
       }
       return;
@@ -2629,15 +2731,40 @@ async function confirmResign(){
   await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.status']:'done',['games.'+activeGameId+'.result']:result});
   await finalizeResult(activeGameId,result);
 }
+/** Half-moves played. Draw only after move 30 (60 half-moves). */
+function movesPlayedCount(g, localGame){
+  if(localGame&&typeof localGame.history==='function'){
+    try{ return localGame.history().length; }catch(e){}
+  }
+  if(!g) return 0;
+  const tokens=(g.pgn||'').trim().split(/\s+/).filter(t=>t&&!/^\d+\.+$/.test(t));
+  return tokens.length;
+}
+function canOfferDrawNow(){
+  const g=activeGameId&&T&&T.games?T.games[activeGameId]:null;
+  return movesPlayedCount(g, game)>=60;
+}
+
 async function offerDraw(){
   if(!activeGameId||!me||!T) return;
   if(T.status!=='playing'){ toast('Break in progress — clocks frozen'); return; }
+  if(!canOfferDrawNow()){
+    const ply=movesPlayedCount(T.games[activeGameId], game);
+    const full=Math.max(1, Math.floor(ply/2));
+    toast('Draw offers unlock after move 30 (now: move '+full+')');
+    return;
+  }
   await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.drawOfferFrom']:me.id});
   toast('Draw offered');
 }
 async function acceptDraw(){
   closeModal('draw-modal');
   if(!activeGameId) return;
+  if(!canOfferDrawNow()){
+    toast('Draws only after move 30');
+    await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.drawOfferFrom']:null});
+    return;
+  }
   await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.status']:'done',['games.'+activeGameId+'.result']:'1/2-1/2',['games.'+activeGameId+'.drawOfferFrom']:null});
   await finalizeResult(activeGameId,'1/2-1/2');
 }
@@ -2735,7 +2862,7 @@ function applySpecReplayPosition(animate){
   const ply=followingLive?max:specReplayPly;
   const fen=specReplayFens[ply]||g.fen||'start';
   if(!specBoard){
-    specBoard=ChessBoard('spec-board',{position:fen,draggable:false,pieceTheme:pieceThemeUrl()});
+    specBoard=ChessBoard('spec-board', boardOptions(fen, 'white'));
   } else {
     const prevPieces=fenPieces(specBoard.fen&&specBoard.fen());
     const nextPieces=fenPieces(fen);
@@ -2743,9 +2870,37 @@ function applySpecReplayPosition(animate){
       if(animate&&!followingLive){
         const san=specReplaySans[ply-1]||'';
         if(san) playMoveSound(san.includes('x'), san.includes('+')||san.includes('#'));
+        // Prefer single-step move when replaying
+        let moved=false;
+        if(ply>0){
+          try{
+            const c=new Chess();
+            let last=null;
+            for(let i=0;i<ply&&i<specReplaySans.length;i++) last=c.move(specReplaySans[i],{sloppy:true})||last;
+            if(last) moved=safeBoardMove(specBoard, last.from, last.to);
+          }catch(e){}
+        }
+        if(!moved) safeBoardPosition(specBoard, fen);
+      } else {
+        safeBoardPosition(specBoard, fen);
       }
-      specBoard.position(fen,!!animate);
     }
+  }
+  // Highlight the move that led to this ply (or live last move)
+  if(followingLive){
+    applyLastMoveHighlight('#spec-board', g.pgn);
+  } else if(ply>0&&specReplaySans[ply-1]){
+    // Rebuild only up to this ply for from/to
+    try{
+      const c=new Chess();
+      let last=null;
+      for(let i=0;i<ply&&i<specReplaySans.length;i++){
+        last=c.move(specReplaySans[i],{sloppy:true})||last;
+      }
+      applyLastMoveHighlight('#spec-board', last?{from:last.from,to:last.to}:null);
+    }catch(e){ applyLastMoveHighlight('#spec-board', null); }
+  } else {
+    applyLastMoveHighlight('#spec-board', null);
   }
   // Labels
   const label=document.getElementById('spec-replay-label');
@@ -2795,16 +2950,23 @@ function syncSpecBoard(){
   } else {
     const next=g.fen||'start';
     if(!specBoard){
-      specBoard=ChessBoard('spec-board',{position:next,draggable:false,pieceTheme:pieceThemeUrl()});
+      specBoard=ChessBoard('spec-board', boardOptions(next, 'white'));
     } else {
       const prevPieces=fenPieces(specBoard.fen&&specBoard.fen());
       const nextPieces=fenPieces(next);
       if(prevPieces!==nextPieces){
         const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
         playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
-        specBoard.position(next,true);
+        const lm=lastMoveFromPgn(g.pgn);
+        let moved=false;
+        if(lm) moved=safeBoardMove(specBoard, lm.from, lm.to);
+        if(!moved) safeBoardPosition(specBoard, next);
+        try{
+          if(fenPieces(specBoard.fen&&specBoard.fen())!==nextPieces) safeBoardPosition(specBoard, next);
+        }catch(e){ safeBoardPosition(specBoard, next); }
       }
     }
+    applyLastMoveHighlight('#spec-board', g.pgn);
     // Update labels only — do not call position() again (that caused double redraw / twitch)
     const label=document.getElementById('spec-replay-label');
     const sanEl=document.getElementById('spec-move-san');
