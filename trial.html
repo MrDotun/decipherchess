@@ -635,6 +635,7 @@ const ROSTER=[
 ];
 
 let me=null,T=null,unsub=null;
+let visitorMode=false; // true when user chose "Watch as visitor" (no player login)
 let board=null,specBoard=null,game=null;
 let activeGameId=null,specGameId=null,sourceSquare=null;
 // Spectator replay: null = follow live; number = ply index (0 = start, length = latest)
@@ -1056,10 +1057,15 @@ function routeByTime(){
   }
 
   if(now<r1){
-    // Between doors and pairing — waiting room (after login) or welcome
-    if(me || loadMe()){
+    // Between doors and pairing — waiting room (player or visitor) or welcome
+    if(isEntered()){
       hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
-      document.getElementById('wait-who').textContent=me?('Logged in as '+me.name):'';
+      const who=document.getElementById('wait-who');
+      if(who){
+        if(me) who.textContent='Logged in as '+me.name;
+        else if(visitorMode||loadVisitor()) who.textContent='Visitor mode — you can watch when Round 1 starts';
+        else who.textContent='';
+      }
       const left=Math.ceil((r1-now)/1000);
       document.getElementById('wait-count').textContent=fmtCountdown(left);
       document.getElementById('wait-label').textContent='Until Round 1 pairing';
@@ -1067,12 +1073,13 @@ function routeByTime(){
         document.getElementById('wait-message').textContent='Hold tight. When the countdown ends everyone is paired for Round 1 — clocks start then.';
       }
     } else {
-      // show welcome so they can login into waiting
+      // show welcome so they can login or enter as visitor
       if(document.getElementById('screen-login').classList.contains('hidden') &&
-         document.getElementById('screen-welcome').classList.contains('hidden')){
+         document.getElementById('screen-welcome').classList.contains('hidden') &&
+         document.getElementById('screen-waiting').classList.contains('hidden') &&
+         document.getElementById('screen-lobby').classList.contains('hidden')){
         hideAll();document.getElementById('screen-welcome').classList.remove('hidden');
       }
-      // update nothing else
     }
     return;
   }
@@ -1082,8 +1089,14 @@ function routeByTime(){
     if(document.getElementById('screen-play').classList.contains('hidden') &&
        document.getElementById('screen-spec').classList.contains('hidden') &&
        document.getElementById('screen-login').classList.contains('hidden')){
-      if(me || loadMe()){
-        enterLobby();
+      if(isEntered()){
+        // Already on lobby — don't re-hide/show every tick
+        if(document.getElementById('screen-lobby').classList.contains('hidden') &&
+           document.getElementById('screen-waiting').classList.contains('hidden')){
+          enterLobby();
+        } else if(!document.getElementById('screen-waiting').classList.contains('hidden')){
+          enterLobby();
+        }
       } else if(document.getElementById('screen-welcome').classList.contains('hidden') &&
                 document.getElementById('screen-lobby').classList.contains('hidden')){
         hideAll();document.getElementById('screen-welcome').classList.remove('hidden');
@@ -1116,6 +1129,10 @@ function saveMe(){
     const s=JSON.stringify(me);
     sessionStorage.setItem('mcps_trial_me',s);
     localStorage.setItem('mcps_trial_me',s);
+    // Player login replaces visitor mode
+    visitorMode=false;
+    localStorage.removeItem('mcps_trial_visitor');
+    sessionStorage.removeItem('mcps_trial_visitor');
   }catch(e){}
 }
 function loadMe(){
@@ -1125,10 +1142,37 @@ function loadMe(){
   }catch(e){ me=null; }
   return me;
 }
+function saveVisitor(){
+  visitorMode=true;
+  try{
+    localStorage.setItem('mcps_trial_visitor','1');
+    sessionStorage.setItem('mcps_trial_visitor','1');
+  }catch(e){}
+}
+function loadVisitor(){
+  try{
+    if(localStorage.getItem('mcps_trial_visitor')==='1'||sessionStorage.getItem('mcps_trial_visitor')==='1'){
+      visitorMode=true;
+      return true;
+    }
+  }catch(e){}
+  return !!visitorMode;
+}
 function clearMe(){
   me=null;
   try{ sessionStorage.removeItem('mcps_trial_me'); localStorage.removeItem('mcps_trial_me'); }catch(e){}
   clearSavedGame();
+}
+function clearVisitor(){
+  visitorMode=false;
+  try{
+    localStorage.removeItem('mcps_trial_visitor');
+    sessionStorage.removeItem('mcps_trial_visitor');
+  }catch(e){}
+}
+/** Player logged in OR intentional visitor — may enter waiting/lobby */
+function isEntered(){
+  return !!(me || loadMe() || visitorMode || loadVisitor());
 }
 function saveActiveGame(gid){
   try{
@@ -1281,20 +1325,28 @@ function doLogin(){
   if((document.getElementById('login-pass').value||'').trim()!==PASSWORD){toast('Wrong password');return;}
   const p=ROSTER.find(x=>x.id===selectedLoginId);
   me={id:p.id,name:p.name};
+  clearVisitor();
   saveMe();
   if(nowMs()<ROUND1_AT()){
     hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
     document.getElementById('wait-who').textContent='Logged in as '+me.name;
-    routeByTime();
   } else enterLobby();
 }
 function enterAsVisitor(){
   clearMe();
+  saveVisitor();
+  if(nowMs()<DOORS_OPEN_AT()){
+    toast('Arena doors are still closed — wait for the countdown');
+    routeByTime();
+    return;
+  }
   if(nowMs()<ROUND1_AT()){
     hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
-    document.getElementById('wait-who').textContent='Visitor mode — boards open at 5:00 PM';
-    routeByTime();
-  } else enterLobby();
+    document.getElementById('wait-who').textContent='Visitor mode — you can watch when Round 1 starts';
+    // Do NOT call routeByTime() here — it used to kick visitors back to welcome
+  } else {
+    enterLobby();
+  }
 }
 function enterLobby(){
   if(T&&T.status==='finished'){
@@ -2244,6 +2296,9 @@ async function openGame(gameId){
   startClocks();
 }
 
+/** Compare only piece placement — ignore en passant / clocks in FEN so server echo does not re-animate. */
+function fenPieces(f){ return String(f||'').split(/\s+/)[0]||''; }
+
 function initPlayBoard(){
   const g=T.games[activeGameId];if(!g)return;
   game=new Chess(g.fen);
@@ -2252,8 +2307,12 @@ function initPlayBoard(){
   if(!board){
     board=ChessBoard('board',{position:g.fen,orientation:orient,draggable:false,pieceTheme:pieceThemeUrl()});
     $('#board').on('click','[class*="square-"]',function(){const sq=$(this).attr('data-square');if(sq)onSquareClick(sq);});
-  } else {board.orientation(orient);board.position(g.fen,false);}
-  try{if(board.resize) board.resize();}catch(e){}
+  } else {
+    board.orientation(orient);
+    // No animation on init/resync — avoids twitch
+    if(fenPieces(board.fen&&board.fen())!==fenPieces(g.fen)) board.position(g.fen,false);
+  }
+  // resize only once when board is first created (calling every time causes layout twitch)
   updatePlayLabels();updatePlayStatus();updateClockDisplay();
 }
 
@@ -2279,12 +2338,21 @@ function syncPlayBoard(){
   if(!activeGameId||!T) return;
   const g=T.games[activeGameId];if(!g)return;
   if(!game) initPlayBoard();
-  else if(g.fen!==game.fen()){
-    const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
-    const isCap=lastSan.includes('x');
-    const isChk=lastSan.includes('+')||lastSan.includes('#');
-    playMoveSound(isCap,isChk);
-    game.load(g.fen);board.position(g.fen,true);
+  else {
+    const serverPieces=fenPieces(g.fen);
+    const localPieces=fenPieces(game.fen());
+    const boardPieces=fenPieces(board&&board.fen&&board.fen());
+    if(serverPieces!==localPieces){
+      // Real new position (usually opponent move) — animate once
+      const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
+      playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
+      game.load(g.fen);
+      if(boardPieces!==serverPieces) board.position(g.fen,true);
+    } else if(g.fen!==game.fen()){
+      // Same pieces, FEN metadata differs — quiet load, never re-draw board
+      try{game.load(g.fen);}catch(e){}
+    }
+    // If local already matches server pieces, do nothing to the board (stops twitch on own-move echo)
   }
   updatePlayLabels();updatePlayStatus();updateClockDisplay();
   if(g.drawOfferFrom&&g.drawOfferFrom!==me.id&&g.status==='active'&&T.status==='playing'){
@@ -2342,7 +2410,8 @@ function onSquareClick(sq){
       sourceSquare=null;clearHighlights();
       if(move){
         playMoveSound(!!move.captured, game.in_check());
-        board.position(game.fen());
+        // Animate once locally; server snapshot must not re-animate the same pieces
+        board.position(game.fen(),true);
         pushMove(move, prevFen);
       }
       return;
@@ -2668,8 +2737,9 @@ function applySpecReplayPosition(animate){
   if(!specBoard){
     specBoard=ChessBoard('spec-board',{position:fen,draggable:false,pieceTheme:pieceThemeUrl()});
   } else {
-    const prev=specBoard.fen&&specBoard.fen();
-    if(prev!==fen){
+    const prevPieces=fenPieces(specBoard.fen&&specBoard.fen());
+    const nextPieces=fenPieces(fen);
+    if(prevPieces!==nextPieces){
       if(animate&&!followingLive){
         const san=specReplaySans[ply-1]||'';
         if(san) playMoveSound(san.includes('x'), san.includes('+')||san.includes('#'));
@@ -2719,7 +2789,7 @@ function syncSpecBoard(){
   document.getElementById('spec-rating-top').textContent='Rating '+(b.rating||0);
 
   refreshSpecReplayData();
-  // If spectator is reviewing history, keep their ply; otherwise follow live
+  // If spectator is reviewing history, keep their ply; otherwise follow live once
   if(specReplayPly!==null){
     applySpecReplayPosition(false);
   } else {
@@ -2727,16 +2797,21 @@ function syncSpecBoard(){
     if(!specBoard){
       specBoard=ChessBoard('spec-board',{position:next,draggable:false,pieceTheme:pieceThemeUrl()});
     } else {
-      const prev=specBoard.fen&&specBoard.fen();
-      if(prev&&prev!==next){
+      const prevPieces=fenPieces(specBoard.fen&&specBoard.fen());
+      const nextPieces=fenPieces(next);
+      if(prevPieces!==nextPieces){
         const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
         playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
         specBoard.position(next,true);
-      } else if(!prev){
-        specBoard.position(next,false);
       }
     }
-    applySpecReplayPosition(false);
+    // Update labels only — do not call position() again (that caused double redraw / twitch)
+    const label=document.getElementById('spec-replay-label');
+    const sanEl=document.getElementById('spec-move-san');
+    const liveBtn=document.getElementById('spec-btn-live');
+    if(label) label.textContent=g.status==='done'?'Final position · use ◀ to review':'Live position · use ◀ to review missed moves';
+    if(sanEl) sanEl.textContent=specReplaySans.length?('Last: '+specReplaySans[specReplaySans.length-1]):'No moves yet';
+    if(liveBtn){ liveBtn.textContent='● Live'; liveBtn.className='btn-gold'; liveBtn.style.padding='10px 16px'; liveBtn.style.fontSize='11px'; }
   }
 
   const live=clocksAreLive(g);
@@ -2777,6 +2852,7 @@ function updateSpecClocks(){
     sec.textContent='✓';
     overlay.style.display='none';
     loadMe();
+    loadVisitor();
     resumeAttempted=false;
     // Always subscribe so Restart start-time is shared across every phone
     if(typeof listenTournament==='function') listenTournament();
