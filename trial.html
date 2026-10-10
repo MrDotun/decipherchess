@@ -73,7 +73,7 @@ th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.07em;
 td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
 .hero-glow{background:radial-gradient(ellipse at 50% 0%,rgba(251,191,36,.15),transparent 60%)}
 /* Waiting room */
-.wait-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;position:relative;overflow:hidden}
+.wait-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;position:relative;overflow-x:hidden;overflow-y:auto}
 .wait-wrap::before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(251,191,36,.12),transparent 70%);top:50%;left:50%;transform:translate(-50%,-55%);animation:softPulse 3s ease-in-out infinite}
 .wait-ring{width:160px;height:160px;border-radius:50%;border:3px solid rgba(251,191,36,.15);border-top-color:#fbbf24;animation:spinRing 1.2s linear infinite;margin:0 auto 20px;position:relative}
 .wait-ring .piece{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3rem;animation:floaty 2.5s ease-in-out infinite}
@@ -118,16 +118,17 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
 <!-- GATES CLOSED (before doors open) -->
 <div id="screen-closed" class="hidden wait-wrap hero-glow">
   <div class="relative z-10 max-w-md w-full px-4">
+    <button type="button" class="btn-soft w-full mb-4 text-[11px] font-black" onclick="openResetModal()" style="border-color:rgba(232,197,71,.35);color:#fde68a">🔐 Coach · change start time / restart</button>
     <div class="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">Maryland Convent Private School</div>
     <h1 class="text-2xl font-black italic uppercase text-white mb-2">Arena opens soon</h1>
     <p class="text-slate-400 text-sm mb-4" id="closed-schedule-text">Players may enter from <strong class="text-amber-300" id="closed-doors-label">—</strong>. Round 1 pairs at <strong class="text-amber-300" id="closed-round1-label">—</strong>.</p>
     <div class="rounded-2xl overflow-hidden border-2 border-amber-400/40 shadow-xl shadow-amber-500/20 mx-auto max-w-sm mb-5">
-      <img src="Screenshot_20260516-211346.jpg" alt="MCPS Chess Team" class="w-full h-auto object-cover object-top" style="display:block;min-height:240px;max-height:420px;width:100%;transform:scale(1.06);transform-origin:center top">
+      <img src="Screenshot_20260516-211346.jpg" alt="MCPS Chess Team" class="w-full h-auto object-cover object-top" style="display:block;min-height:180px;max-height:280px;width:100%;transform:scale(1.06);transform-origin:center top">
     </div>
     <p class="text-[11px] font-bold text-amber-300/90 mb-4 uppercase tracking-widest">Our championship squad</p>
     <div class="wait-count" id="closed-count">--:--</div>
     <div class="wait-label">Until doors open</div>
-    <button type="button" class="btn-soft mt-6 text-[10px]" onclick="openResetModal()" style="opacity:.85">🔐 Coach · change start time / restart</button>
+    <button type="button" class="btn-soft w-full mt-6 text-[11px] font-black" onclick="openResetModal()" style="border-color:rgba(232,197,71,.35);color:#fde68a">🔐 Coach · change start time / restart</button>
   </div>
 </div>
 
