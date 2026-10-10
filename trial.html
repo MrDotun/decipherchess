@@ -35,14 +35,6 @@ input:focus{border-color:rgba(232,197,71,.5)}
 .highlight-select{box-shadow:inset 0 0 0 4px rgba(255,255,0,.9)!important}
 .highlight-legal{position:relative}
 .highlight-legal::after{content:'';position:absolute;left:50%;top:50%;width:18%;height:18%;min-width:9px;min-height:9px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(0,0,0,.28);pointer-events:none;z-index:2}
-/* Last move: chess.com-style amber wash on from/to squares */
-.highlight-last{box-shadow:inset 0 0 0 3px rgba(250,204,21,.75)!important}
-.board-b72b1 .white-1e1d7.highlight-last,
-#board .white-1e1d7.highlight-last,
-#spec-board .white-1e1d7.highlight-last{background-color:#f6f669!important}
-.board-b72b1 .black-3c85d.highlight-last,
-#board .black-3c85d.highlight-last,
-#spec-board .black-3c85d.highlight-last{background-color:#baca2b!important}
 .side-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:800}
 .side-white{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#f8fafc}
 .side-black{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.12);color:#e2e8f0}
@@ -81,7 +73,7 @@ th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.07em;
 td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
 .hero-glow{background:radial-gradient(ellipse at 50% 0%,rgba(251,191,36,.15),transparent 60%)}
 /* Waiting room */
-.wait-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;position:relative;overflow-x:hidden;overflow-y:auto}
+.wait-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;position:relative;overflow:hidden}
 .wait-wrap::before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(251,191,36,.12),transparent 70%);top:50%;left:50%;transform:translate(-50%,-55%);animation:softPulse 3s ease-in-out infinite}
 .wait-ring{width:160px;height:160px;border-radius:50%;border:3px solid rgba(251,191,36,.15);border-top-color:#fbbf24;animation:spinRing 1.2s linear infinite;margin:0 auto 20px;position:relative}
 .wait-ring .piece{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3rem;animation:floaty 2.5s ease-in-out infinite}
@@ -99,20 +91,11 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
 
 </style>
 <style>
-/* Pieces: keep size/position; force natural colours (no invert/all-white on some phones). */
+/* Keep Chess.com pieces centered and slightly smaller without overriding chessboard.js square positioning. */
 .piece-417db{
   transform:scale(.86) !important;
   transform-origin:center center !important;
-  filter:none !important;
-  -webkit-filter:none !important;
-  opacity:1 !important;
-}
-#board img, #spec-board img{
-  filter:none !important;
-  -webkit-filter:none !important;
-  image-rendering:auto;
-}
-</style>
+}</style>
 </head>
 <body>
 <!-- 10s piece loader -->
@@ -126,17 +109,15 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
 <!-- GATES CLOSED (before doors open) -->
 <div id="screen-closed" class="hidden wait-wrap hero-glow">
   <div class="relative z-10 max-w-md w-full px-4">
-    <button type="button" class="btn-soft w-full mb-4 text-[11px] font-black" onclick="openResetModal()" style="border-color:rgba(232,197,71,.35);color:#fde68a">🔐 Coach · change start time / restart</button>
     <div class="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">Maryland Convent Private School</div>
     <h1 class="text-2xl font-black italic uppercase text-white mb-2">Arena opens soon</h1>
     <p class="text-slate-400 text-sm mb-4" id="closed-schedule-text">Players may enter from <strong class="text-amber-300" id="closed-doors-label">—</strong>. Round 1 pairs at <strong class="text-amber-300" id="closed-round1-label">—</strong>.</p>
     <div class="rounded-2xl overflow-hidden border-2 border-amber-400/40 shadow-xl shadow-amber-500/20 mx-auto max-w-sm mb-5">
-      <img src="Screenshot_20260516-211346.jpg" alt="MCPS Chess Team" class="w-full h-auto object-cover object-top" style="display:block;min-height:180px;max-height:280px;width:100%;transform:scale(1.06);transform-origin:center top">
+      <img src="Screenshot_20260516-211346.jpg" alt="MCPS Chess Team" class="w-full h-auto object-cover object-top" style="display:block;min-height:240px;max-height:420px;width:100%;transform:scale(1.06);transform-origin:center top">
     </div>
     <p class="text-[11px] font-bold text-amber-300/90 mb-4 uppercase tracking-widest">Our championship squad</p>
     <div class="wait-count" id="closed-count">--:--</div>
     <div class="wait-label">Until doors open</div>
-    <button type="button" class="btn-soft w-full mt-6 text-[11px] font-black" onclick="openResetModal()" style="border-color:rgba(232,197,71,.35);color:#fde68a">🔐 Coach · change start time / restart</button>
   </div>
 </div>
 
@@ -162,7 +143,6 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       </ul>
     </div>
     <p class="text-xs text-slate-500 mt-4" id="wait-who"></p>
-    <button type="button" class="btn-soft mt-5 text-[10px] w-full max-w-xs mx-auto block" onclick="openResetModal()" style="opacity:.85">🔐 Coach · change start time / restart</button>
   </div>
 </div>
 
@@ -221,7 +201,6 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       <button type="button" class="btn-gold w-full" onclick="showLogin()">I am a player — enter</button>
       <button type="button" class="btn-blue w-full" onclick="enterAsVisitor()">Watch live games (visitor)</button>
       <a href="index.html" class="btn-soft w-full block text-center">← Academy home</a>
-      <button type="button" class="btn-soft w-full text-[10px]" onclick="openResetModal()" style="opacity:.9">🔐 Coach · change start time / restart</button>
     </div>
   </div>
 </div>
@@ -457,19 +436,6 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
     </div>
     <p class="text-center text-sm font-bold text-slate-300" id="spec-status">Watching…</p>
     <p class="text-center text-[11px] font-black uppercase tracking-wider text-emerald-300 mt-1 hidden" id="spec-clock-frozen">⏱ Clocks frozen — break in progress</p>
-    <!-- Spectator replay (does not affect live clocks / pairings) -->
-    <div class="panel p-3 mt-3" id="spec-replay-panel">
-      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2 text-center">Replay moves</div>
-      <div class="flex items-center justify-center gap-2 flex-wrap">
-        <button type="button" class="btn-soft" style="padding:10px 12px;font-size:14px" onclick="specReplayStart()" title="Start">⏮</button>
-        <button type="button" class="btn-soft" style="padding:10px 14px;font-size:14px" onclick="specReplayPrev()" title="Previous">◀</button>
-        <button type="button" class="btn-gold" style="padding:10px 16px;font-size:11px" onclick="specReplayLive()" id="spec-btn-live">● Live</button>
-        <button type="button" class="btn-soft" style="padding:10px 14px;font-size:14px" onclick="specReplayNext()" title="Next">▶</button>
-        <button type="button" class="btn-soft" style="padding:10px 12px;font-size:14px" onclick="specReplayEnd()" title="End">⏭</button>
-      </div>
-      <p class="text-center text-[11px] text-slate-400 mt-2" id="spec-replay-label">Live position</p>
-      <p class="text-center text-xs text-slate-300 font-bold mt-1 min-h-[1.2em]" id="spec-move-san"></p>
-    </div>
   </div>
 </div>
 
@@ -538,26 +504,14 @@ const BREAK_SEC=120;
 const K_FACTOR=20;
 const TOTAL_ROUNDS=5; // full RR for 6 players (each plays 5 games)
 const DOTUN=['audio/well-done.mp3','audio/well-done-chap.mp3','audio/great-job.mp3','audio/excellent.mp3','audio/that-was-a-strong-game.mp3'];
-// Chess pieces — original setup: Chess.com neo primary, Wikipedia only on image error.
+// Chess pieces loaded from CDN (keeps this file small enough for GitHub).
 const CHESSCOM_PIECE_BASE='https://www.chess.com/chess-themes/pieces/neo/150/';
 const WIKI_PIECE_BASE='https://chessboardjs.com/img/chesspieces/wikipedia/';
 const PIECE_FILE={wP:'wp',wR:'wr',wN:'wn',wB:'wb',wQ:'wq',wK:'wk',bP:'bp',bR:'br',bN:'bn',bB:'bb',bQ:'bq',bK:'bk'};
-const PIECE_THEME_FN=function(p){
-  const code=PIECE_FILE[p]||p;
-  return CHESSCOM_PIECE_BASE+code+'.png';
-};
-function pieceThemeUrl(){ return PIECE_THEME_FN; }
-function boardOptions(position, orientation){
-  return {
-    position:position||'start',
-    orientation:orientation||'white',
-    draggable:false,
-    pieceTheme:PIECE_THEME_FN,
-    appearSpeed:0,
-    moveSpeed:120,
-    snapbackSpeed:0,
-    snapSpeed:0,
-    trashSpeed:0
+function pieceThemeUrl(){
+  return function(p){
+    const code=PIECE_FILE[p]||p;
+    return CHESSCOM_PIECE_BASE+code+'.png';
   };
 }
 document.addEventListener('error',function(e){
@@ -571,25 +525,6 @@ document.addEventListener('error',function(e){
   const wiki=WIKI_PIECE_BASE+code+'.png';
   if(img.src!==wiki && !src.includes('chessboardjs.com')) img.src=wiki;
 },true);
-
-/** Never redraw if pieces already match — stops flicker on every move. */
-function safeBoardPosition(b, fen){
-  if(!b||!fen) return;
-  const next=fenPieces(fen);
-  let cur='';
-  try{ cur=fenPieces(b.fen&&b.fen()); }catch(e){}
-  if(cur===next) return;
-  try{ b.position(fen, false); }catch(e){
-    try{ b.position(next, false); }catch(e2){}
-  }
-}
-function safeBoardMove(b, from, to){
-  if(!b||!from||!to) return false;
-  try{
-    const ok=b.move(from+'-'+to);
-    return ok!==false;
-  }catch(e){ return false; }
-}
 
 const SOUND_MOVE='https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3';
 const SOUND_CAPTURE='https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/capture.mp3';
@@ -658,19 +593,14 @@ const ROSTER=[
   {id:'p1',name:'Chierika Onele',rating:1623},
   {id:'p2',name:'Obi Chukwuemeka',rating:1623},
   {id:'p3',name:'Oluwaseun Ajayi',rating:1332},
-  {id:'p4',name:'Beckley Semilore',rating:1580},
+  {id:'p4',name:'Beckley Semilore',rating:1456},
   {id:'p5',name:'Osafile Sage',rating:1330},
   {id:'p6',name:'Princewill Isioma',rating:1330}
 ];
 
 let me=null,T=null,unsub=null;
-let visitorMode=false; // true when user chose "Watch as visitor" (no player login)
 let board=null,specBoard=null,game=null;
 let activeGameId=null,specGameId=null,sourceSquare=null;
-// Spectator replay: null = follow live; number = ply index (0 = start, length = latest)
-let specReplayPly=null;
-let specReplayFens=[]; // [startFen, after move1, after move2, ...]
-let specReplaySans=[]; // SAN for each move
 let clockTimer=null,phaseTimer=null,forfeitTimer=null;
 let selectedLoginId=null,resultShownFor={};
 let advancing=false;
@@ -1086,15 +1016,10 @@ function routeByTime(){
   }
 
   if(now<r1){
-    // Between doors and pairing — waiting room (player or visitor) or welcome
-    if(isEntered()){
+    // Between doors and pairing — waiting room (after login) or welcome
+    if(me || loadMe()){
       hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
-      const who=document.getElementById('wait-who');
-      if(who){
-        if(me) who.textContent='Logged in as '+me.name;
-        else if(visitorMode||loadVisitor()) who.textContent='Visitor mode — you can watch when Round 1 starts';
-        else who.textContent='';
-      }
+      document.getElementById('wait-who').textContent=me?('Logged in as '+me.name):'';
       const left=Math.ceil((r1-now)/1000);
       document.getElementById('wait-count').textContent=fmtCountdown(left);
       document.getElementById('wait-label').textContent='Until Round 1 pairing';
@@ -1102,13 +1027,12 @@ function routeByTime(){
         document.getElementById('wait-message').textContent='Hold tight. When the countdown ends everyone is paired for Round 1 — clocks start then.';
       }
     } else {
-      // show welcome so they can login or enter as visitor
+      // show welcome so they can login into waiting
       if(document.getElementById('screen-login').classList.contains('hidden') &&
-         document.getElementById('screen-welcome').classList.contains('hidden') &&
-         document.getElementById('screen-waiting').classList.contains('hidden') &&
-         document.getElementById('screen-lobby').classList.contains('hidden')){
+         document.getElementById('screen-welcome').classList.contains('hidden')){
         hideAll();document.getElementById('screen-welcome').classList.remove('hidden');
       }
+      // update nothing else
     }
     return;
   }
@@ -1118,14 +1042,8 @@ function routeByTime(){
     if(document.getElementById('screen-play').classList.contains('hidden') &&
        document.getElementById('screen-spec').classList.contains('hidden') &&
        document.getElementById('screen-login').classList.contains('hidden')){
-      if(isEntered()){
-        // Already on lobby — don't re-hide/show every tick
-        if(document.getElementById('screen-lobby').classList.contains('hidden') &&
-           document.getElementById('screen-waiting').classList.contains('hidden')){
-          enterLobby();
-        } else if(!document.getElementById('screen-waiting').classList.contains('hidden')){
-          enterLobby();
-        }
+      if(me || loadMe()){
+        enterLobby();
       } else if(document.getElementById('screen-welcome').classList.contains('hidden') &&
                 document.getElementById('screen-lobby').classList.contains('hidden')){
         hideAll();document.getElementById('screen-welcome').classList.remove('hidden');
@@ -1158,10 +1076,6 @@ function saveMe(){
     const s=JSON.stringify(me);
     sessionStorage.setItem('mcps_trial_me',s);
     localStorage.setItem('mcps_trial_me',s);
-    // Player login replaces visitor mode
-    visitorMode=false;
-    localStorage.removeItem('mcps_trial_visitor');
-    sessionStorage.removeItem('mcps_trial_visitor');
   }catch(e){}
 }
 function loadMe(){
@@ -1171,37 +1085,10 @@ function loadMe(){
   }catch(e){ me=null; }
   return me;
 }
-function saveVisitor(){
-  visitorMode=true;
-  try{
-    localStorage.setItem('mcps_trial_visitor','1');
-    sessionStorage.setItem('mcps_trial_visitor','1');
-  }catch(e){}
-}
-function loadVisitor(){
-  try{
-    if(localStorage.getItem('mcps_trial_visitor')==='1'||sessionStorage.getItem('mcps_trial_visitor')==='1'){
-      visitorMode=true;
-      return true;
-    }
-  }catch(e){}
-  return !!visitorMode;
-}
 function clearMe(){
   me=null;
   try{ sessionStorage.removeItem('mcps_trial_me'); localStorage.removeItem('mcps_trial_me'); }catch(e){}
   clearSavedGame();
-}
-function clearVisitor(){
-  visitorMode=false;
-  try{
-    localStorage.removeItem('mcps_trial_visitor');
-    sessionStorage.removeItem('mcps_trial_visitor');
-  }catch(e){}
-}
-/** Player logged in OR intentional visitor — may enter waiting/lobby */
-function isEntered(){
-  return !!(me || loadMe() || visitorMode || loadVisitor());
 }
 function saveActiveGame(gid){
   try{
@@ -1354,28 +1241,20 @@ function doLogin(){
   if((document.getElementById('login-pass').value||'').trim()!==PASSWORD){toast('Wrong password');return;}
   const p=ROSTER.find(x=>x.id===selectedLoginId);
   me={id:p.id,name:p.name};
-  clearVisitor();
   saveMe();
   if(nowMs()<ROUND1_AT()){
     hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
     document.getElementById('wait-who').textContent='Logged in as '+me.name;
+    routeByTime();
   } else enterLobby();
 }
 function enterAsVisitor(){
   clearMe();
-  saveVisitor();
-  if(nowMs()<DOORS_OPEN_AT()){
-    toast('Arena doors are still closed — wait for the countdown');
-    routeByTime();
-    return;
-  }
   if(nowMs()<ROUND1_AT()){
     hideAll();document.getElementById('screen-waiting').classList.remove('hidden');
-    document.getElementById('wait-who').textContent='Visitor mode — you can watch when Round 1 starts';
-    // Do NOT call routeByTime() here — it used to kick visitors back to welcome
-  } else {
-    enterLobby();
-  }
+    document.getElementById('wait-who').textContent='Visitor mode — boards open at 5:00 PM';
+    routeByTime();
+  } else enterLobby();
 }
 function enterLobby(){
   if(T&&T.status==='finished'){
@@ -1393,7 +1272,6 @@ function backToLobby(){
     clearSavedGame();
   }
   activeGameId=null;specGameId=null;
-  specReplayPly=null;specReplayFens=[];specReplaySans=[];
   if(clockTimer){clearInterval(clockTimer);clockTimer=null;}
   hideAll();document.getElementById('screen-lobby').classList.remove('hidden');
   renderLobby();
@@ -2325,54 +2203,16 @@ async function openGame(gameId){
   startClocks();
 }
 
-/** Compare only piece placement — ignore en passant / clocks in FEN so server echo does not re-animate. */
-function fenPieces(f){ return String(f||'').split(/\s+/)[0]||''; }
-
-/** Last move from/to from stored PGN (for highlight). */
-function lastMoveFromPgn(pgn){
-  if(!(pgn||'').trim()) return null;
-  try{
-    const c=new Chess();
-    const tokens=(pgn||'').trim().split(/\s+/).filter(t=>t&&!/^\d+\.+$/.test(t));
-    let last=null;
-    for(let i=0;i<tokens.length;i++){
-      const m=c.move(tokens[i],{sloppy:true});
-      if(m) last=m;
-    }
-    return last?{from:last.from,to:last.to,san:last.san}:null;
-  }catch(e){ return null; }
-}
-
-/** Apply last-move highlight on play or spectator board. Does not clear select/legal dots. */
-function applyLastMoveHighlight(boardSel, pgnOrMove){
-  const root=boardSel||'#board';
-  try{ $(root+' .square-55d63').removeClass('highlight-last'); }catch(e){}
-  let from=null, to=null;
-  if(pgnOrMove&&typeof pgnOrMove==='object'&&pgnOrMove.from){
-    from=pgnOrMove.from; to=pgnOrMove.to;
-  } else {
-    const lm=lastMoveFromPgn(pgnOrMove);
-    if(lm){ from=lm.from; to=lm.to; }
-  }
-  if(from) try{ $(root+' .square-'+from).addClass('highlight-last'); }catch(e){}
-  if(to) try{ $(root+' .square-'+to).addClass('highlight-last'); }catch(e){}
-}
-
 function initPlayBoard(){
   const g=T.games[activeGameId];if(!g)return;
   game=new Chess(g.fen);
   const myColor=g.whiteId===me.id?'w':'b';
   const orient=myColor==='b'?'black':'white';
   if(!board){
-    board=ChessBoard('board', boardOptions(g.fen, orient));
+    board=ChessBoard('board',{position:g.fen,orientation:orient,draggable:false,pieceTheme:pieceThemeUrl()});
     $('#board').on('click','[class*="square-"]',function(){const sq=$(this).attr('data-square');if(sq)onSquareClick(sq);});
-  } else {
-    try{
-      if(board.orientation()!==orient) board.orientation(orient);
-    }catch(e){ try{ board.orientation(orient); }catch(e2){} }
-    safeBoardPosition(board, g.fen);
-  }
-  applyLastMoveHighlight('#board', g.pgn);
+  } else {board.orientation(orient);board.position(g.fen,false);}
+  try{if(board.resize) board.resize();}catch(e){}
   updatePlayLabels();updatePlayStatus();updateClockDisplay();
 }
 
@@ -2397,36 +2237,21 @@ function updatePlayLabels(){
 function syncPlayBoard(){
   if(!activeGameId||!T) return;
   const g=T.games[activeGameId];if(!g)return;
-  if(!game||!board){ initPlayBoard(); return; }
-
-  const serverPieces=fenPieces(g.fen);
-  const localPieces=fenPieces(game.fen());
-  let boardPieces='';
-  try{ boardPieces=fenPieces(board.fen&&board.fen()); }catch(e){}
-
-  if(serverPieces!==localPieces){
-    // Opponent / recovery — one update only (original style, no double redraw)
+  if(!game) initPlayBoard();
+  else if(g.fen!==game.fen()){
     const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
-    playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
-    try{ game.load(g.fen); }catch(e){ game=new Chess(g.fen); }
-    if(boardPieces!==serverPieces) safeBoardPosition(board, g.fen);
-  } else if(g.fen!==game.fen()){
-    try{ game.load(g.fen); }catch(e){}
+    const isCap=lastSan.includes('x');
+    const isChk=lastSan.includes('+')||lastSan.includes('#');
+    playMoveSound(isCap,isChk);
+    game.load(g.fen);board.position(g.fen,true);
   }
-  // Own-move echo: pieces already match — do not touch the board widget
-
-  applyLastMoveHighlight('#board', g.pgn);
   updatePlayLabels();updatePlayStatus();updateClockDisplay();
   if(g.drawOfferFrom&&g.drawOfferFrom!==me.id&&g.status==='active'&&T.status==='playing'){
-    if(canOfferDrawNow()){
-      document.getElementById('draw-modal-text').textContent=playerById(g.drawOfferFrom).name+' offers a draw.';
-      openModal('draw-modal');
-    } else {
-      // Ignore early draw offers (before move 30)
-      db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.drawOfferFrom']:null}).catch(()=>{});
-    }
+    document.getElementById('draw-modal-text').textContent=playerById(g.drawOfferFrom).name+' offers a draw.';
+    openModal('draw-modal');
   }
   if(g.status==='done'&&!resultShownFor[activeGameId]){resultShownFor[activeGameId]=true;showGameResult(g);}
+  // If break began while still on the board, freeze UI (do not keep ticking)
   if(T.status==='break'||T.status==='finished'){
     updateClockDisplay();
     updatePlayStatus();
@@ -2449,7 +2274,7 @@ function updatePlayStatus(){
   document.getElementById('play-status').textContent=t;
 }
 
-function clearHighlights(){$('#board .square-55d63').removeClass('highlight-select highlight-legal'); /* keep highlight-last */}
+function clearHighlights(){$('#board .square-55d63').removeClass('highlight-select highlight-legal');}
 
 function onSquareClick(sq){
   if(!game||!me||!activeGameId||!T) return;
@@ -2476,11 +2301,7 @@ function onSquareClick(sq){
       sourceSquare=null;clearHighlights();
       if(move){
         playMoveSound(!!move.captured, game.in_check());
-        // Single piece slide only — never full board.position (that reloads every piece image)
-        if(!safeBoardMove(board, move.from, move.to)){
-          safeBoardPosition(board, game.fen());
-        }
-        applyLastMoveHighlight('#board', {from:move.from,to:move.to});
+        board.position(game.fen());
         pushMove(move, prevFen);
       }
       return;
@@ -2698,40 +2519,15 @@ async function confirmResign(){
   await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.status']:'done',['games.'+activeGameId+'.result']:result});
   await finalizeResult(activeGameId,result);
 }
-/** Half-moves played. Draw only after move 30 (60 half-moves). */
-function movesPlayedCount(g, localGame){
-  if(localGame&&typeof localGame.history==='function'){
-    try{ return localGame.history().length; }catch(e){}
-  }
-  if(!g) return 0;
-  const tokens=(g.pgn||'').trim().split(/\s+/).filter(t=>t&&!/^\d+\.+$/.test(t));
-  return tokens.length;
-}
-function canOfferDrawNow(){
-  const g=activeGameId&&T&&T.games?T.games[activeGameId]:null;
-  return movesPlayedCount(g, game)>=60;
-}
-
 async function offerDraw(){
   if(!activeGameId||!me||!T) return;
   if(T.status!=='playing'){ toast('Break in progress — clocks frozen'); return; }
-  if(!canOfferDrawNow()){
-    const ply=movesPlayedCount(T.games[activeGameId], game);
-    const full=Math.max(1, Math.floor(ply/2));
-    toast('Draw offers unlock after move 30 (now: move '+full+')');
-    return;
-  }
   await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.drawOfferFrom']:me.id});
   toast('Draw offered');
 }
 async function acceptDraw(){
   closeModal('draw-modal');
   if(!activeGameId) return;
-  if(!canOfferDrawNow()){
-    toast('Draws only after move 30');
-    await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.drawOfferFrom']:null});
-    return;
-  }
   await db.collection('mcps_tournaments').doc(DOC_ID).update({['games.'+activeGameId+'.status']:'done',['games.'+activeGameId+'.result']:'1/2-1/2',['games.'+activeGameId+'.drawOfferFrom']:null});
   await finalizeResult(activeGameId,'1/2-1/2');
 }
@@ -2742,155 +2538,8 @@ async function declineDraw(){
   toast('Draw declined');
 }
 
-/** Build FEN history from stored PGN so spectators can step through missed moves. */
-function buildSpecReplayHistory(g){
-  const startFen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-  const fens=[startFen];
-  const sans=[];
-  if(!g||!(g.pgn||'').trim()){
-    // No moves yet — still include current fen if different
-    if(g&&g.fen&&g.fen!==startFen){ fens.push(g.fen); }
-    return {fens,sans};
-  }
-  try{
-    const c=new Chess();
-    const tokens=(g.pgn||'').trim().split(/\s+/).filter(t=>t&&!/^\d+\.+$/.test(t));
-    tokens.forEach(san=>{
-      const m=c.move(san,{sloppy:true});
-      if(m){ sans.push(m.san); fens.push(c.fen()); }
-    });
-  }catch(e){ console.warn('replay parse',e); }
-  // Ensure final server fen is last if parse drifted
-  if(g.fen&&fens[fens.length-1]!==g.fen){
-    // Prefer rebuilt history; if empty, use live fen
-    if(fens.length===1) fens.push(g.fen);
-  }
-  return {fens,sans};
-}
-
-function refreshSpecReplayData(){
-  if(!specGameId||!T||!T.games[specGameId]) return;
-  const hist=buildSpecReplayHistory(T.games[specGameId]);
-  const prevLen=specReplayFens.length;
-  specReplayFens=hist.fens;
-  specReplaySans=hist.sans;
-  // If following live, stay at end. If replaying and new moves arrived, keep ply.
-  if(specReplayPly===null) return;
-  if(specReplayPly>specReplayFens.length-1) specReplayPly=specReplayFens.length-1;
-  // Auto-advance only if user was already at previous end (still "catching up")
-  if(prevLen>0&&specReplayPly===prevLen-1&&specReplayFens.length>prevLen){
-    // stay on historical ply unless they press Live
-  }
-}
-
-function specReplayStart(){
-  if(!specReplayFens.length) refreshSpecReplayData();
-  specReplayPly=0;
-  applySpecReplayPosition(true);
-}
-function specReplayPrev(){
-  if(!specReplayFens.length) refreshSpecReplayData();
-  if(specReplayPly===null) specReplayPly=Math.max(0,specReplayFens.length-1);
-  specReplayPly=Math.max(0,specReplayPly-1);
-  applySpecReplayPosition(true);
-}
-function specReplayNext(){
-  if(!specReplayFens.length) refreshSpecReplayData();
-  if(specReplayPly===null){ toast('Already on live position'); return; }
-  const max=specReplayFens.length-1;
-  if(specReplayPly>=max){
-    specReplayPly=null;
-    applySpecReplayPosition(false);
-    return;
-  }
-  specReplayPly=Math.min(max,specReplayPly+1);
-  if(specReplayPly>=max) specReplayPly=null; // reached live
-  applySpecReplayPosition(true);
-}
-function specReplayEnd(){
-  if(!specReplayFens.length) refreshSpecReplayData();
-  const max=Math.max(0,specReplayFens.length-1);
-  // End of recorded moves (same as live for active games)
-  specReplayPly=null;
-  applySpecReplayPosition(false);
-}
-function specReplayLive(){
-  specReplayPly=null;
-  applySpecReplayPosition(false);
-  toast('Following live board');
-}
-
-function applySpecReplayPosition(animate){
-  if(!specGameId||!T) return;
-  const g=T.games[specGameId];if(!g)return;
-  refreshSpecReplayData();
-  const max=Math.max(0,specReplayFens.length-1);
-  const followingLive=specReplayPly===null;
-  const ply=followingLive?max:specReplayPly;
-  const fen=specReplayFens[ply]||g.fen||'start';
-  if(!specBoard){
-    specBoard=ChessBoard('spec-board', boardOptions(fen, 'white'));
-  } else {
-    const prevPieces=fenPieces(specBoard.fen&&specBoard.fen());
-    const nextPieces=fenPieces(fen);
-    if(prevPieces!==nextPieces){
-      if(animate&&!followingLive){
-        const san=specReplaySans[ply-1]||'';
-        if(san) playMoveSound(san.includes('x'), san.includes('+')||san.includes('#'));
-        // Prefer single-step move when replaying
-        let moved=false;
-        if(ply>0){
-          try{
-            const c=new Chess();
-            let last=null;
-            for(let i=0;i<ply&&i<specReplaySans.length;i++) last=c.move(specReplaySans[i],{sloppy:true})||last;
-            if(last) moved=safeBoardMove(specBoard, last.from, last.to);
-          }catch(e){}
-        }
-        if(!moved) safeBoardPosition(specBoard, fen);
-      } else {
-        safeBoardPosition(specBoard, fen);
-      }
-    }
-  }
-  // Highlight the move that led to this ply (or live last move)
-  if(followingLive){
-    applyLastMoveHighlight('#spec-board', g.pgn);
-  } else if(ply>0&&specReplaySans[ply-1]){
-    // Rebuild only up to this ply for from/to
-    try{
-      const c=new Chess();
-      let last=null;
-      for(let i=0;i<ply&&i<specReplaySans.length;i++){
-        last=c.move(specReplaySans[i],{sloppy:true})||last;
-      }
-      applyLastMoveHighlight('#spec-board', last?{from:last.from,to:last.to}:null);
-    }catch(e){ applyLastMoveHighlight('#spec-board', null); }
-  } else {
-    applyLastMoveHighlight('#spec-board', null);
-  }
-  // Labels
-  const label=document.getElementById('spec-replay-label');
-  const sanEl=document.getElementById('spec-move-san');
-  const liveBtn=document.getElementById('spec-btn-live');
-  if(followingLive){
-    if(label) label.textContent=g.status==='done'?'Final position · use ◀ to review':'Live position · use ◀ to review missed moves';
-    if(sanEl) sanEl.textContent=specReplaySans.length?('Last: '+specReplaySans[specReplaySans.length-1]):'No moves yet';
-    if(liveBtn){ liveBtn.textContent='● Live'; liveBtn.className='btn-gold'; liveBtn.style.padding='10px 16px'; liveBtn.style.fontSize='11px'; }
-  } else {
-    const moveNum=Math.ceil(ply/2)||0;
-    const side=ply%2===1?'White':'Black';
-    if(label) label.textContent='Move '+(ply)+' / '+max+(ply===0?' · Start position':'');
-    if(sanEl) sanEl.textContent=ply>0?(side+' played '+specReplaySans[ply-1]):'Starting position';
-    if(liveBtn){ liveBtn.textContent='↩ Live'; liveBtn.className='btn-soft'; liveBtn.style.padding='10px 16px'; liveBtn.style.fontSize='11px'; }
-  }
-}
-
 function spectateGame(gameId){
   specGameId=gameId;
-  specReplayPly=null;
-  specReplayFens=[];
-  specReplaySans=[];
   hideAll();document.getElementById('screen-spec').classList.remove('hidden');
   syncSpecBoard(true);
   if(clockTimer) clearInterval(clockTimer);
@@ -2909,35 +2558,17 @@ function syncSpecBoard(){
   document.getElementById('spec-side-top').textContent='⬛ Black';
   document.getElementById('spec-name-top').textContent=b.name||'?';
   document.getElementById('spec-rating-top').textContent='Rating '+(b.rating||0);
-
-  refreshSpecReplayData();
-  // If spectator is reviewing history, keep their ply; otherwise follow live once
-  if(specReplayPly!==null){
-    applySpecReplayPosition(false);
+  if(!specBoard){
+    specBoard=ChessBoard('spec-board',{position:g.fen||'start',draggable:false,pieceTheme:pieceThemeUrl()});
   } else {
+    const prev=specBoard.fen&&specBoard.fen();
     const next=g.fen||'start';
-    if(!specBoard){
-      specBoard=ChessBoard('spec-board', boardOptions(next, 'white'));
-    } else {
-      const prevPieces=fenPieces(specBoard.fen&&specBoard.fen());
-      const nextPieces=fenPieces(next);
-      if(prevPieces!==nextPieces){
-        const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
-        playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
-        // One update only — no double redraw
-        safeBoardPosition(specBoard, next);
-      }
+    if(prev&&prev!==next){
+      const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
+      playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
     }
-    applyLastMoveHighlight('#spec-board', g.pgn);
-    // Update labels only — do not call position() again (that caused double redraw / twitch)
-    const label=document.getElementById('spec-replay-label');
-    const sanEl=document.getElementById('spec-move-san');
-    const liveBtn=document.getElementById('spec-btn-live');
-    if(label) label.textContent=g.status==='done'?'Final position · use ◀ to review':'Live position · use ◀ to review missed moves';
-    if(sanEl) sanEl.textContent=specReplaySans.length?('Last: '+specReplaySans[specReplaySans.length-1]):'No moves yet';
-    if(liveBtn){ liveBtn.textContent='● Live'; liveBtn.className='btn-gold'; liveBtn.style.padding='10px 16px'; liveBtn.style.fontSize='11px'; }
+    specBoard.position(next,true);
   }
-
   const live=clocksAreLive(g);
   const frozenEl=document.getElementById('spec-clock-frozen');
   if(frozenEl) frozenEl.classList.toggle('hidden', live || g.status==='done');
@@ -2976,7 +2607,6 @@ function updateSpecClocks(){
     sec.textContent='✓';
     overlay.style.display='none';
     loadMe();
-    loadVisitor();
     resumeAttempted=false;
     // Always subscribe so Restart start-time is shared across every phone
     if(typeof listenTournament==='function') listenTournament();
