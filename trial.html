@@ -127,6 +127,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
     <p class="text-[11px] font-bold text-amber-300/90 mb-4 uppercase tracking-widest">Our championship squad</p>
     <div class="wait-count" id="closed-count">--:--</div>
     <div class="wait-label">Until doors open</div>
+    <button type="button" class="btn-soft mt-6 text-[10px]" onclick="openResetModal()" style="opacity:.85">🔐 Coach · change start time / restart</button>
   </div>
 </div>
 
@@ -152,6 +153,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       </ul>
     </div>
     <p class="text-xs text-slate-500 mt-4" id="wait-who"></p>
+    <button type="button" class="btn-soft mt-5 text-[10px] w-full max-w-xs mx-auto block" onclick="openResetModal()" style="opacity:.85">🔐 Coach · change start time / restart</button>
   </div>
 </div>
 
@@ -210,6 +212,7 @@ td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
       <button type="button" class="btn-gold w-full" onclick="showLogin()">I am a player — enter</button>
       <button type="button" class="btn-blue w-full" onclick="enterAsVisitor()">Watch live games (visitor)</button>
       <a href="index.html" class="btn-soft w-full block text-center">← Academy home</a>
+      <button type="button" class="btn-soft w-full text-[10px]" onclick="openResetModal()" style="opacity:.9">🔐 Coach · change start time / restart</button>
     </div>
   </div>
 </div>
