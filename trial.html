@@ -538,17 +538,15 @@ const BREAK_SEC=120;
 const K_FACTOR=20;
 const TOTAL_ROUNDS=5; // full RR for 6 players (each plays 5 games)
 const DOTUN=['audio/well-done.mp3','audio/well-done-chap.mp3','audio/great-job.mp3','audio/excellent.mp3','audio/that-was-a-strong-game.mp3'];
-// Chess pieces: Wikipedia set as primary (clear white vs black colours).
-// Stable theme fn + preload so pieces never flash blank on each move.
-const WIKI_PIECE_BASE='https://chessboardjs.com/img/chesspieces/wikipedia/';
+// Chess pieces — original setup: Chess.com neo primary, Wikipedia only on image error.
 const CHESSCOM_PIECE_BASE='https://www.chess.com/chess-themes/pieces/neo/150/';
+const WIKI_PIECE_BASE='https://chessboardjs.com/img/chesspieces/wikipedia/';
 const PIECE_FILE={wP:'wp',wR:'wr',wN:'wn',wB:'wb',wQ:'wq',wK:'wk',bP:'bp',bR:'br',bN:'bn',bB:'bb',bQ:'bq',bK:'bk'};
 const PIECE_THEME_FN=function(p){
-  const code=PIECE_FILE[p]||String(p||'').toLowerCase();
-  return WIKI_PIECE_BASE+code+'.png';
+  const code=PIECE_FILE[p]||p;
+  return CHESSCOM_PIECE_BASE+code+'.png';
 };
 function pieceThemeUrl(){ return PIECE_THEME_FN; }
-/** Shared ChessBoard options — appearSpeed 0 prevents pieces vanishing on redraw */
 function boardOptions(position, orientation){
   return {
     position:position||'start',
@@ -556,49 +554,31 @@ function boardOptions(position, orientation){
     draggable:false,
     pieceTheme:PIECE_THEME_FN,
     appearSpeed:0,
-    moveSpeed:150,
+    moveSpeed:120,
     snapbackSpeed:0,
     snapSpeed:0,
     trashSpeed:0
   };
 }
-function preloadPieceImages(){
-  try{
-    Object.keys(PIECE_FILE).forEach(function(k){
-      const im=new Image();
-      im.src=WIKI_PIECE_BASE+PIECE_FILE[k]+'.png';
-      const im2=new Image();
-      im2.src=CHESSCOM_PIECE_BASE+PIECE_FILE[k]+'.png';
-    });
-  }catch(e){}
-}
-preloadPieceImages();
 document.addEventListener('error',function(e){
   const img=e&&e.target;
   if(!img||img.tagName!=='IMG')return;
   const src=String(img.src||'');
+  // If chess.com pieces fail, fall back to chessboard.js Wikipedia set
   const m=src.match(/\/([wb][prnbqk])\.png(?:[?#].*)?$/i);
   if(!m) return;
   const code=m[1].toLowerCase();
-  if(src.includes('chessboardjs.com')){
-    const neo=CHESSCOM_PIECE_BASE+code+'.png';
-    if(img.src!==neo) img.src=neo;
-    return;
-  }
-  if(src.includes('chess.com')){
-    const wiki=WIKI_PIECE_BASE+code+'.png';
-    if(img.src!==wiki) img.src=wiki;
-  }
+  const wiki=WIKI_PIECE_BASE+code+'.png';
+  if(img.src!==wiki && !src.includes('chessboardjs.com')) img.src=wiki;
 },true);
 
-/** Update board widgets without full wipe when possible. */
-function safeBoardPosition(b, fen, preferMove){
+/** Never redraw if pieces already match — stops flicker on every move. */
+function safeBoardPosition(b, fen){
   if(!b||!fen) return;
   const next=fenPieces(fen);
   let cur='';
   try{ cur=fenPieces(b.fen&&b.fen()); }catch(e){}
-  if(cur===next) return; // already correct — do not touch DOM
-  // Instant set (false) = no piece disappear / reload flash
+  if(cur===next) return;
   try{ b.position(fen, false); }catch(e){
     try{ b.position(next, false); }catch(e2){}
   }
@@ -2425,25 +2405,15 @@ function syncPlayBoard(){
   try{ boardPieces=fenPieces(board.fen&&board.fen()); }catch(e){}
 
   if(serverPieces!==localPieces){
-    // Opponent (or recovery) — update engine, then board WITHOUT full animated rebuild
+    // Opponent / recovery — one update only (original style, no double redraw)
     const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
-    const lm=lastMoveFromPgn(g.pgn);
     playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
     try{ game.load(g.fen); }catch(e){ game=new Chess(g.fen); }
-    if(boardPieces!==serverPieces){
-      // Prefer single-piece move animation; fall back to instant position (never wipe+fade)
-      let moved=false;
-      if(lm&&lm.from&&lm.to) moved=safeBoardMove(board, lm.from, lm.to);
-      if(!moved) safeBoardPosition(board, g.fen);
-      // If still wrong after move (e.g. promotion), force instant correct position
-      try{
-        if(fenPieces(board.fen&&board.fen())!==serverPieces) safeBoardPosition(board, g.fen);
-      }catch(e){ safeBoardPosition(board, g.fen); }
-    }
+    if(boardPieces!==serverPieces) safeBoardPosition(board, g.fen);
   } else if(g.fen!==game.fen()){
     try{ game.load(g.fen); }catch(e){}
   }
-  // Own-move server echo: pieces already match — never call position() again
+  // Own-move echo: pieces already match — do not touch the board widget
 
   applyLastMoveHighlight('#board', g.pgn);
   updatePlayLabels();updatePlayStatus();updateClockDisplay();
@@ -2506,13 +2476,10 @@ function onSquareClick(sq){
       sourceSquare=null;clearHighlights();
       if(move){
         playMoveSound(!!move.captured, game.in_check());
-        // Move only the piece — do not rebuild the whole board (that caused the flash)
-        let moved=safeBoardMove(board, move.from, move.to);
-        if(!moved) safeBoardPosition(board, game.fen());
-        // Promotion / odd cases: ensure final position is correct, still no animated wipe
-        try{
-          if(fenPieces(board.fen&&board.fen())!==fenPieces(game.fen())) safeBoardPosition(board, game.fen());
-        }catch(e){ safeBoardPosition(board, game.fen()); }
+        // Single piece slide only — never full board.position (that reloads every piece image)
+        if(!safeBoardMove(board, move.from, move.to)){
+          safeBoardPosition(board, game.fen());
+        }
         applyLastMoveHighlight('#board', {from:move.from,to:move.to});
         pushMove(move, prevFen);
       }
@@ -2957,13 +2924,8 @@ function syncSpecBoard(){
       if(prevPieces!==nextPieces){
         const lastSan=((g.pgn||'').trim().split(/\s+/).pop())||'';
         playMoveSound(lastSan.includes('x'), lastSan.includes('+')||lastSan.includes('#'));
-        const lm=lastMoveFromPgn(g.pgn);
-        let moved=false;
-        if(lm) moved=safeBoardMove(specBoard, lm.from, lm.to);
-        if(!moved) safeBoardPosition(specBoard, next);
-        try{
-          if(fenPieces(specBoard.fen&&specBoard.fen())!==nextPieces) safeBoardPosition(specBoard, next);
-        }catch(e){ safeBoardPosition(specBoard, next); }
+        // One update only — no double redraw
+        safeBoardPosition(specBoard, next);
       }
     }
     applyLastMoveHighlight('#spec-board', g.pgn);
