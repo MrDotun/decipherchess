@@ -87,6 +87,9 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 .live-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block;animation:pulse 1.2s infinite}
 .hidden{display:none!important}
 .mini-board .board-b72b1{border-radius:8px;overflow:hidden}
+.mini-col-badge{display:inline-block;font-size:9px;font-weight:900;padding:1px 6px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase}
+.mini-col-white{background:#f1f5f9;color:#0f172a}
+.mini-col-black{background:#1e293b;color:#f1f5f9;border:1px solid rgba(255,255,255,.15)}
 </style>
 </head>
 <body>
@@ -186,7 +189,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#070b14]/95 backdrop-blur px-4 py-3 flex items-center justify-between gap-2">
     <div class="text-[10px] font-black uppercase tracking-widest text-amber-400" id="play-round">Round 1 / 7 · 10+2</div>
     <div class="text-[11px] font-bold text-slate-400" id="play-team-pts">Team: 0</div>
-    <button type="button" class="text-xs font-bold text-slate-500" onclick="openStandings()">Standings</button>
+    <button type="button" class="text-xs font-bold text-slate-500 opacity-60" onclick="tryOpenStandings()">Team Report</button>
   </nav>
   <div class="max-w-xl mx-auto px-3 py-3">
     <div class="flex items-center justify-between gap-3 mb-2 panel px-3 py-2.5" style="border-left:4px solid #f87171">
@@ -219,9 +222,9 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="text-5xl mb-3" id="result-emoji">🏆</div>
     <h2 class="text-2xl font-black text-white mb-1" id="result-title">You won!</h2>
     <p class="text-slate-400 text-sm mb-4" id="result-sub">Great game</p>
-    <div class="text-amber-300 font-black text-lg mb-6" id="result-pts">+1.0 team points</div>
+    <div class="text-amber-300 font-black text-lg mb-6" id="result-pts">+1.0 board points</div>
     <button type="button" class="btn-gold w-full mb-2" id="result-next-btn" onclick="enterWaitForTeam()">Continue</button>
-    <button type="button" class="btn-soft w-full" onclick="openStandings()">View standings</button>
+    <p class="text-[10px] text-slate-500 mt-2">Team results update after every board finishes this round</p>
   </div>
 </div>
 
@@ -236,19 +239,32 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 <div id="screen-standings" class="hidden min-h-screen px-4 py-6">
   <div class="max-w-lg mx-auto">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg font-black text-white uppercase italic">Standings</h2>
+      <h2 class="text-lg font-black text-white uppercase italic">Team Report</h2>
       <button type="button" class="btn-soft" onclick="closeStandings()">Back</button>
     </div>
     <p class="text-xs text-slate-500 mb-1" id="stand-round-label">After Round 1</p>
-    <p class="text-amber-300 font-black text-sm mb-1" id="mcps-rank-line">Rank #— of 183</p>
+    <p class="text-amber-300 font-black text-sm mb-1" id="mcps-rank-line">MCPS team report</p>
     <p class="text-slate-400 text-xs mb-4" id="mcps-pts-line">Match pts 0 · Game pts 0.0</p>
+
+    <h3 class="text-sm font-black text-white uppercase mb-2">Our round results</h3>
     <div class="panel p-3 mb-4 overflow-x-auto">
       <table>
-        <thead><tr><th>#</th><th>School</th><th>MP</th><th>GP</th></tr></thead>
-        <tbody id="team-body"></tbody>
+        <thead><tr><th>Rd</th><th>Opponent</th><th>Score</th><th>Result</th></tr></thead>
+        <tbody id="rr-body"></tbody>
       </table>
     </div>
-    <h3 class="text-sm font-black text-white uppercase mb-2">Individual boards</h3>
+
+    <div id="school-standings-wrap" class="hidden">
+      <h3 class="text-sm font-black text-white uppercase mb-2">Full standings · 183 schools</h3>
+      <div class="panel p-3 mb-4 overflow-x-auto">
+        <table>
+          <thead><tr><th>#</th><th>School</th><th>MP</th><th>GP</th></tr></thead>
+          <tbody id="team-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <h3 class="text-sm font-black text-white uppercase mb-2">MCPS individual boards</h3>
     <div class="panel p-3 overflow-x-auto">
       <table>
         <thead><tr><th>Bd</th><th>Player</th><th>Pts</th><th>Pace</th></tr></thead>
@@ -277,7 +293,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#070b14]/95 backdrop-blur px-4 py-3 flex items-center justify-between">
     <button type="button" class="text-xs font-bold text-slate-400" onclick="specHubBack()">← Back</button>
     <div class="text-[10px] font-black uppercase tracking-widest text-amber-400">Live Boards</div>
-    <button type="button" class="text-xs font-bold text-slate-400" onclick="openStandings()">Standings</button>
+    <button type="button" class="text-xs font-bold text-slate-400" onclick="openStandings()">Team Report</button>
   </nav>
   <div class="max-w-3xl mx-auto px-3 py-3">
     <div id="multi-boards" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6"></div>
@@ -351,7 +367,7 @@ const BASE=600,INC=2;
 
 /* Fixed round schedule: 60 s pairing + 10 min play + 2 min break = 13 min per round */
 const PAIRING_SEC=60, BREAK_SEC=120;
-const ROUND_GAP_MS=(PAIRING_SEC+BASE+BREAK_SEC)*1000; /* 780 s */
+const ROUND_GAP_MS=(PAIRING_SEC+BASE+BREAK_SEC)*1000;
 
 const pieceTheme="https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png";
 
@@ -367,13 +383,13 @@ const ROSTER=[
 
 /* Opponent ladder — target Elo rises each round */
 const ROUND_PLAN=[
-  {school:"Grange School",                player:"Chijioke Eze",    strength:0.42, elo:1200, depth:2, time:80},
-  {school:"Corona Private School",        player:"Adesua Balogun",  strength:0.50, elo:1400, depth:2, time:120},
-  {school:"Atlantic Hall",                player:"Tunde Owolabi",   strength:0.58, elo:1500, depth:3, time:150},
-  {school:"Jareb Private School",         player:"Ibrahim Musa",    strength:0.86, elo:1500, depth:3, time:150},
-  {school:"Chess In Slums Academy",       player:"Zainab Bello",    strength:0.90, elo:1600, depth:3, time:200},
-  {school:"Indian Language School",       player:"Emeka Nwosu",     strength:0.84, elo:1700, depth:4, time:250},
-  {school:"Skylink International School", player:"Yusuf Hassan",    strength:0.88, elo:1800, depth:4, time:350}
+  {school:"Grange School",                player:"Chijioke Eze",    strength:0.55, elo:1200, depth:3, time:200},
+  {school:"Corona Private School",        player:"Adesua Balogun",  strength:0.62, elo:1400, depth:3, time:250},
+  {school:"Atlantic Hall",                player:"Tunde Owolabi",   strength:0.68, elo:1500, depth:3, time:300},
+  {school:"Jareb Private School",         player:"Ibrahim Musa",    strength:0.70, elo:1500, depth:4, time:300},
+  {school:"Chess In Slums Academy",       player:"Zainab Bello",    strength:0.78, elo:1600, depth:4, time:400},
+  {school:"Indian Language School",       player:"Emeka Nwosu",     strength:0.85, elo:1700, depth:4, time:500},
+  {school:"Skylink International School", player:"Yusuf Hassan",    strength:0.92, elo:1800, depth:5, time:600}
 ];
 
 /* ============ STATE ============ */
@@ -389,6 +405,8 @@ let specBoard=null,specReplayFens=[],specReplaySans=[],specReplayPly=null;
 let fromStandings="screen-result",chessWorker=null;
 let waitIv=null,matchIv=null,hubTick=null,latestRows=[];
 let miniBoards={},miniDesiredFen={},miniPending={};
+let pendingCommit=null;
+let roundResults=[];
 try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){console.warn("worker missing",e);}
 
 /* ============ UTIL ============ */
@@ -404,9 +422,14 @@ function hideAll(){
 }
 function showWelcome(){hideAll();el("screen-welcome").classList.remove("hidden");}
 
+/* ============ COLOUR ASSIGNMENT ============ */
+function colorForBoard(round,board){
+  return (((round||1)+(board||1))%2===0) ? "w" : "b";
+}
+
 /* ============ PERSISTENCE ============ */
 function saveState(){
-  try{localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound}));}catch(e){}
+  try{localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound,rr:roundResults}));}catch(e){}
   db.collection("bcn_meta").doc("mcps").set({mp:teamMatchPoints,gp:teamGamePoints,round:currentRound,rc:roundsCompleted,updated:Date.now()},{merge:true}).catch(()=>{});
 }
 function loadState(){
@@ -416,6 +439,7 @@ function loadState(){
     if(typeof d.gp==="number")teamGamePoints=d.gp;
     if(typeof d.rc==="number")roundsCompleted=d.rc;
     if(typeof d.round==="number")currentRound=d.round;
+    if(Array.isArray(d.rr))roundResults=d.rr;
   }catch(e){}
 }
 
@@ -542,7 +566,7 @@ function pickEngineMove(c,depth){
   }
   return best;
 }
-function eloBlunder(elo){ return Math.max(0.02, 0.12 - (elo-1200)*0.00017); }
+function eloBlunder(elo){ return Math.max(0.005, 0.05 - (elo-1200)*0.000075); }
 
 /* ============ ADMIN ============ */
 function openAdminModal(){ el("admin-modal").classList.add("open"); }
@@ -597,6 +621,7 @@ async function adminResetTournament(){
   currentRound=1;roundsCompleted=0;
   individualScores={};ROSTER.forEach(p=>individualScores[p.id]=0);
   teamMatchPoints=0;teamGamePoints=0;
+  pendingCommit=null;roundResults=[];
   localStorage.clear();
   me=null;gameLive=false;game=null;
   if(timer){clearInterval(timer);timer=null;}
@@ -637,10 +662,12 @@ function showPlayerLogin(){
   if(Date.now()<scheduledStartMs){ toast("Round 1 opens at "+new Date(scheduledStartMs).toLocaleTimeString()); return; }
   hideAll(); el("screen-login").classList.remove("hidden");
   const b=el("rep-list"); b.innerHTML="";
+  const r=currentRoundFromClock(Date.now());
   ROSTER.forEach(p=>{
     const x=document.createElement("button");
     x.type="button"; x.className="rep-btn";
-    x.innerHTML=`<span class="text-amber-400 font-black">Bd ${p.board}</span> · ${esc(p.name)}`;
+    const col=colorForBoard(r,p.board);
+    x.innerHTML=`<span class="text-amber-400 font-black">Bd ${p.board}</span> · ${esc(p.name)} <span class="text-[10px] text-slate-500">(${col==="w"?"White":"Black"})</span>`;
     x.onclick=()=>{
       document.querySelectorAll(".rep-btn").forEach(y=>y.classList.remove("selected"));
       x.classList.add("selected");
@@ -725,17 +752,14 @@ function joinLateExpired(round,late){
   oppMeta={name:plan.player,school:plan.school,strength:plan.strength};
   currentRound=round;
   gameLive=false;
-  individualScores[me.id]=(individualScores[me.id]||0)+0;
-  roundsCompleted=Math.max(roundsCompleted,round);
-  recordRoundResult(round,0,plan.school,plan.strength);
-  saveState();
+  pendingCommit={points:0,oppSchool:plan.school,oppStrength:plan.strength,round:round};
   db.collection("bcn_live").doc(me.id).set({
     board:me.board,playerId:me.id,playerName:me.name,
     oppName:plan.player,oppSchool:plan.school,
     round,status:"done",result:0,
     reason:"Lost on time — did not report",
     userTime:0,oppTime:BASE,
-    userColor:Math.random()>0.5?"w":"b",
+    userColor:colorForBoard(round,me.board),
     fen:"start",pgn:"",updated:Date.now()
   },{merge:true}).catch(()=>{});
   saveGameToCloud("Loss");
@@ -748,7 +772,7 @@ function setupMatch(round,anchor,late){
   const plan=ROUND_PLAN[round-1]||{player:"—",school:"—",strength:0.5};
   oppMeta={name:plan.player,school:plan.school,strength:plan.strength};
   gameLive=true; game=new Chess();
-  userColor=Math.random()>0.5?"w":"b";
+  userColor=colorForBoard(round,me.board);
   userTime=BASE; oppTime=BASE;
   if(late>0) userTime=Math.max(0,BASE-late);
   lastMoveAt=Date.now(); lastTick=Date.now();
@@ -776,14 +800,14 @@ function setupMatch(round,anchor,late){
   timer=setInterval(tickClocks,250);
   pushCloud();
 
-  if(userColor==="b" && !game.game_over()) setTimeout(()=>requestAIMove(),400);
+  if(userColor==="b" && !game.game_over()) setTimeout(()=>requestAIMove(),1500);
   if(late>0) toast("You joined "+fmt(late)+" late");
 }
 function resumeGame(g){
   gameLive=true; game=new Chess();
   try{ if(g.pgn) game.load_pgn(g.pgn); else game.load(g.fen||"start"); }
   catch(e){ try{ game.load(g.fen||"start"); }catch(e2){ game=new Chess(); } }
-  userColor=g.userColor||"w";
+  userColor=g.userColor||colorForBoard(g.round||currentRound,me.board);
   userTime=g.userTime!=null?g.userTime:BASE;
   oppTime=g.oppTime!=null?g.oppTime:BASE;
   const plan=ROUND_PLAN[(g.round||1)-1]||{player:"—",school:"—",strength:0.5};
@@ -820,7 +844,7 @@ function resumeGame(g){
   if(timer) clearInterval(timer);
   timer=setInterval(tickClocks,250);
   pushCloud();
-  if(game.turn()!==userColor && !game.game_over()) setTimeout(()=>requestAIMove(),300);
+  if(game.turn()!==userColor && !game.game_over()) setTimeout(()=>requestAIMove(),1200);
   if(userTime<=0) endRound(0,"Lost on time");
   else if(oppTime<=0) endRound(1,"Opponent lost on time");
 }
@@ -883,22 +907,23 @@ function requestAIMove(){
   if(!game||game.game_over()||game.turn()===userColor||aiThinking) return;
   aiThinking=true;
   el("status").textContent="Opponent is thinking…";
-  const plan=ROUND_PLAN[currentRound-1]||{depth:2,time:80};
+  const plan=ROUND_PLAN[currentRound-1]||{depth:3,time:200};
   if(chessWorker){
     try{ chessWorker.postMessage("position "+game.fen()+" depth "+plan.depth+" time "+plan.time); }
-    catch(e){ aiThinking=false; setTimeout(doFallbackAI,1000); }
+    catch(e){ aiThinking=false; setTimeout(doFallbackAI,2200+Math.random()*1500); }
     setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, 8000);
   } else {
-    setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, 800);
+    setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, 2200+Math.random()*1500);
   }
 }
 if(chessWorker){
   chessWorker.onmessage=function(e){
     if(typeof e.data!=="string") return;
-    if(e.data.startsWith("error")){ aiThinking=false; setTimeout(doFallbackAI,800); return; }
+    if(e.data.startsWith("error")){ aiThinking=false; setTimeout(doFallbackAI, 2200+Math.random()*1500); return; }
     if(e.data.length>=4 && e.data.length<=5){
-      const plan=ROUND_PLAN[currentRound-1]||{depth:2};
-      const t=400+(plan.depth||2)*200+Math.floor(Math.random()*700);
+      const plan=ROUND_PLAN[currentRound-1]||{depth:3};
+      const base=1500+(plan.depth||3)*350;
+      const t=base+Math.floor(Math.random()*1200);
       setTimeout(()=>{ aiThinking=false; applyAIMove(e.data); }, t);
     }
   };
@@ -906,7 +931,7 @@ if(chessWorker){
 function applyAIMove(uci){
   aiThinking=false;
   if(!gameLive||!game||game.game_over()||game.turn()===userColor) return;
-  const plan=ROUND_PLAN[currentRound-1]||{elo:1200,depth:2};
+  const plan=ROUND_PLAN[currentRound-1]||{elo:1200,depth:3};
   const blunder=eloBlunder(plan.elo);
   const legal=game.moves({verbose:true});
   let played=null;
@@ -917,7 +942,7 @@ function applyAIMove(uci){
     played=game.move({from:f,to:t,promotion:p});
     if(!played && legal.length){
       const c=new Chess(); try{c.load(game.fen());}catch(e){}
-      const m=pickEngineMove(c,Math.max(2,(plan.depth||2)-1));
+      const m=pickEngineMove(c,Math.max(2,(plan.depth||3)-1));
       played=m?game.move(m):game.move(legal[0]);
     }
   }
@@ -934,7 +959,7 @@ function applyAIMove(uci){
 function doFallbackAI(){
   aiThinking=false;
   if(!game||game.game_over()||game.turn()===userColor) return;
-  const plan=ROUND_PLAN[currentRound-1]||{elo:1200,depth:2};
+  const plan=ROUND_PLAN[currentRound-1]||{elo:1200,depth:3};
   const blunder=eloBlunder(plan.elo);
   let played=null;
   if(Math.random()<blunder){
@@ -942,7 +967,7 @@ function doFallbackAI(){
     if(m.length) played=game.move(m[Math.floor(Math.random()*m.length)]);
   } else {
     const c=new Chess(); try{c.load(game.fen());}catch(e){}
-    const m=pickEngineMove(c,Math.max(2,(plan.depth||2)-1));
+    const m=pickEngineMove(c,Math.max(2,(plan.depth||3)-1));
     played=m?game.move(m):(function(){const ms=game.moves();return ms.length?game.move(ms[0]):null;})();
   }
   if(played){
@@ -966,32 +991,46 @@ function finishGame(){
 }
 function handleResign(){ if(!gameLive) return; if(confirm("Resign this match?")) endRound(0,"Resigned"); }
 
-function recordRoundResult(round,myPts,oppSchool,oppStrength){
-  let gp=myPts;
+function commitPendingRound(){
+  if(!pendingCommit) return;
+  const pc=pendingCommit; pendingCommit=null;
+  individualScores[me.id]=(individualScores[me.id]||0)+pc.points;
+  let gp=pc.points;
   ROSTER.forEach(p=>{
     if(me&&p.id===me.id) return;
-    const r=simBoardResult(round,p.board,oppStrength);
+    const r=simBoardResult(pc.round,p.board,pc.oppStrength);
     individualScores[p.id]=(individualScores[p.id]||0)+r;
     gp+=r;
   });
   const mp=gp>3.5?2:(gp===3.5?1:0);
   teamMatchPoints+=mp;
   teamGamePoints+=gp;
+  roundsCompleted=Math.max(roundsCompleted,pc.round);
+
+  const oppGP=7-gp;
+  const resultLabel=mp===2?"Win":(mp===1?"Draw":"Loss");
+  roundResults.push({
+    round:pc.round,
+    oppSchool:pc.oppSchool,
+    myGP:gp,
+    oppGP:oppGP,
+    mp:mp,
+    result:resultLabel
+  });
+
+  el("play-team-pts").textContent="Team: "+teamMatchPoints;
+  saveState();
 }
 function endRound(points,reason){
   if(!gameLive) return;
   gameLive=false;
   if(timer){ clearInterval(timer); timer=null; }
 
-  individualScores[me.id]=(individualScores[me.id]||0)+points;
   const plan=ROUND_PLAN[currentRound-1]||{school:oppMeta.school,strength:0.5};
-  recordRoundResult(currentRound,points,plan.school,plan.strength);
-  roundsCompleted=Math.max(roundsCompleted,currentRound);
-  el("play-team-pts").textContent="Team: "+teamMatchPoints;
-  saveState();
+  pendingCommit={points:points,oppSchool:plan.school,oppStrength:plan.strength,round:currentRound};
+
   pushCloudFinal(points,reason);
   saveGameToCloud(points===1?"Win":(points===0.5?"Draw":"Loss"));
-
   showResultScreen(points,reason);
 }
 function showResultScreen(points,reason){
@@ -999,11 +1038,11 @@ function showResultScreen(points,reason){
   el("result-emoji").textContent=points===1?"🏆":(points===0.5?"🤝":"😔");
   el("result-title").textContent=points===1?"You won!":(points===0.5?"Draw":"Defeat");
   el("result-sub").textContent=reason||"";
-  el("result-pts").textContent=(points>0?"+":"")+points.toFixed(1)+" board points for MCPS";
+  el("result-pts").textContent=(points>0?"+":"")+points.toFixed(1)+" board points";
   const b=el("result-next-btn");
   if(currentRound>=TOTAL_ROUNDS){
-    b.textContent="Tournament complete";
-    b.onclick=()=>showFinal();
+    b.textContent="Show final standings";
+    b.onclick=()=>{ commitPendingRound(); showFinal(); };
   } else {
     b.textContent="Continue";
     b.onclick=()=>enterWaitForTeam();
@@ -1039,6 +1078,7 @@ function pushCloudFinal(p,r){
 
 /* ============ BREAK & NEXT ROUND ============ */
 function enterWaitForTeam(){
+  commitPendingRound();
   const next=currentRound+1;
   if(next>TOTAL_ROUNDS){ showFinal(); return; }
   const pStart=pairingStartFor(next);
@@ -1058,6 +1098,10 @@ function enterWaitForTeam(){
 }
 
 /* ============ STANDINGS ============ */
+function tryOpenStandings(){
+  if(gameLive){ toast("Team report appears after every board finishes this round"); return; }
+  openStandings();
+}
 function openStandings(){
   const v=["screen-wait","screen-play","screen-result","screen-spec-hub","screen-spec-one","screen-final"];
   fromStandings="screen-result";
@@ -1078,15 +1122,37 @@ function closeStandings(){
 }
 function renderStandings(roundOverride){
   const played=(roundOverride!=null)?roundOverride:Math.max(roundsCompleted,0);
-  const ranked=standingsFor(played);
-  const mcps=ranked.findIndex(x=>x.you)+1;
-  const mc=ranked.find(x=>x.you)||{mp:0,gp:0};
-  el("mcps-rank-line").textContent="Rank #"+mcps+" of "+TOTAL_SCHOOLS;
-  el("mcps-pts-line").textContent="Match pts "+mc.mp.toFixed(0)+" (2=win · 1=draw) · Game pts "+mc.gp.toFixed(1);
-  el("team-body").innerHTML=ranked.slice(0,16).map((r,i)=>{
-    const c=i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"";
-    return `<tr style="${r.you?"background:rgba(251,191,36,.12)":""}"><td class="${c}">${i+1}</td><td class="font-bold ${r.you?"text-amber-300":"text-white"}">${esc(r.name)}${r.you?" · YOU":""}</td><td>${r.mp.toFixed(0)}</td><td>${r.gp.toFixed(1)}</td></tr>`;
-  }).join("");
+
+  const rrBody=el("rr-body");
+  if(rrBody){
+    if(roundResults.length){
+      rrBody.innerHTML=roundResults.map(rr=>{
+        const color=rr.result==="Win"?"text-emerald-300":(rr.result==="Loss"?"text-rose-300":"text-amber-300");
+        return `<tr><td>${rr.round}</td><td class="font-bold text-white">${esc(rr.oppSchool)}</td><td class="font-black">${rr.myGP.toFixed(1)} – ${rr.oppGP.toFixed(1)}</td><td class="${color} font-black">${rr.result}</td></tr>`;
+      }).join("");
+    } else {
+      rrBody.innerHTML='<tr><td colspan="4" class="text-slate-500 text-center py-3">No completed rounds yet</td></tr>';
+    }
+  }
+
+  const schoolWrap=el("school-standings-wrap");
+  if(played>=TOTAL_ROUNDS){
+    schoolWrap.classList.remove("hidden");
+    const ranked=standingsFor(played);
+    const mcps=ranked.findIndex(x=>x.you)+1;
+    const mc=ranked.find(x=>x.you)||{mp:0,gp:0};
+    el("mcps-rank-line").textContent="Rank #"+mcps+" of "+TOTAL_SCHOOLS;
+    el("mcps-pts-line").textContent="Match pts "+mc.mp.toFixed(0)+" (2=win · 1=draw) · Game pts "+mc.gp.toFixed(1);
+    el("team-body").innerHTML=ranked.slice(0,16).map((r,i)=>{
+      const c=i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"";
+      return `<tr style="${r.you?"background:rgba(251,191,36,.12)":""}"><td class="${c}">${i+1}</td><td class="font-bold ${r.you?"text-amber-300":"text-white"}">${esc(r.name)}${r.you?" · YOU":""}</td><td>${r.mp.toFixed(0)}</td><td>${r.gp.toFixed(1)}</td></tr>`;
+    }).join("");
+  } else {
+    schoolWrap.classList.add("hidden");
+    el("mcps-rank-line").textContent="MCPS team report";
+    el("mcps-pts-line").textContent="Match pts "+teamMatchPoints.toFixed(0)+" · Game pts "+teamGamePoints.toFixed(1);
+  }
+
   el("ind-body").innerHTML=ROSTER.map(p=>{
     const sc=(individualScores[p.id]||0);
     let st="—";
@@ -1114,7 +1180,6 @@ function showFinal(){
 }
 
 /* ============ SPECTATOR ============ */
-function fenToImg(f){ const e=encodeURIComponent(f||"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); return "https://lichess1.org/export/fen.gif?fen="+e+"&color=white&piece=cburnett"; }
 function boardClockInfo(g){
   const now=Date.now();
   if(g&&(g.status==="live"||g.status==="done")){
@@ -1153,11 +1218,12 @@ function enterSpectator(){
 function renderMulti(rows){
   const box=el("multi-boards"); if(!box) return;
   const byB={}; rows.forEach(r=>{ if(r.board) byB[r.board]=r; });
+  const liveRound=currentRoundFromClock(Date.now());
   ROSTER.forEach(p=>{
     let card=el("mini-card-"+p.id);
     if(!card){
       card=document.createElement("div"); card.id="mini-card-"+p.id; card.className="panel p-2";
-      card.innerHTML=`<button type="button" class="w-full text-left" onclick="openSpecBoard('${p.id}')"><div class="flex items-center justify-between mb-1 px-1"><span class="text-[10px] font-black uppercase text-amber-400">Bd ${p.board} · ${esc(p.name)}</span><span class="text-[10px]" id="mini-st-${p.id}">—</span></div><div id="mini-board-${p.id}" class="mini-board" style="width:100%;pointer-events:none"></div><div class="text-[11px] text-slate-400 mt-1 px-1 truncate" id="mini-opp-${p.id}">Waiting…</div><div class="text-[10px] text-slate-500 px-1" id="mini-clk-${p.id}"></div></button>`;
+      card.innerHTML=`<button type="button" class="w-full text-left" onclick="openSpecBoard('${p.id}')"><div class="flex items-center justify-between mb-1 px-1"><span class="text-[10px] font-black uppercase text-amber-400">Bd ${p.board} · ${esc(p.name)}</span><span class="text-[10px]" id="mini-st-${p.id}">—</span></div><div class="px-1 mb-1"><span id="mini-col-${p.id}" class="mini-col-badge mini-col-white">⬜ White</span></div><div id="mini-board-${p.id}" class="mini-board" style="width:100%;pointer-events:none"></div><div class="text-[11px] text-slate-400 mt-1 px-1 truncate" id="mini-opp-${p.id}">Waiting…</div><div class="text-[10px] text-slate-500 px-1" id="mini-clk-${p.id}"></div></button>`;
       box.appendChild(card);
     }
     if(!miniBoards[p.id] && !miniPending[p.id]){
@@ -1173,6 +1239,15 @@ function renderMulti(rows){
     const fen=(g&&g.fen)?g.fen:"start";
     miniDesiredFen[p.id]=fen;
     if(miniBoards[p.id]){ try{miniBoards[p.id].position(fen,false);}catch(e){} }
+
+    const colBadge=el("mini-col-"+p.id);
+    const displayedRound=(g&&g.round)?g.round:liveRound;
+    const uc=(g&&g.userColor)?g.userColor:colorForBoard(displayedRound,p.board);
+    if(colBadge){
+      colBadge.textContent=uc==="w"?"⬜ White":"⬛ Black";
+      colBadge.className="mini-col-badge "+(uc==="w"?"mini-col-white":"mini-col-black");
+    }
+
     const st=el("mini-st-"+p.id),opp=el("mini-opp-"+p.id),clk=el("mini-clk-"+p.id);
     if(g&&(g.status==="live"||g.status==="done")&&g.fen){
       if(st) st.innerHTML=g.status==="live"?'<span class="live-dot"></span> LIVE':"Done";
@@ -1205,11 +1280,13 @@ function openSpecBoard(id){
       const plan=ROUND_PLAN[Math.max(0,currentRoundFromClock(Date.now())-1)]||{};
       if(!doc.exists){
         const ci=boardClockInfo(null);
+        const uc=colorForBoard(ci.round,re.board||1);
         el("spec-one-label").textContent="Board "+(re.board||"—");
         el("spec-opp-name").textContent=plan.player||"—";
         el("spec-opp-school").textContent=plan.school||"—";
         el("spec-me-name").textContent=re.name||"—";
-        el("spec-me-side").textContent="MCPS";
+        el("spec-me-side").textContent=uc==="w"?"⬜ White (MCPS)":"⬛ Black (MCPS)";
+        el("spec-opp-side").textContent=uc==="w"?"⬛ Black":"⬜ White";
         el("spec-clock-me").textContent=fmt(ci.ut);
         el("spec-clock-opp").textContent=fmt(ci.ot);
         el("spec-status").textContent=ci.late?"⏱ Lost on time (never reported)":(ci.pairing?"Pairing window":"Not logged in · clock running");
@@ -1220,7 +1297,7 @@ function openSpecBoard(id){
       el("spec-opp-name").textContent=g.oppName||"—";
       el("spec-opp-school").textContent=g.oppSchool||"—";
       el("spec-me-name").textContent=g.playerName||"—";
-      const uc=g.userColor||"w";
+      const uc=g.userColor||colorForBoard(g.round||1,g.board||1);
       el("spec-me-side").textContent=uc==="w"?"⬜ White (MCPS)":"⬛ Black (MCPS)";
       el("spec-opp-side").textContent=uc==="w"?"⬛ Black":"⬜ White";
       const ci=boardClockInfo(g);
@@ -1332,7 +1409,7 @@ db.collection("bcn_meta").doc("mcps").onSnapshot(d=>{
       roundsCompleted=x.rc;
       teamMatchPoints=x.mp||0;
       teamGamePoints=x.gp||0;
-      try{ localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound})); }catch(e){}
+      try{ localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound,rr:roundResults})); }catch(e){}
     }
   }
 },()=>{});
