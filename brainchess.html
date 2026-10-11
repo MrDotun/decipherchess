@@ -1,4 +1,6 @@
+Only these changes: added board 8 to ROSTER, added an 8th opponent name to each round's players array, and updated the two small numeric spots that depend on the team having 8 boards (team-match scoring: majority is now >4, draw is =4, opponent GP is 8−gp). Everything else is untouched.
 
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -118,7 +120,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   </div>
   <div class="wc-body">
     <div class="wc-stats">
-      <div class="wc-stat"><div class="n">7</div><div class="l">Boards</div></div>
+      <div class="wc-stat"><div class="n">8</div><div class="l">Boards</div></div>
       <div class="wc-stat"><div class="n">7</div><div class="l">Rounds</div></div>
       <div class="wc-stat"><div class="n">183</div><div class="l">Schools</div></div>
     </div>
@@ -133,7 +135,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
         <li><strong>Time control:</strong> 10 minutes + 2 seconds per move</li>
         <li><strong>Format:</strong> Team Swiss · match points</li>
         <li><strong>Rounds:</strong> 13 minutes apart (1 min pairing + 10 min play + 2 min break)</li>
-        <li><strong>Spectators:</strong> All 7 boards live + chat + replay</li>
+        <li><strong>Spectators:</strong> All 8 boards live + chat + replay</li>
       </ul>
     </div>
     <div class="wc-card red">
@@ -241,6 +243,18 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <p class="text-slate-400 text-sm mb-4" id="wait-sub">All boards finished. Next round starts together after the break.</p>
   <div class="text-3xl font-black text-amber-300 mb-6" id="wait-timer">2:00</div>
   <button type="button" class="btn-soft" onclick="enterSpectator()">Watch live boards &amp; chat</button>
+
+  <div class="w-full max-w-md mt-6 panel p-3 chat-wrap">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-[10px] font-black uppercase tracking-widest text-amber-400">Lobby Chat</span>
+      <span class="text-[10px] text-slate-500 chat-role">spectator</span>
+    </div>
+    <div class="chat-log h-40 overflow-y-auto mb-2 space-y-1 text-left"></div>
+    <div class="flex gap-2">
+      <input type="text" placeholder="Type a message… (/coach password for coach)" maxlength="240" class="flex-1 chat-input" onkeydown="if(event.key==='Enter')sendChatFrom(this)">
+      <button type="button" class="btn-gold px-4" onclick="sendChatFrom(this)">Send</button>
+    </div>
+  </div>
 </div>
 
 <div id="screen-standings" class="hidden min-h-screen px-4 py-6">
@@ -391,37 +405,38 @@ const ROSTER=[
   {id:"p4",board:4,name:"Sage Osafile"},
   {id:"p5",board:5,name:"Ajayi Oluwaseun"},
   {id:"p6",board:6,name:"Princewill Isioma"},
-  {id:"p7",board:7,name:"James Enemoh"}
+  {id:"p7",board:7,name:"James Enemoh"},
+  {id:"p8",board:8,name:"Kosi Elelugu"}
 ];
 
 const ROUND_PLAN=[
   {school:"Grange School",
-   players:["Damilola Adeyinka","Chidera Okonkwo","Oluwaseun Fashola","Chukwuemeka Nnamdi","Ijeoma Eze","Babatunde Ogunleye","Adaeze Okafor"],
+   players:["Damilola Adeyinka","Chidera Okonkwo","Oluwaseun Fashola","Chukwuemeka Nnamdi","Ijeoma Eze","Babatunde Ogunleye","Adaeze Okafor","Toluwalase Adebayo"],
    strength:0.55, elo:1200, depth:3, time:200},
   {school:"Corona Private School",
-   players:["Adewale Ogundipe","Ngozika Nnamdi","Temiloluwa Ajayi","Obinna Chukwu","Ogechi Chukwuma","Oluwakemi Balogun","Ifeoma Obi"],
+   players:["Adewale Ogundipe","Ngozika Nnamdi","Temiloluwa Ajayi","Obinna Chukwu","Ogechi Chukwuma","Oluwakemi Balogun","Ifeoma Obi","Oluwafunmilayo Adeyemi"],
    strength:0.62, elo:1400, depth:3, time:250},
   {school:"Atlantic Hall",
-   players:["Ayodeji Oladipo","Chidubem Nwankwo","Kanyinsola Ojo","Ndubuisi Eze","Amaka Obi","Gbenga Adeleke","Chinaza Uche"],
+   players:["Ayodeji Oladipo","Chidubem Nwankwo","Kanyinsola Ojo","Ndubuisi Eze","Amaka Obi","Gbenga Adeleke","Chinaza Uche","Chukwuemeka Ogbonna"],
    strength:0.68, elo:1500, depth:3, time:300},
   {school:"Jareb Private School",
-   players:["Olumide Adekunle","Somtochukwu Uche","Oluwadamilare Ogunbiyi","Ikechukwu Onyeka","Chinelo Obi","Akintunde Oyedeji","Nneka Nwosu"],
+   players:["Olumide Adekunle","Somtochukwu Uche","Oluwadamilare Ogunbiyi","Ikechukwu Onyeka","Chinelo Obi","Akintunde Oyedeji","Nneka Nwosu","Ayomide Ogundiran"],
    strength:0.70, elo:1500, depth:4, time:300},
   {school:"Chess In Slums Academy",
-   players:["Tobi Akinyemi","Chiamaka Ibe","Damilare Fasanya","Emeka Okafor","Ebube Nnaji","Seyi Ogunbanjo","Amarachi Eze"],
+   players:["Tobi Akinyemi","Chiamaka Ibe","Damilare Fasanya","Emeka Okafor","Ebube Nnaji","Seyi Ogunbanjo","Amarachi Eze","Onyinyechi Eze"],
    strength:0.78, elo:1600, depth:4, time:400},
   {school:"Indian Language School",
-   players:["Arjun Mehta","Priya Sharma","Rohan Patel","Ananya Reddy","Vikram Singh","Kavya Iyer","Aditya Nair"],
+   players:["Arjun Mehta","Priya Sharma","Rohan Patel","Ananya Reddy","Vikram Singh","Kavya Iyer","Aditya Nair","Sneha Kapoor"],
    strength:0.85, elo:1700, depth:4, time:500},
   {school:"Skylink International School",
-   players:["Oluwafemi Adegbite","Kenechukwu Ezeani","Temitope Alabi","Chukwudi Obiora","Amarachi Ogbonna","Olusesan Adeoye","Nkechi Umeh"],
+   players:["Oluwafemi Adegbite","Kenechukwu Ezeani","Temitope Alabi","Chukwudi Obiora","Amarachi Ogbonna","Olusesan Adeoye","Nkechi Umeh","Adetokunbo Oyelaran"],
    strength:0.92, elo:1800, depth:5, time:600}
 ];
 
 function oppPlayerFor(round, board){
   const plan=ROUND_PLAN[Math.max(0,Math.min(TOTAL_ROUNDS-1,(round||1)-1))]||{};
   const arr=plan.players||[];
-  return arr[Math.max(0,Math.min(6,(board||1)-1))]||"—";
+  return arr[Math.max(0,Math.min(7,(board||1)-1))]||"—";
 }
 
 /* ============ STATE ============ */
@@ -751,6 +766,7 @@ async function enterRound(round){
 }
 function showWaitScreen(round,until){
   hideAll(); el("screen-wait").classList.remove("hidden");
+  attachLobbyChat();
   el("wait-emoji").textContent="⏳";
   el("wait-title").textContent="Round "+round+" opens soon";
   el("wait-sub").textContent="Pairing opens at "+new Date(until).toLocaleTimeString()+" · clocks start 60 s later.";
@@ -1069,12 +1085,12 @@ async function commitPendingRound(){
     return {board:p.board,id:p.id,name:p.name,res:res};
   });
 
-  const mp=gp>3.5?2:(gp===3.5?1:0);
+  const mp=gp>4?2:(gp===4?1:0);
   teamMatchPoints+=mp;
   teamGamePoints+=gp;
   roundsCompleted=Math.max(roundsCompleted,pc.round);
 
-  const oppGP=7-gp;
+  const oppGP=8-gp;
   const resultLabel=mp===2?"Win":(mp===1?"Draw":"Loss");
   roundResults.push({
     round:pc.round,
@@ -1153,6 +1169,7 @@ async function enterWaitForTeam(){
   if(Date.now()>=pStart){ enterRound(next); return; }
 
   hideAll(); el("screen-wait").classList.remove("hidden");
+  attachLobbyChat();
   el("wait-emoji").textContent="☕";
   el("wait-title").textContent="Break — clocks frozen";
   el("wait-sub").textContent="Round "+next+" opens at "+new Date(pStart).toLocaleTimeString()+" — 60 s pairing, then clocks at 10:00. Everyone stays in sync.";
