@@ -50,7 +50,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:#e2e8
 #screen-welcome .wc-time{text-align:center;background:#ecfdf5;border:2px solid #6ee7b7;border-radius:16px;padding:14px;margin-bottom:14px}
 #screen-welcome .wc-time .lab{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#047857}
 #screen-welcome .wc-time .val{font-size:1.2rem;font-weight:900;color:#065f46;margin-top:4px}
-#screen-welcome .wc-time .cd{font-size:12px;font-weight:700;color:#059669;margin-top:4px}
+#screen-welcome .wc-time .cd{font-size:12px;color:#059669;margin-top:4px}
 #screen-welcome .wc-btn-main{width:100%;border:0;border-radius:16px;padding:16px;cursor:pointer;background:linear-gradient(135deg,#008751,#00c853);color:#fff;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 8px 24px rgba(0,135,81,.35)}
 #screen-welcome .wc-btn-main:active{transform:scale(.98)}
 #screen-welcome .wc-btn-sec{width:100%;margin-top:10px;border-radius:14px;padding:14px;cursor:pointer;background:#fff;border:2px solid #0f172a;color:#0f172a;font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
@@ -90,6 +90,10 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 .mini-col-badge{display:inline-block;font-size:9px;font-weight:900;padding:1px 6px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase}
 .mini-col-white{background:#f1f5f9;color:#0f172a}
 .mini-col-black{background:#1e293b;color:#f1f5f9;border:1px solid rgba(255,255,255,.15)}
+.move-cell{display:inline-block;min-width:52px;padding:3px 8px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;color:#e2e8f0;text-align:center}
+.move-cell:hover{background:rgba(255,255,255,.08)}
+.move-cell.current{background:rgba(251,191,36,.28);color:#fde68a}
+.moveno{color:#64748b;font-size:11px;font-weight:700;padding:3px 6px;min-width:26px;display:inline-block}
 </style>
 </head>
 <body>
@@ -126,7 +130,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
         <li><strong>Time control:</strong> 10 minutes + 2 seconds per move</li>
         <li><strong>Format:</strong> Team Swiss · match points</li>
         <li><strong>Rounds:</strong> 13 minutes apart (1 min pairing + 10 min play + 2 min break)</li>
-        <li><strong>Spectators:</strong> All 7 boards live + chat</li>
+        <li><strong>Spectators:</strong> All 7 boards live + chat + replay</li>
       </ul>
     </div>
     <div class="wc-card red">
@@ -340,6 +344,15 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
       <button type="button" class="btn-soft px-3 py-2" onclick="specReplayStep(1)">▶</button>
       <button type="button" class="btn-soft px-3 py-2" id="spec-btn-live" onclick="specReplayLive()">● Live</button>
     </div>
+    <div class="panel p-3 mb-3">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-black uppercase tracking-widest text-amber-400">Move Replay</span>
+        <span class="text-[10px] text-slate-500" id="spec-move-count">0 moves</span>
+      </div>
+      <div id="spec-move-list" style="max-height:180px;overflow-y:auto;line-height:1.9;text-align:left">
+        <span class="text-slate-500 text-xs">No moves yet</span>
+      </div>
+    </div>
     <div class="panel p-3 mt-3 chat-wrap">
       <div class="flex items-center justify-between mb-2">
         <span class="text-[10px] font-black uppercase tracking-widest text-amber-400">Board Chat</span>
@@ -362,10 +375,7 @@ firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
 const TEAM_PASS="MCPS",ADMIN_PASS="decipher1234",ADMIN_PASS_ALT="brainchess2026";
 const TOTAL_ROUNDS=7,TOTAL_SCHOOLS=183;
 
-/* Time control: 10 min + 2 s per move */
 const BASE=600,INC=2;
-
-/* Fixed round schedule: 60 s pairing + 10 min play + 2 min break = 13 min per round */
 const PAIRING_SEC=60, BREAK_SEC=120;
 const ROUND_GAP_MS=(PAIRING_SEC+BASE+BREAK_SEC)*1000;
 
@@ -381,16 +391,41 @@ const ROSTER=[
   {id:"p7",board:7,name:"James Enemoh"}
 ];
 
-/* Opponent ladder — target Elo rises each round */
 const ROUND_PLAN=[
-  {school:"Grange School",                player:"Chijioke Eze",    strength:0.55, elo:1200, depth:3, time:200},
-  {school:"Corona Private School",        player:"Adesua Balogun",  strength:0.62, elo:1400, depth:3, time:250},
-  {school:"Atlantic Hall",                player:"Tunde Owolabi",   strength:0.68, elo:1500, depth:3, time:300},
-  {school:"Jareb Private School",         player:"Ibrahim Musa",    strength:0.70, elo:1500, depth:4, time:300},
-  {school:"Chess In Slums Academy",       player:"Zainab Bello",    strength:0.78, elo:1600, depth:4, time:400},
-  {school:"Indian Language School",       player:"Emeka Nwosu",     strength:0.85, elo:1700, depth:4, time:500},
-  {school:"Skylink International School", player:"Yusuf Hassan",    strength:0.92, elo:1800, depth:5, time:600}
+  {school:"Grange School",
+   players:["Damilola Adeyinka","Chidera Okonkwo","Oluwaseun Fashola","Chukwuemeka Nnamdi","Ijeoma Eze","Babatunde Ogunleye","Adaeze Okafor"],
+   strength:0.55, elo:1200, depth:3, time:200},
+
+  {school:"Corona Private School",
+   players:["Adewale Ogundipe","Ngozika Nnamdi","Temiloluwa Ajayi","Obinna Chukwu","Ogechi Chukwuma","Oluwakemi Balogun","Ifeoma Obi"],
+   strength:0.62, elo:1400, depth:3, time:250},
+
+  {school:"Atlantic Hall",
+   players:["Ayodeji Oladipo","Chidubem Nwankwo","Kanyinsola Ojo","Ndubuisi Eze","Amaka Obi","Gbenga Adeleke","Chinaza Uche"],
+   strength:0.68, elo:1500, depth:3, time:300},
+
+  {school:"Jareb Private School",
+   players:["Olumide Adekunle","Somtochukwu Uche","Oluwadamilare Ogunbiyi","Ikechukwu Onyeka","Chinelo Obi","Akintunde Oyedeji","Nneka Nwosu"],
+   strength:0.70, elo:1500, depth:4, time:300},
+
+  {school:"Chess In Slums Academy",
+   players:["Tobi Akinyemi","Chiamaka Ibe","Damilare Fasanya","Emeka Okafor","Ebube Nnaji","Seyi Ogunbanjo","Amarachi Eze"],
+   strength:0.78, elo:1600, depth:4, time:400},
+
+  {school:"Indian Language School",
+   players:["Arjun Mehta","Priya Sharma","Rohan Patel","Ananya Reddy","Vikram Singh","Kavya Iyer","Aditya Nair"],
+   strength:0.85, elo:1700, depth:4, time:500},
+
+  {school:"Skylink International School",
+   players:["Oluwafemi Adegbite","Kenechukwu Ezeani","Temitope Alabi","Chukwudi Obiora","Amarachi Ogbonna","Olusesan Adeoye","Nkechi Umeh"],
+   strength:0.92, elo:1800, depth:5, time:600}
 ];
+
+function oppPlayerFor(round, board){
+  const plan=ROUND_PLAN[Math.max(0,Math.min(TOTAL_ROUNDS-1,(round||1)-1))]||{};
+  const arr=plan.players||[];
+  return arr[Math.max(0,Math.min(6,(board||1)-1))]||"—";
+}
 
 /* ============ STATE ============ */
 let me=null,currentRound=1,roundsCompleted=0;
@@ -724,10 +759,11 @@ function showWaitScreen(round,until){
 function startPairingCountdown(round,anchor){
   hideAll(); el("screen-match").classList.remove("hidden");
   el("match-title").textContent="Pairing Round "+round;
-  const plan=ROUND_PLAN[round-1]||{player:"—",school:"—",strength:0.5};
-  oppMeta={name:plan.player,school:plan.school,strength:plan.strength};
-  el("match-school").textContent=plan.school;
-  el("match-opp").textContent="vs "+plan.player;
+  const plan=ROUND_PLAN[round-1]||{strength:0.5};
+  const oppName=oppPlayerFor(round,me.board);
+  oppMeta={name:oppName,school:plan.school||"—",strength:plan.strength};
+  el("match-school").textContent=plan.school||"—";
+  el("match-opp").textContent="vs "+oppName;
   const note=el("match-note");
   if(note) note.textContent="Clocks start with exactly 10:00 (+2 s per move) when this window closes";
 
@@ -748,14 +784,15 @@ function startPairingCountdown(round,anchor){
 }
 function joinLate(round,anchor,late){ toast("Round already started — clocks running"); setupMatch(round,anchor,late); }
 function joinLateExpired(round,late){
-  const plan=ROUND_PLAN[round-1]||{player:"—",school:"—",strength:0.5};
-  oppMeta={name:plan.player,school:plan.school,strength:plan.strength};
+  const plan=ROUND_PLAN[round-1]||{strength:0.5};
+  const oppName=oppPlayerFor(round,me.board);
+  oppMeta={name:oppName,school:plan.school||"—",strength:plan.strength};
   currentRound=round;
   gameLive=false;
   pendingCommit={points:0,oppSchool:plan.school,oppStrength:plan.strength,round:round};
   db.collection("bcn_live").doc(me.id).set({
     board:me.board,playerId:me.id,playerName:me.name,
-    oppName:plan.player,oppSchool:plan.school,
+    oppName:oppName,oppSchool:plan.school||"—",
     round,status:"done",result:0,
     reason:"Lost on time — did not report",
     userTime:0,oppTime:BASE,
@@ -769,8 +806,9 @@ function joinLateExpired(round,late){
 /* ============ GAME SETUP ============ */
 function setupMatch(round,anchor,late){
   currentRound=round;
-  const plan=ROUND_PLAN[round-1]||{player:"—",school:"—",strength:0.5};
-  oppMeta={name:plan.player,school:plan.school,strength:plan.strength};
+  const plan=ROUND_PLAN[round-1]||{strength:0.5};
+  const oppName=oppPlayerFor(round,me.board);
+  oppMeta={name:oppName,school:plan.school||"—",strength:plan.strength};
   gameLive=true; game=new Chess();
   userColor=colorForBoard(round,me.board);
   userTime=BASE; oppTime=BASE;
@@ -810,8 +848,9 @@ function resumeGame(g){
   userColor=g.userColor||colorForBoard(g.round||currentRound,me.board);
   userTime=g.userTime!=null?g.userTime:BASE;
   oppTime=g.oppTime!=null?g.oppTime:BASE;
-  const plan=ROUND_PLAN[(g.round||1)-1]||{player:"—",school:"—",strength:0.5};
-  oppMeta={name:g.oppName||plan.player,school:g.oppSchool||plan.school,strength:plan.strength};
+  const plan=ROUND_PLAN[(g.round||1)-1]||{strength:0.5};
+  const fallbackName=oppPlayerFor(g.round||1,me.board);
+  oppMeta={name:g.oppName||fallbackName,school:g.oppSchool||plan.school||"—",strength:plan.strength};
   currentRound=g.round||currentRound;
   lastMoveAt=g.lastMoveAt||Date.now(); lastTick=Date.now();
 
@@ -910,20 +949,19 @@ function requestAIMove(){
   const plan=ROUND_PLAN[currentRound-1]||{depth:3,time:200};
   if(chessWorker){
     try{ chessWorker.postMessage("position "+game.fen()+" depth "+plan.depth+" time "+plan.time); }
-    catch(e){ aiThinking=false; setTimeout(doFallbackAI,2200+Math.random()*1500); }
-    setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, 8000);
+    catch(e){ aiThinking=false; setTimeout(doFallbackAI, 3000+Math.floor(Math.random()*7000)); }
+    setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, 15000);
   } else {
-    setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, 2200+Math.random()*1500);
+    setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, 3000+Math.floor(Math.random()*7000));
   }
 }
 if(chessWorker){
   chessWorker.onmessage=function(e){
     if(typeof e.data!=="string") return;
-    if(e.data.startsWith("error")){ aiThinking=false; setTimeout(doFallbackAI, 2200+Math.random()*1500); return; }
+    if(e.data.startsWith("error")){ aiThinking=false; setTimeout(doFallbackAI, 3000+Math.floor(Math.random()*7000)); return; }
     if(e.data.length>=4 && e.data.length<=5){
-      const plan=ROUND_PLAN[currentRound-1]||{depth:3};
-      const base=1500+(plan.depth||3)*350;
-      const t=base+Math.floor(Math.random()*1200);
+      /* Human-like think time: 3-10 seconds per move */
+      const t=3000+Math.floor(Math.random()*7000);
       setTimeout(()=>{ aiThinking=false; applyAIMove(e.data); }, t);
     }
   };
@@ -1243,8 +1281,9 @@ function renderMulti(rows){
     const colBadge=el("mini-col-"+p.id);
     const displayedRound=(g&&g.round)?g.round:liveRound;
     const uc=(g&&g.userColor)?g.userColor:colorForBoard(displayedRound,p.board);
+    const mcpsName=(g&&g.playerName)?g.playerName:p.name;
     if(colBadge){
-      colBadge.textContent=uc==="w"?"⬜ White":"⬛ Black";
+      colBadge.textContent=(uc==="w"?"⬜ White":"⬛ Black")+" · "+mcpsName;
       colBadge.className="mini-col-badge "+(uc==="w"?"mini-col-white":"mini-col-black");
     }
 
@@ -1257,8 +1296,9 @@ function renderMulti(rows){
     } else {
       const ci=boardClockInfo(null);
       const plan=ROUND_PLAN[Math.max(0,ci.round-1)]||{};
+      const oppName=oppPlayerFor(ci.round,p.board);
       if(st) st.textContent=ci.late?"⏱ LOST":(ci.live?"● CLOCK":(ci.pairing?"Pairing":"—"));
-      if(opp) opp.textContent="vs "+(plan.player||"—")+" · "+(plan.school||"—");
+      if(opp) opp.textContent="vs "+oppName+" · "+(plan.school||"—");
       if(clk) clk.textContent="R"+ci.round+" · not logged in · "+fmt(ci.ut)+" left";
     }
   });
@@ -1273,20 +1313,24 @@ function openSpecBoard(id){
   if(specUnsub){ try{specUnsub();}catch(e){} }
   if(specBoard){ try{specBoard.destroy();}catch(e){} specBoard=null; }
   specReplayPly=null;
+  specReplayFens=["start"]; specReplaySans=[];
+  renderMoveList();
   attachLobbyChat();
   setTimeout(()=>{
     specUnsub=db.collection("bcn_live").doc(id).onSnapshot(doc=>{
       const re=ROSTER.find(r=>r.id===id)||{};
-      const plan=ROUND_PLAN[Math.max(0,currentRoundFromClock(Date.now())-1)]||{};
+      const liveR=currentRoundFromClock(Date.now());
+      const plan=ROUND_PLAN[Math.max(0,liveR-1)]||{};
       if(!doc.exists){
         const ci=boardClockInfo(null);
         const uc=colorForBoard(ci.round,re.board||1);
+        const oppName=oppPlayerFor(ci.round,re.board||1);
         el("spec-one-label").textContent="Board "+(re.board||"—");
-        el("spec-opp-name").textContent=plan.player||"—";
+        el("spec-opp-name").textContent=oppName;
         el("spec-opp-school").textContent=plan.school||"—";
         el("spec-me-name").textContent=re.name||"—";
-        el("spec-me-side").textContent=uc==="w"?"⬜ White (MCPS)":"⬛ Black (MCPS)";
-        el("spec-opp-side").textContent=uc==="w"?"⬛ Black":"⬜ White";
+        el("spec-me-side").textContent=(uc==="w"?"⬜ White":"⬛ Black")+" · "+(re.name||"MCPS");
+        el("spec-opp-side").textContent=(uc==="w"?"⬛ Black":"⬜ White")+" · "+oppName;
         el("spec-clock-me").textContent=fmt(ci.ut);
         el("spec-clock-opp").textContent=fmt(ci.ot);
         el("spec-status").textContent=ci.late?"⏱ Lost on time (never reported)":(ci.pairing?"Pairing window":"Not logged in · clock running");
@@ -1298,8 +1342,8 @@ function openSpecBoard(id){
       el("spec-opp-school").textContent=g.oppSchool||"—";
       el("spec-me-name").textContent=g.playerName||"—";
       const uc=g.userColor||colorForBoard(g.round||1,g.board||1);
-      el("spec-me-side").textContent=uc==="w"?"⬜ White (MCPS)":"⬛ Black (MCPS)";
-      el("spec-opp-side").textContent=uc==="w"?"⬛ Black":"⬜ White";
+      el("spec-me-side").textContent=(uc==="w"?"⬜ White":"⬛ Black")+" · "+(g.playerName||"MCPS");
+      el("spec-opp-side").textContent=(uc==="w"?"⬛ Black":"⬜ White")+" · "+(g.oppName||"—");
       const ci=boardClockInfo(g);
       el("spec-clock-me").textContent=fmt(ci.ut);
       el("spec-clock-opp").textContent=fmt(ci.ot);
@@ -1314,7 +1358,7 @@ function openSpecBoard(id){
         } else {
           try{ specBoard.orientation(o); specBoard.position(fen,false); }catch(e){}
         }
-        el("spec-replay-label").textContent="Live position · use ◀ ▶ to replay";
+        el("spec-replay-label").textContent="Live position · tap a move below to replay";
       }
     });
   },80);
@@ -1325,6 +1369,40 @@ function buildSpecReplay(pgn){
   specReplayFens=["start"]; specReplaySans=[];
   const t=(pgn||"").trim().split(/\s+/).filter(x=>x&&!/^\d+\.+$/.test(x));
   t.forEach(x=>{ const m=c.move(x,{sloppy:true}); if(m){ specReplaySans.push(m.san); specReplayFens.push(c.fen()); } });
+  if(specReplayPly!==null && specReplayPly>specReplayFens.length-1) specReplayPly=specReplayFens.length-1;
+  renderMoveList();
+}
+function renderMoveList(){
+  const list=el("spec-move-list"); if(!list) return;
+  const cnt=el("spec-move-count");
+  if(cnt) cnt.textContent=specReplaySans.length+" move"+(specReplaySans.length===1?"":"s");
+  if(!specReplaySans.length){ list.innerHTML='<span class="text-slate-500 text-xs">No moves yet</span>'; return; }
+  let html="";
+  for(let i=0;i<specReplaySans.length;i+=2){
+    const n=Math.floor(i/2)+1;
+    const wPly=i+1, bPly=i+2;
+    const wSan=specReplaySans[i];
+    const bSan=specReplaySans[i+1]||"";
+    const wCls=(specReplayPly!==null&&specReplayPly===wPly)?" current":"";
+    const bCls=(specReplayPly!==null&&specReplayPly===bPly)?" current":"";
+    html+=`<span class="moveno">${n}.</span>`;
+    html+=`<span class="move-cell${wCls}" onclick="jumpToPly(${wPly})">${esc(wSan)}</span>`;
+    if(bSan) html+=`<span class="move-cell${bCls}" onclick="jumpToPly(${bPly})">${esc(bSan)}</span>`;
+  }
+  list.innerHTML=html;
+  const cur=list.querySelector(".move-cell.current");
+  if(cur && cur.scrollIntoView) try{cur.scrollIntoView({block:"nearest"});}catch(e){}
+}
+function jumpToPly(ply){
+  if(!specReplayFens.length) return;
+  const max=specReplayFens.length-1;
+  specReplayPly=Math.max(0,Math.min(max,ply));
+  const f=specReplayFens[specReplayPly]||"start";
+  if(specBoard) try{specBoard.position(f,false);}catch(e){}
+  const s=specReplayPly>0?specReplaySans[specReplayPly-1]:"Start";
+  el("spec-replay-label").textContent="Move "+specReplayPly+"/"+max+(s?" · "+s:"");
+  el("spec-btn-live").textContent="↩ Live";
+  renderMoveList();
 }
 function specReplayStep(d){
   if(!specReplayFens.length) return;
@@ -1336,11 +1414,13 @@ function specReplayStep(d){
   const s=specReplayPly>0?specReplaySans[specReplayPly-1]:"Start";
   el("spec-replay-label").textContent="Move "+specReplayPly+"/"+max+(s?" · "+s:"");
   el("spec-btn-live").textContent="↩ Live";
+  renderMoveList();
 }
 function specReplayLive(){
   specReplayPly=null;
   el("spec-btn-live").textContent="● Live";
   el("spec-replay-label").textContent="Live position";
+  renderMoveList();
 }
 
 /* ============ CHAT ============ */
