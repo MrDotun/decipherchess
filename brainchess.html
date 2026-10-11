@@ -749,26 +749,56 @@ async function loadProgressCloud(){
   loadProgress(); // local fallback first
   if(!me) return;
   try{
+    // If admin reset the tournament, wipe local leftovers
+    const tdoc=await db.collection('bcn_meta').doc('tourney').get();
+    if(tdoc.exists){
+      const t=tdoc.data()||{};
+      const resetAt=t.resetAt||0;
+      const localReset=Number(localStorage.getItem('bcn_seen_reset')||0);
+      if(resetAt&&resetAt>localReset){
+        currentRound=1;
+        individualScores={}; ROSTER.forEach(p=>individualScores[p.id]=0);
+        teamMatchPoints=0; teamGamePoints=0;
+        initSchoolTable();
+        try{
+          ROSTER.forEach(p=>localStorage.removeItem('bcn_progress_'+p.id));
+          localStorage.setItem('bcn_seen_reset',String(resetAt));
+          sessionStorage.clear();
+          sessionStorage.setItem('bcn_fresh_reset','1');
+        }catch(e){}
+      }
+      if(t.round>=1&&t.status!=='lobby') currentRound=t.round;
+      if(t.round===1&&(t.status==='lobby'||!t.roundStartedAt)) currentRound=1;
+    }
+
     const doc=await db.collection('bcn_scores').doc(me.id).get();
     if(doc.exists){
       const x=doc.data();
-      if(x.score!=null) individualScores[me.id]=x.score;
-      if(x.round&&x.round>currentRound) currentRound=x.round;
-      if(x.roundsPlayed&&x.roundsPlayed>=currentRound&&x.status==='waiting'){
-        // finished current, waiting
+      if(x.status==='reset'||x.round===0){
+        individualScores[me.id]=0;
+      } else if(x.score!=null){
+        individualScores[me.id]=Math.min(x.score, TOTAL_ROUNDS);
       }
     }
-    // Load all teammate scores
     const snap=await db.collection('bcn_scores').get();
     snap.forEach(d=>{
       const x=d.data();
-      if(x&&x.id&&x.score!=null) individualScores[x.id]=Math.min(x.score, TOTAL_ROUNDS);
+      if(x&&x.id&&x.status!=='reset'&&x.score!=null)
+        individualScores[x.id]=Math.min(x.score, TOTAL_ROUNDS);
+      else if(x&&x.id&&x.status==='reset')
+        individualScores[x.id]=0;
     });
-    // School table from cloud if present
     const st=await db.collection('bcn_meta').doc('standings').get();
-    if(st.exists&&st.data().table) schoolTable=st.data().table;
-    if(st.exists&&st.data().tmp!=null) teamMatchPoints=st.data().tmp;
-    if(st.exists&&st.data().tgp!=null) teamGamePoints=st.data().tgp;
+    if(st.exists){
+      const sd=st.data()||{};
+      if(sd.resetAt&&(!sd.table||!Object.keys(sd.table).length)){
+        initSchoolTable(); teamMatchPoints=0; teamGamePoints=0;
+      } else {
+        if(sd.table&&Object.keys(sd.table).length) schoolTable=sd.table;
+        if(sd.tmp!=null) teamMatchPoints=sd.tmp;
+        if(sd.tgp!=null) teamGamePoints=sd.tgp;
+      }
+    }
   }catch(e){}
   saveProgress();
 }
@@ -848,28 +878,54 @@ function initSchoolTable(){
   ALL_SCHOOLS.forEach(s=>{ schoolTable[s]={mp:0,gp:0}; });
 }
 
-/* ===== Matchmaking (Ecobank-style short sequence — not broken trial break) ===== */
+/* ===== Matchmaking — Round 1 / after reset: ~60s server sequence; later rounds shorter ===== */
 function startMatchmaking(){
   hideAll();document.getElementById('screen-match').classList.remove('hidden');
   const school=ROUND_SCHOOLS[currentRound];
   const oppName=randomOppName(school, me.board);
   oppMeta={name:oppName,school:school,color:null};
-  document.getElementById('match-title').textContent='Pairing Round '+currentRound;
+  document.getElementById('match-title').textContent=currentRound===1?'Connecting to championship':'Pairing Round '+currentRound;
   document.getElementById('match-school').textContent=school;
   document.getElementById('match-opp').textContent='Board '+me.board+' · vs '+oppName;
-  const msgs=['Connecting to tournament servers…','Confirming school pairings…','Assigning colours…','Synchronising clocks (10+2)…','Match ready'];
+
+  const longMsgs=[
+    'Downloading tournament servers…',
+    'Connecting to Nigeria Chess Federation nodes…',
+    'Syncing 183 school pairings…',
+    'Loading board assignments…',
+    'Verifying team roster (MCPS)…',
+    'Assigning colours…',
+    'Synchronising clocks (10+2)…',
+    'Establishing secure match channel…',
+    'Finalising Round '+currentRound+' pairings…',
+    'Match ready — good luck!'
+  ];
+  const shortMsgs=[
+    'Connecting to tournament servers…',
+    'Confirming school pairings…',
+    'Assigning colours…',
+    'Synchronising clocks (10+2)…',
+    'Match ready'
+  ];
+  // After full reset or Round 1: full ~60s sequence
+  const useLong=currentRound===1||sessionStorage.getItem('bcn_fresh_reset')==='1';
+  if(useLong) sessionStorage.removeItem('bcn_fresh_reset');
+  const msgs=useLong?longMsgs:shortMsgs;
+  const total=useLong?60000:8000;
+
   let step=0;
   document.getElementById('match-msg').textContent=msgs[0];
   document.getElementById('match-bar').style.width='0%';
-  const total=4500;
+  document.getElementById('match-bar').style.transition='none';
   const t0=Date.now();
+  setTimeout(()=>{ document.getElementById('match-bar').style.transition='width 0.3s linear'; },20);
   const iv=setInterval(()=>{
     const pct=Math.min(100,((Date.now()-t0)/total)*100);
     document.getElementById('match-bar').style.width=pct+'%';
-    const si=Math.min(msgs.length-1, Math.floor(pct/20));
+    const si=Math.min(msgs.length-1, Math.floor((pct/100)*(msgs.length)));
     if(si!==step){step=si;document.getElementById('match-msg').textContent=msgs[si];}
     if(pct>=100){clearInterval(iv);beginGame();}
-  },80);
+  },100);
 }
 
 /** Team colours: mixed every round (not everyone White). */
@@ -1473,29 +1529,65 @@ async function adminForceNextRound(){
 async function adminResetTournament(){
   const pass=(document.getElementById('admin-pass')&&document.getElementById('admin-pass').value||'').trim();
   if(!adminPassOk(pass)){toast('Wrong admin password');return;}
-  if(!confirm('Reset ALL tournament data? This cannot be undone.')) return;
+  if(!confirm('Reset ALL tournament data? Everyone starts Round 1 from zero.')) return;
+  toast('Clearing servers…');
+  const now=Date.now();
   try{
+    // Wipe every board + scores (delete + overwrite zeros so nothing residual remains)
     for(const p of ROSTER){
       await db.collection('bcn_live').doc(p.id).delete().catch(()=>{});
       await db.collection('bcn_scores').doc(p.id).delete().catch(()=>{});
+      await db.collection('bcn_live').doc(p.id).set({
+        status:'cleared', round:0, result:null, fen:null, pgn:'', updated:now, resetAt:now
+      }).catch(()=>{});
+      await db.collection('bcn_scores').doc(p.id).set({
+        id:p.id, name:p.name, board:p.board, score:0, round:1, roundsPlayed:0, status:'reset', updated:now
+      }).catch(()=>{});
       try{localStorage.removeItem('bcn_progress_'+p.id);}catch(e){}
     }
     for(let r=1;r<=TOTAL_ROUNDS;r++){
       await db.collection('bcn_meta').doc('mp_'+r).delete().catch(()=>{});
     }
-    await db.collection('bcn_meta').doc('standings').delete().catch(()=>{});
+    await db.collection('bcn_meta').doc('standings').set({
+      table:{}, tmp:0, tgp:0, round:0, resetAt:now, updated:now
+    }).catch(()=>{});
+    // Clear chat history (best-effort — delete recent batch)
+    try{
+      const chatSnap=await db.collection('bcn_chat').limit(200).get();
+      const batch=db.batch();
+      chatSnap.forEach(d=>batch.delete(d.ref));
+      await batch.commit().catch(()=>{});
+    }catch(e){}
+    // Fresh tournament state — schedule must be set again by admin
     await db.collection('bcn_meta').doc('tourney').set({
-      status:'lobby', round:1, roundStartedAt:0, breakEndsAt:0, updated:Date.now()
+      status:'lobby', round:1, roundStartedAt:0, breakEndsAt:0,
+      resetAt:now, resetToken:now, updated:now
     });
-  }catch(e){}
+    await db.collection('bcn_meta').doc('schedule').set({
+      startAt:0, updated:now, resetAt:now
+    }).catch(()=>{});
+  }catch(e){
+    console.error(e);
+    toast('Reset partially failed — try again online');
+  }
+  // Local wipe
   currentRound=1;
   individualScores={}; ROSTER.forEach(p=>individualScores[p.id]=0);
   teamMatchPoints=0; teamGamePoints=0;
+  sharedRoundStart=0; scheduledStartMs=0;
   initSchoolTable();
-  sessionStorage.clear();
+  try{
+    sessionStorage.clear();
+    localStorage.removeItem('bcn_start');
+    ROSTER.forEach(p=>localStorage.removeItem('bcn_progress_'+p.id));
+  }catch(e){}
+  sessionStorage.setItem('bcn_fresh_reset','1');
+  me=null; gameLive=false; game=null;
+  if(timer){clearInterval(timer);timer=null;}
   closeAdminModal();
-  toast('Tournament reset');
+  toast('Tournament fully reset — set a new start time');
   showWelcome();
+  updateScheduleBanner();
 }
 
 function runBreakCountdown(){
