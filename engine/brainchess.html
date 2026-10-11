@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Brain Chess National School Championship 2026 · MCPS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<style>
+:root{--bg:#040d12;--gold:#e8c547;--blue:#1d4ed8;--green:#34d399;--cyan:#22d3ee;--mint:#5eead4;--violet:#a78bfa}
+*{box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:#e2e8f0;margin:0;min-height:100vh}
+.panel{background:linear-gradient(165deg,#151c2c,#0c1018);border:1px solid rgba(232,197,71,.18);border-radius:1.15rem}
+.btn-gold{background:linear-gradient(135deg,#fbbf24,#eab308);color:#000;font-weight:900;border-radius:12px;padding:13px 18px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;border:0;cursor:pointer}
+.btn-gold:disabled{opacity:.45;cursor:not-allowed}
+.btn-soft{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#e2e8f0;font-weight:800;border-radius:12px;padding:12px 16px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer}
+.btn-danger{background:rgba(244,63,94,.2);border:1px solid rgba(244,63,94,.45);color:#fda4af;font-weight:800;border-radius:12px;padding:12px 16px;font-size:12px;cursor:pointer}
+.btn-blue{background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;font-weight:900;border-radius:12px;padding:13px 18px;font-size:12px;text-transform:uppercase;border:0;cursor:pointer}
+
+/* Welcome – bright national poster */
+#screen-welcome{background:#f4f7fb;position:relative;overflow-x:hidden;min-height:100vh;color:#0f172a}
+#screen-welcome .wc-topbar{background:linear-gradient(90deg,#008751 0%,#00a86b 40%,#fcd116 70%,#e11d48 100%);height:6px;width:100%}
+#screen-welcome .wc-header{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 16px 12px;text-align:center}
+#screen-welcome .wc-pill{display:inline-block;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;margin-bottom:8px}
+#screen-welcome .wc-h1{margin:0;font-size:clamp(1.35rem,4.5vw,1.85rem);font-weight:900;color:#0f172a;line-height:1.15;letter-spacing:-0.02em}
+#screen-welcome .wc-h1 span{color:#008751}
+#screen-welcome .wc-tagline{margin:6px 0 0;font-size:12px;font-weight:700;color:#64748b}
+#screen-welcome .wc-photo-wrap{position:relative;margin:0;background:#0f172a}
+#screen-welcome .wc-photo-wrap img{display:block;width:100%;max-height:min(52vh,420px);object-fit:cover;object-position:top center}
+#screen-welcome .wc-photo-caption{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(255,255,255,.95);border-radius:14px;padding:10px 14px;text-align:center;box-shadow:0 8px 28px rgba(15,23,42,.25);border:2px solid #fcd116}
+#screen-welcome .wc-photo-caption .k{font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#b45309}
+#screen-welcome .wc-photo-caption .v{font-size:14px;font-weight:900;color:#0f172a;margin-top:2px}
+#screen-welcome .wc-body{padding:16px 16px 28px;max-width:480px;margin:0 auto}
+#screen-welcome .wc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+#screen-welcome .wc-stat{background:#fff;border-radius:14px;padding:12px 8px;text-align:center;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(15,23,42,.04)}
+#screen-welcome .wc-stat .n{font-size:1.35rem;font-weight:900;color:#008751;line-height:1}
+#screen-welcome .wc-stat .l{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-top:4px}
+#screen-welcome .wc-card{background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;border:1px solid #e2e8f0;box-shadow:0 4px 16px rgba(15,23,42,.06)}
+#screen-welcome .wc-card.green{border-left:5px solid #008751}
+#screen-welcome .wc-card.red{border-left:5px solid #e11d48;background:linear-gradient(90deg,#fff1f2,#fff)}
+#screen-welcome .wc-card h3{margin:0 0 8px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#0f172a}
+#screen-welcome .wc-card ul{margin:0;padding-left:1.1rem;font-size:13px;color:#334155;line-height:1.55;font-weight:600}
+#screen-welcome .wc-card.red ul{color:#9f1239}
+#screen-welcome .wc-time{text-align:center;background:#ecfdf5;border:2px solid #6ee7b7;border-radius:16px;padding:14px;margin-bottom:14px}
+#screen-welcome .wc-time .lab{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#047857}
+#screen-welcome .wc-time .val{font-size:1.2rem;font-weight:900;color:#065f46;margin-top:4px}
+#screen-welcome .wc-time .cd{font-size:12px;font-weight:700;color:#059669;margin-top:4px}
+#screen-welcome .wc-btn-main{width:100%;border:0;border-radius:16px;padding:16px;cursor:pointer;background:linear-gradient(135deg,#008751,#00c853);color:#fff;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 8px 24px rgba(0,135,81,.35)}
+#screen-welcome .wc-btn-main:active{transform:scale(.98)}
+#screen-welcome .wc-btn-sec{width:100%;margin-top:10px;border-radius:14px;padding:14px;cursor:pointer;background:#fff;border:2px solid #0f172a;color:#0f172a;font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+#screen-welcome .wc-btn-admin{width:100%;margin-top:10px;border:0;background:transparent;color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:10px;cursor:pointer}
+#screen-welcome .wc-footer{text-align:center;font-size:10px;color:#94a3b8;font-weight:600;margin-top:8px}
+
+input{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:12px 14px;width:100%;outline:none}
+.rep-btn{width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;margin-bottom:8px;transition:.2s}
+.rep-btn:hover{border-color:rgba(232,197,71,.4)}
+.rep-btn.selected{border-color:#fbbf24;background:rgba(251,191,36,.12);box-shadow:0 0 18px rgba(251,191,36,.15)}
+#board{width:100%;max-width:520px;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 0 3px rgba(37,99,235,.45)}
+.board-b72b1 .white-1e1d7{background-color:#eeeed2!important}
+.board-b72b1 .black-3c85d{background-color:#769656!important}
+.highlight-select{box-shadow:inset 0 0 0 4px rgba(255,255,0,.9)!important}
+.highlight-legal{position:relative}
+.highlight-legal::after{content:'';position:absolute;left:50%;top:50%;width:18%;height:18%;min-width:9px;min-height:9px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(0,0,0,.28);pointer-events:none}
+.highlight-last{box-shadow:inset 0 0 0 3px rgba(250,204,21,.7)!important}
+.board-b72b1 .white-1e1d7.highlight-last{background-color:#f6f669!important}
+.board-b72b1 .black-3c85d.highlight-last{background-color:#baca2b!important}
+.clock{font-variant-numeric:tabular-nums;font-weight:900;font-size:1.45rem;min-width:4.2rem;text-align:right}
+.clock.active{color:#fbbf24;text-shadow:0 0 12px rgba(251,191,36,.35)}
+.clock.low{color:#f87171;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .45s ease both}
+.spinner{width:64px;height:64px;border:4px solid rgba(251,191,36,.15);border-top-color:#fbbf24;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.96);border:1px solid rgba(232,197,71,.4);color:#fde68a;padding:10px 18px;border-radius:999px;font-size:12px;font-weight:800;z-index:400;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.show{opacity:1}
+.modal-bg{display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;background:rgba(5,7,13,.88);backdrop-filter:blur(10px);padding:16px}
+.modal-bg.open{display:flex}
+.rank-1{color:#fbbf24;font-weight:900}
+.rank-2{color:#e2e8f0;font-weight:900}
+.rank-3{color:#fdba74;font-weight:900}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.08)}
+td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block;animation:pulse 1.2s infinite}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<!-- WELCOME -->
+<div id="screen-welcome">
+  <div class="wc-topbar"></div>
+  <div class="wc-header">
+    <div class="wc-pill">National School Championship 2026</div>
+    <h1 class="wc-h1">Maryland Convent<br><span>Private School</span></h1>
+    <p class="wc-tagline">Official team login · Brain Chess Nigeria</p>
+  </div>
+  <div class="wc-photo-wrap">
+    <img src="Screenshot_20260516-211346.jpg" alt="Maryland Convent Private School chess team" onerror="this.style.display='none'">
+    <div class="wc-photo-caption">
+      <div class="k">Representing</div>
+      <div class="v">Maryland Convent Private School</div>
+    </div>
+  </div>
+  <div class="wc-body">
+    <div class="wc-stats">
+      <div class="wc-stat"><div class="n">7</div><div class="l">Boards</div></div>
+      <div class="wc-stat"><div class="n">7</div><div class="l">Rounds</div></div>
+      <div class="wc-stat"><div class="n">183</div><div class="l">Schools</div></div>
+    </div>
+    <div class="wc-time" id="schedule-banner">
+      <div class="lab">Round 1 kick-off</div>
+      <div class="val" id="start-time-label">Waiting for admin unlock…</div>
+      <div class="cd" id="start-countdown"></div>
+    </div>
+    <div class="wc-card green">
+      <h3>Event details</h3>
+      <ul>
+        <li><strong>Time control:</strong> 10 minutes + 0 seconds</li>
+        <li><strong>Format:</strong> Team Swiss · match points</li>
+        <li><strong>Awards:</strong> Board Gold / Silver / Bronze</li>
+        <li><strong>Spectators:</strong> All 7 boards live + chat</li>
+      </ul>
+    </div>
+    <div class="wc-card red">
+      <h3>Fair play rules</h3>
+      <ul>
+        <li>No chess engines, bots, or apps</li>
+        <li>No help from anyone during games</li>
+        <li>Play only with your own mind</li>
+        <li>Cheating = disqualification &amp; blacklist</li>
+      </ul>
+    </div>
+    <button type="button" class="wc-btn-main" onclick="showPlayerLogin()">Enter as player</button>
+    <button type="button" class="wc-btn-sec" onclick="enterSpectator()">Watch live boards</button>
+    <button type="button" class="wc-btn-admin" onclick="openAdminModal()">Admin · set start time</button>
+    <p class="wc-footer">Nigeria Chess Federation style · School team event</p>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div id="admin-modal" class="modal-bg">
+  <div class="panel p-6 max-w-sm w-full text-center" style="border-color:rgba(232,197,71,.4)">
+    <div class="text-3xl mb-2">🔐</div>
+    <h3 class="text-lg font-black text-white">Admin lock</h3>
+    <p class="text-sm text-slate-400 mt-2 mb-3">Set when Round 1 begins. Players cannot start until this time.</p>
+    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block text-left">Round 1 start (your local time)</label>
+    <input id="admin-start-at" type="datetime-local" class="mb-3" style="color-scheme:dark">
+    <input id="admin-pass" type="password" placeholder="Admin password" class="mb-3" autocomplete="off">
+    <button type="button" class="btn-gold w-full mb-2" onclick="confirmAdminStart()">Save &amp; unlock schedule</button>
+    <button type="button" class="btn-danger w-full mb-2" onclick="confirmAdminOpenNow()">Open doors NOW</button>
+    <button type="button" class="btn-blue w-full mb-2" onclick="adminForceNextRound()">Force next round (2 min break)</button>
+    <button type="button" class="btn-soft w-full mb-2" onclick="adminResetTournament()">Reset tournament data</button>
+    <button type="button" class="btn-soft w-full" onclick="closeAdminModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- PLAYER LOGIN -->
+<div id="screen-login" class="hidden min-h-screen px-4 py-8">
+  <div class="max-w-md mx-auto">
+    <h2 class="text-xl font-black uppercase italic text-white mb-1">Select your board</h2>
+    <p class="text-sm text-slate-400 mb-4">Tap your name, then enter the team password.</p>
+    <div id="rep-list" class="mb-4"></div>
+    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">Password</label>
+    <input id="login-pass" type="password" placeholder="Team password" class="mb-4" autocomplete="off">
+    <button type="button" class="btn-gold w-full mb-2" onclick="doPlayerLogin()">Enter championship</button>
+    <button type="button" class="btn-soft w-full" onclick="showWelcome()">Back</button>
+  </div>
+</div>
+
+<!-- MATCHMAKING -->
+<div id="screen-match" class="hidden min-h-screen flex flex-col items-center justify-center px-4 text-center">
+  <div class="spinner"></div>
+  <h2 class="text-xl font-black text-white uppercase italic mb-2" id="match-title">Pairing Round 1</h2>
+  <p class="text-slate-400 text-sm mb-1" id="match-msg">Contacting schools across Nigeria…</p>
+  <p class="text-amber-300 font-black text-lg mt-3" id="match-school">—</p>
+  <p class="text-slate-500 text-xs mt-1" id="match-opp">—</p>
+  <div class="w-56 h-2 bg-white/10 rounded-full mt-6 overflow-hidden">
+    <div id="match-bar" class="h-full bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full" style="width:0%;transition:width .3s"></div>
+  </div>
+  <p class="text-xs text-slate-500 mt-4">Clocks start with exactly 10:00 after this phase</p>
+</div>
+
+<!-- PLAY -->
+<div id="screen-play" class="hidden min-h-screen pb-8">
+  <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#070b14]/95 backdrop-blur px-4 py-3 flex items-center justify-between gap-2">
+    <div class="text-[10px] font-black uppercase tracking-widest text-amber-400" id="play-round">Round 1 / 7</div>
+    <div class="text-[11px] font-bold text-slate-400" id="play-team-pts">Team: 0</div>
+    <button type="button" class="text-xs font-bold text-slate-500" onclick="openStandings()">Standings</button>
+  </nav>
+  <div class="max-w-xl mx-auto px-3 py-3">
+    <div class="flex items-center justify-between gap-3 mb-2 panel px-3 py-2.5" style="border-left:4px solid #f87171">
+      <div class="min-w-0 text-left">
+        <div class="text-[10px] font-black uppercase text-slate-500" id="opp-side-label">⬛ Black</div>
+        <div class="font-black text-white text-sm truncate" id="opp-name">—</div>
+        <div class="text-[11px] text-rose-300 font-bold truncate" id="opp-school">—</div>
+      </div>
+      <div class="clock" id="clock-opp">10:00</div>
+    </div>
+    <div class="panel p-2 mb-2"><div id="board"></div></div>
+    <div class="flex items-center justify-between gap-3 mb-3 panel px-3 py-2.5" style="border-left:4px solid #34d399">
+      <div class="min-w-0 text-left">
+        <div class="text-[10px] font-black uppercase text-slate-500" id="me-side-label">⬜ White · you</div>
+        <div class="font-black text-white text-sm truncate" id="me-name">—</div>
+        <div class="text-[11px] text-emerald-300 font-bold">Maryland Convent</div>
+      </div>
+      <div class="clock" id="clock-me">10:00</div>
+    </div>
+    <div class="text-center text-amber-300 font-bold text-sm mb-3" id="status">Your turn</div>
+    <div class="flex gap-2">
+      <button type="button" class="btn-danger flex-1" onclick="handleResign()">Resign</button>
+      <button type="button" class="btn-soft flex-1" onclick="enterSpectator()">Watch boards</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="screen-result" class="hidden min-h-screen flex flex-col items-center justify-center px-4 text-center">
+  <div class="panel p-8 max-w-md w-full fade-up">
+    <div class="text-5xl mb-3" id="result-emoji">🏆</div>
+    <h2 class="text-2xl font-black text-white mb-1" id="result-title">You won!</h2>
+    <p class="text-slate-400 text-sm mb-4" id="result-sub">Great game</p>
+    <div class="text-amber-300 font-black text-lg mb-6" id="result-pts">+1.0 team points</div>
+    <button type="button" class="btn-gold w-full mb-2" id="result-next-btn" onclick="enterWaitForTeam()">Continue</button>
+    <button type="button" class="btn-soft w-full" onclick="openStandings()">View standings</button>
+  </div>
+</div>
+
+<!-- WAIT / BREAK -->
+<div id="screen-wait" class="hidden min-h-screen flex flex-col items-center justify-center px-4 text-center">
+  <div class="text-5xl mb-4" id="wait-emoji">☕</div>
+  <h2 class="text-xl font-black text-white uppercase italic mb-2" id="wait-title">Break — clocks frozen</h2>
+  <p class="text-slate-400 text-sm mb-4" id="wait-sub">All boards finished. Next round starts together after the break.</p>
+  <div class="text-3xl font-black text-amber-300 mb-6" id="wait-timer">2:00</div>
+  <button type="button" class="btn-soft" onclick="enterSpectator()">Watch live boards &amp; chat</button>
+</div>
+
+<!-- STANDINGS -->
+<div id="screen-standings" class="hidden min-h-screen px-4 py-6">
+  <div class="max-w-lg mx-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-black text-white uppercase italic">Standings</h2>
+      <button type="button" class="btn-soft" onclick="closeStandings()">Back</button>
+    </div>
+    <p class="text-xs text-slate-500 mb-1" id="stand-round-label">After Round 1</p>
+    <p class="text-amber-300 font-black text-sm mb-1" id="mcps-rank-line">Rank #— of 183</p>
+    <p class="text-slate-400 text-xs mb-4" id="mcps-pts-line">Match pts 0 · Game pts 0.0</p>
+    <div class="panel p-3 mb-4 overflow-x-auto">
+      <table>
+        <thead><tr><th>#</th><th>School</th><th>MP</th><th>GP</th></tr></thead>
+        <tbody id="team-body"></tbody>
+      </table>
+    </div>
+    <h3 class="text-sm font-black text-white uppercase mb-2">Individual boards</h3>
+    <div class="panel p-3 overflow-x-auto">
+      <table>
+        <thead><tr><th>Bd</th><th>Player</th><th>Pts</th><th>Pace</th></tr></thead>
+        <tbody id="ind-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div id="screen-final" class="hidden min-h-screen px-4 py-8">
+  <div class="max-w-lg mx-auto text-center">
+    <div class="text-5xl mb-3">🏆</div>
+    <h2 class="text-2xl font-black text-white mb-1" id="final-rank">MCPS · Rank #—</h2>
+    <p class="text-slate-400 text-sm mb-6" id="final-sub">7 rounds complete</p>
+    <div class="panel p-3 mb-4 overflow-x-auto text-left">
+      <table>
+        <thead><tr><th>Bd</th><th>Player</th><th>Pts</th><th>Medal</th></tr></thead>
+        <tbody id="final-ind"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn-gold w-full" onclick="openStandings()">Full standings</button>
+  </div>
+</div>
+
+<!-- SPECTATOR HUB -->
+<div id="screen-spec-hub" class="hidden min-h-screen pb-24">
+  <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#070b14]/95 backdrop-blur px-4 py-3 flex items-center justify-between">
+    <button type="button" class="text-xs font-bold text-slate-400" onclick="specHubBack()">← Back</button>
+    <div class="text-[10px] font-black uppercase tracking-widest text-amber-400">Live Boards</div>
+    <button type="button" class="text-xs font-bold text-slate-400" onclick="openStandings()">Standings</button>
+  </nav>
+  <div class="max-w-3xl mx-auto px-3 py-3">
+    <div id="multi-boards" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6"></div>
+    <!-- Chat -->
+    <div class="panel p-3">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-black uppercase tracking-widest text-amber-400">Lobby Chat</span>
+        <span class="text-[10px] text-slate-500" id="chat-role-label">spectator</span>
+      </div>
+      <div id="chat-log" class="h-48 overflow-y-auto mb-2 space-y-1 text-left"></div>
+      <div class="flex gap-2">
+        <input id="chat-input" type="text" placeholder="Type a message… (/coach password for coach)" maxlength="240" class="flex-1" onkeydown="if(event.key==='Enter')sendChat()">
+        <button type="button" class="btn-gold px-4" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SPECTATOR ONE BOARD -->
+<div id="screen-spec-one" class="hidden min-h-screen pb-8">
+  <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#070b14]/95 backdrop-blur px-4 py-3 flex items-center justify-between">
+    <button type="button" class="text-xs font-bold text-slate-400" onclick="backFromSpecOne()">← Boards</button>
+    <div class="text-[10px] font-black uppercase tracking-widest text-amber-400" id="spec-one-label">Board —</div>
+    <span class="text-[10px] text-slate-500" id="spec-status">—</span>
+  </nav>
+  <div class="max-w-xl mx-auto px-3 py-3">
+    <div class="flex items-center justify-between gap-3 mb-2 panel px-3 py-2.5" style="border-left:4px solid #f87171">
+      <div class="min-w-0 text-left">
+        <div class="text-[10px] font-black uppercase text-slate-500" id="spec-opp-side">⬛</div>
+        <div class="font-black text-white text-sm truncate" id="spec-opp-name">—</div>
+        <div class="text-[11px] text-rose-300 font-bold truncate" id="spec-opp-school">—</div>
+      </div>
+      <div class="clock" id="spec-clock-opp">10:00</div>
+    </div>
+    <div class="panel p-2 mb-2"><div id="spec-board"></div></div>
+    <div class="flex items-center justify-between gap-3 mb-3 panel px-3 py-2.5" style="border-left:4px solid #34d399">
+      <div class="min-w-0 text-left">
+        <div class="text-[10px] font-black uppercase text-slate-500" id="spec-me-side">⬜</div>
+        <div class="font-black text-white text-sm truncate" id="spec-me-name">—</div>
+      </div>
+      <div class="clock" id="spec-clock-me">10:00</div>
+    </div>
+    <div class="flex items-center justify-center gap-3 mb-2">
+      <button type="button" class="btn-soft px-3 py-2" onclick="specReplayStep(-1)">◀</button>
+      <span class="text-xs text-slate-400" id="spec-replay-label">Live</span>
+      <button type="button" class="btn-soft px-3 py-2" onclick="specReplayStep(1)">▶</button>
+      <button type="button" class="btn-soft px-3 py-2" id="spec-btn-live" onclick="specReplayLive()">● Live</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== CONFIG ===== */
+const firebaseConfig = {
+  apiKey: "AIzaSyCcSVTifrJhzXvhQ4m1UyObtCKd8",
+  authDomain: "assignments-de95a.firebaseapp.com",
+  projectId: "assignments-de95a",
+  storageBucket: "assignments-de95a.firebasestorage.app",
+  messagingSenderId: "1088073398299",
+  appId: "1:1088073398299:web:dab1f57ac1d63b10dba0be"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const TEAM_PASS = "MCPS";
+const ADMIN_PASS = "decipher1234";
+const ADMIN_PASS_ALT = "brainchess2026";
+const TOTAL_ROUNDS = 7;
+const TOTAL_SCHOOLS = 183;
+const BASE = 600;               // 10 minutes
+const MATCH_SEC = 60;           // connecting phase → clocks start with 10:00
+const BREAK_SEC = 120;          // 2-minute break
+const pieceTheme = "https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png";
+
+const ROSTER = [
+  {id:"p1", board:1, name:"Obi Chukwuemeka"},
+  {id:"p2", board:2, name:"Onele Chierika"},
+  {id:"p3", board:3, name:"Semilore Beckley"},
+  {id:"p4", board:4, name:"Sage Osafile"},
+  {id:"p5", board:5, name:"Ajayi Oluwaseun"},
+  {id:"p6", board:6, name:"Princewill Isioma"},
+  {id:"p7", board:7, name:"James"}
+];
+
+const nigerianNames = ["Chijioke Eze","Adesua Balogun","Tunde Owolabi","Nkechi Okoro","Femi Adeyemi","Ibrahim Musa","Zainab Bello","Emeka Nwosu","Funke Adewale","Yusuf Hassan"];
+const nigerianSchools = ["Grange School","Lekki British School","Corona Private School","Green Springs School","Atlantic Hall","British International School","Greensprings Ikoyi","Chrisland College","Dowen College","Whitesands School","Lagos Preparatory","St. Saviour's School"];
+
+/* ===== STATE ===== */
+let me = null;
+let currentRound = 1;
+let individualScores = {};
+let teamMatchPoints = 0;
+let teamGamePoints = 0;
+let schoolTable = {};
+let scheduledStartMs = 0;
+let game = null;
+let board = null;
+let userColor = "w";
+let userTime = BASE, oppTime = BASE;
+let timer = null;
+let gameLive = false;
+let oppMeta = {name:"—", school:"—"};
+let lastMoveAt = 0;
+let srcSq = null;
+let clocksStarted = false;
+let clocksStartAt = 0;
+let chatRole = "spectator", chatName = "";
+let chatUnsub = null, hubUnsub = null, specUnsub = null;
+let specBoard = null;
+let specReplayFens = [], specReplaySans = [], specReplayPly = null;
+let fromStandings = "screen-result";
+let chessWorker = null;
+
+try {
+  // Robust path for GitHub Pages / subfolders / different hosts
+  const workerUrl = new URL("chess-worker.js", window.location.href).href;
+  chessWorker = new Worker(workerUrl);
+} catch (e) {
+  console.warn("Worker failed to load – AI will use fallback random moves", e);
+}
+
+/* ===== UTIL ===== */
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2800);
+}
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function fmt(s) {
+  s = Math.max(0, Math.floor(s));
+  const m = Math.floor(s/60), sec = s%60;
+  return (m<10?"0":"")+m+":"+(sec<10?"0":"")+sec;
+}
+function hideAll() {
+  ["screen-welcome","screen-login","screen-match","screen-play","screen-result","screen-wait","screen-standings","screen-final","screen-spec-hub","screen-spec-one"]
+    .forEach(id => document.getElementById(id).classList.add("hidden"));
+}
+function showWelcome() { hideAll(); document.getElementById("screen-welcome").classList.remove("hidden"); }
+
+/* ===== SCHOOL TABLE ===== */
+function initSchoolTable() {
+  schoolTable = {"Maryland Convent Private School": {mp:0, gp:0}};
+  nigerianSchools.forEach(s => schoolTable[s] = {mp:0, gp:0});
+  // seed a few more for realism
+  for (let i=0;i<20;i++) {
+    const n = "School "+(i+1);
+    if (!schoolTable[n]) schoolTable[n] = {mp:Math.floor(Math.random()*8), gp:Math.random()*20};
+  }
+}
+function addTeamResult(oppSchool, myPoints) {
+  // myPoints: 1 win, 0.5 draw, 0 loss  → match points 2/1/0
+  const mp = myPoints === 1 ? 2 : (myPoints === 0.5 ? 1 : 0);
+  teamMatchPoints += mp;
+  teamGamePoints += myPoints;
+  const mc = schoolTable["Maryland Convent Private School"];
+  mc.mp += mp; mc.gp += myPoints;
+  if (oppSchool && schoolTable[oppSchool]) {
+    schoolTable[oppSchool].mp += (2-mp);
+    schoolTable[oppSchool].gp += (1-myPoints);
+  }
+}
+
+/* ===== ADMIN ===== */
+function openAdminModal() { document.getElementById("admin-modal").classList.add("open"); }
+function closeAdminModal() { document.getElementById("admin-modal").classList.remove("open"); }
+function confirmAdminStart() {
+  const pass = document.getElementById("admin-pass").value;
+  if (pass !== ADMIN_PASS && pass !== ADMIN_PASS_ALT) return toast("Wrong admin password");
+  const v = document.getElementById("admin-start-at").value;
+  if (!v) return toast("Pick a start time");
+  const ms = new Date(v).getTime();
+  scheduledStartMs = ms;
+  localStorage.setItem("bcn_start", String(ms));
+  db.collection("bcn_meta").doc("schedule").set({startAt:ms, updated:Date.now()}, {merge:true});
+  toast("Schedule saved");
+  closeAdminModal();
+  updateScheduleBanner();
+}
+function confirmAdminOpenNow() {
+  const pass = document.getElementById("admin-pass").value;
+  if (pass !== ADMIN_PASS && pass !== ADMIN_PASS_ALT) return toast("Wrong admin password");
+  scheduledStartMs = Date.now() - 1000;
+  localStorage.setItem("bcn_start", String(scheduledStartMs));
+  db.collection("bcn_meta").doc("schedule").set({startAt:scheduledStartMs, updated:Date.now()}, {merge:true});
+  toast("Doors open now");
+  closeAdminModal();
+  updateScheduleBanner();
+}
+function adminForceNextRound() {
+  const pass = document.getElementById("admin-pass").value;
+  if (pass !== ADMIN_PASS && pass !== ADMIN_PASS_ALT) return toast("Wrong admin password");
+  const end = Date.now() + BREAK_SEC*1000;
+  db.collection("bcn_meta").doc("tourney").set({
+    status:"break", breakEndsAt:end, updated:Date.now()
+  }, {merge:true});
+  toast("Forced 2-min break → next round");
+  closeAdminModal();
+}
+async function adminResetTournament() {
+  const pass = document.getElementById("admin-pass").value;
+  if (pass !== ADMIN_PASS && pass !== ADMIN_PASS_ALT) return toast("Wrong admin password");
+  if (!confirm("Reset ALL tournament data? This cannot be undone.")) return;
+  const now = Date.now();
+  try {
+    const live = await db.collection("bcn_live").get();
+    const batch = db.batch();
+    live.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    await db.collection("bcn_meta").doc("tourney").set({
+      status:"lobby", round:1, roundStartedAt:0, breakEndsAt:0, resetAt:now, updated:now
+    });
+    await db.collection("bcn_meta").doc("schedule").set({startAt:0, updated:now});
+  } catch(e){ console.error(e); }
+  currentRound = 1;
+  individualScores = {}; ROSTER.forEach(p => individualScores[p.id]=0);
+  teamMatchPoints = 0; teamGamePoints = 0;
+  initSchoolTable();
+  localStorage.clear();
+  me = null; gameLive = false; game = null;
+  if (timer) { clearInterval(timer); timer = null; }
+  closeAdminModal();
+  toast("Tournament reset");
+  showWelcome();
+}
+
+function updateScheduleBanner() {
+  const label = document.getElementById("start-time-label");
+  const cd = document.getElementById("start-countdown");
+  if (!scheduledStartMs) {
+    label.textContent = "Waiting for admin unlock…";
+    cd.textContent = "";
+    return;
+  }
+  const left = scheduledStartMs - Date.now();
+  if (left <= 0) {
+    label.textContent = "Round 1 is OPEN";
+    cd.textContent = "Players may enter";
+  } else {
+    const d = new Date(scheduledStartMs);
+    label.textContent = d.toLocaleString();
+    const s = Math.ceil(left/1000);
+    const m = Math.floor(s/60), sec = s%60;
+    cd.textContent = `Starts in ${m}:${sec<10?"0":""}${sec}`;
+  }
+}
+
+/* ===== LOGIN ===== */
+function showPlayerLogin() {
+  if (scheduledStartMs && Date.now() < scheduledStartMs) {
+    toast("Tournament has not started yet");
+    return;
+  }
+  hideAll();
+  document.getElementById("screen-login").classList.remove("hidden");
+  const box = document.getElementById("rep-list");
+  box.innerHTML = "";
+  ROSTER.forEach(p => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "rep-btn";
+    b.innerHTML = `<span class="text-amber-400 font-black">Bd ${p.board}</span> · ${esc(p.name)}`;
+    b.onclick = () => {
+      document.querySelectorAll(".rep-btn").forEach(x => x.classList.remove("selected"));
+      b.classList.add("selected");
+      me = p;
+    };
+    box.appendChild(b);
+  });
+}
+function doPlayerLogin() {
+  if (!me) return toast("Select your board");
+  const pass = document.getElementById("login-pass").value;
+  if (pass !== TEAM_PASS) return toast("Wrong team password");
+  chatRole = "player"; chatName = me.name;
+
+  // Load tournament meta + this player's live doc together
+  Promise.all([
+    db.collection("bcn_meta").doc("tourney").get(),
+    db.collection("bcn_live").doc(me.id).get()
+  ]).then(([metaDoc, liveDoc]) => {
+    const meta = metaDoc.exists ? metaDoc.data() : {};
+    currentRound = meta.round || currentRound || 1;
+
+    // Already finished this round?
+    if (liveDoc.exists) {
+      const g = liveDoc.data();
+      if (g.status === "done" && g.round === currentRound) {
+        showResultScreen(g.result, g.reason || "Finished");
+        return;
+      }
+      // Live game exists → always resume (never start fresh)
+      if (g.status === "live" && g.round === currentRound) {
+        resumeGame(g);
+        return;
+      }
+    }
+
+    // Ensure global pairing / clocks anchor exists
+    ensureRoundTiming(meta).then(timing => {
+      const now = Date.now();
+      if (now < timing.pairingEndsAt) {
+        // Still in the shared 60s pairing window
+        startSharedPairing(timing);
+      } else {
+        // Clocks already running for everyone — join immediately with time already ticking
+        joinLate(timing);
+      }
+    });
+  }).catch(err => {
+    console.error(err);
+    // Offline fallback: local pairing
+    startSharedPairing({ pairingEndsAt: Date.now() + MATCH_SEC * 1000, clocksAnchor: Date.now() + MATCH_SEC * 1000 });
+  });
+}
+
+/* Ensure one shared pairing window + clocksAnchor for the whole round */
+function ensureRoundTiming(meta) {
+  return new Promise(resolve => {
+    const now = Date.now();
+    if (meta.clocksAnchor && meta.round === currentRound) {
+      resolve({
+        pairingEndsAt: meta.pairingEndsAt || meta.clocksAnchor,
+        clocksAnchor: meta.clocksAnchor
+      });
+      return;
+    }
+    if (meta.pairingEndsAt && meta.round === currentRound && now < meta.pairingEndsAt + 5000) {
+      resolve({
+        pairingEndsAt: meta.pairingEndsAt,
+        clocksAnchor: meta.pairingEndsAt
+      });
+      return;
+    }
+    // First player (or new round) creates the shared window
+    const pairingEndsAt = now + MATCH_SEC * 1000;
+    const clocksAnchor = pairingEndsAt;
+    db.collection("bcn_meta").doc("tourney").set({
+      status: "pairing",
+      round: currentRound,
+      pairingEndsAt,
+      clocksAnchor,
+      updated: now
+    }, { merge: true }).then(() => {
+      resolve({ pairingEndsAt, clocksAnchor });
+    }).catch(() => {
+      resolve({ pairingEndsAt, clocksAnchor });
+    });
+  });
+}
+
+/* Shared pairing animation – same for every player */
+function startSharedPairing(timing) {
+  hideAll();
+  document.getElementById("screen-match").classList.remove("hidden");
+  document.getElementById("match-title").textContent = "Pairing Round " + currentRound;
+  document.getElementById("match-msg").textContent = "Contacting schools across Nigeria…";
+  document.getElementById("match-school").textContent = "—";
+  document.getElementById("match-opp").textContent = "—";
+
+  const remaining = Math.max(1, Math.ceil((timing.pairingEndsAt - Date.now()) / 1000));
+  const bar = document.getElementById("match-bar");
+  bar.style.width = "0%";
+  bar.style.transition = "none";
+  setTimeout(() => {
+    bar.style.transition = `width ${remaining}s linear`;
+    bar.style.width = "100%";
+  }, 30);
+
+  const messages = [
+    "Connecting to Brain Chess servers…",
+    "Searching for schools…",
+    "Contacting team captains…",
+    "Player on standby…",
+    "Establishing secure board…",
+    "Finalizing pairings…"
+  ];
+  let step = 0;
+  document.getElementById("match-msg").textContent = messages[0];
+  const iv = setInterval(() => {
+    step++;
+    if (step < messages.length) document.getElementById("match-msg").textContent = messages[step];
+  }, (remaining * 1000) / messages.length);
+
+  // Assign opponent once
+  if (!oppMeta.name || oppMeta.name === "—") {
+    oppMeta = {
+      name: nigerianNames[Math.floor(Math.random() * nigerianNames.length)],
+      school: nigerianSchools[(currentRound - 1) % nigerianSchools.length]
+    };
+  }
+  setTimeout(() => {
+    document.getElementById("match-school").textContent = oppMeta.school;
+    document.getElementById("match-opp").textContent = "vs " + oppMeta.name;
+  }, Math.min(2000, remaining * 400));
+
+  const wait = Math.max(500, timing.pairingEndsAt - Date.now());
+  setTimeout(() => {
+    clearInterval(iv);
+    // Mark clocks as started globally
+    db.collection("bcn_meta").doc("tourney").set({
+      status: "playing",
+      clocksAnchor: timing.clocksAnchor || Date.now(),
+      updated: Date.now()
+    }, { merge: true }).catch(() => {});
+    setupMatch(timing.clocksAnchor || Date.now());
+  }, wait);
+}
+
+/* Late joiner: clocks already running */
+function joinLate(timing) {
+  toast("Round already started — clocks are running");
+  if (!oppMeta.name || oppMeta.name === "—") {
+    oppMeta = {
+      name: nigerianNames[Math.floor(Math.random() * nigerianNames.length)],
+      school: nigerianSchools[(currentRound - 1) % nigerianSchools.length]
+    };
+  }
+  setupMatch(timing.clocksAnchor || Date.now(), true);
+}
+
+/* ===== GAME SETUP ===== */
+function setupMatch(clocksAnchor, isLate) {
+  gameLive = true;
+  clocksStarted = true;
+  clocksStartAt = clocksAnchor || Date.now();
+  game = new Chess();
+  userColor = Math.random() > 0.5 ? "w" : "b";
+  lastMoveAt = clocksStartAt;
+  userTime = BASE;
+  oppTime = BASE;
+
+  // If late, deduct elapsed time from the side that is to move (White first)
+  if (isLate) {
+    const elapsed = Math.floor((Date.now() - clocksStartAt) / 1000);
+    if (elapsed > 0) {
+      // White's clock has been running since start
+      if (userColor === "w") {
+        userTime = Math.max(0, BASE - elapsed);
+      } else {
+        oppTime = Math.max(0, BASE - elapsed);
+      }
+      lastMoveAt = Date.now();
+    }
+  }
+
+  document.getElementById("play-round").textContent = "Round " + currentRound + " / " + TOTAL_ROUNDS;
+  document.getElementById("play-team-pts").textContent = "Team: " + teamMatchPoints;
+  document.getElementById("me-name").textContent = me.name;
+  document.getElementById("opp-name").textContent = oppMeta.name;
+  document.getElementById("opp-school").textContent = oppMeta.school;
+  document.getElementById("me-side-label").textContent = (userColor === "w" ? "⬜ White · you" : "⬛ Black · you");
+  document.getElementById("opp-side-label").textContent = (userColor === "w" ? "⬛ Black" : "⬜ White");
+  document.getElementById("clock-me").textContent = fmt(userTime);
+  document.getElementById("clock-opp").textContent = fmt(oppTime);
+  document.getElementById("status").textContent = userColor === "w" ? "Your turn (White)" : "Opponent is thinking…";
+
+  hideAll();
+  document.getElementById("screen-play").classList.remove("hidden");
+
+  if (board) { try { board.destroy(); } catch (e) {} }
+  // Small delay so container has width
+  setTimeout(() => {
+    board = ChessBoard("board", {
+      draggable: false,
+      position: "start",
+      orientation: userColor === "w" ? "white" : "black",
+      pieceTheme: pieceTheme
+    });
+    $("#board").off("click").on("click", "[class*='square-']", function () {
+      onSquareClick($(this).attr("data-square"));
+    });
+  }, 50);
+
+  if (timer) clearInterval(timer);
+  timer = setInterval(tickClocks, 1000);
+
+  pushCloud();
+
+  // AI must move if it is White (or later if it is AI's turn)
+  if (userColor === "b" && !game.game_over()) {
+    setTimeout(() => requestAIMove(), 400);
+  }
+
+  // If late and White's time already expired → loss
+  if (isLate && userColor === "w" && userTime <= 0) {
+    endRound(0, "Lost on time (late)");
+  } else if (isLate && userColor === "b" && oppTime <= 0) {
+    endRound(1, "Opponent lost on time");
+  }
+}
+
+function resumeGame(g) {
+  gameLive = true;
+  clocksStarted = true;
+  game = new Chess();
+  try {
+    if (g.pgn) game.load_pgn(g.pgn);
+    else game.load(g.fen || "start");
+  } catch (e) {
+    try { game.load(g.fen || "start"); } catch (e2) { game = new Chess(); }
+  }
+  userColor = g.userColor || "w";
+  userTime = (g.userTime != null) ? g.userTime : BASE;
+  oppTime = (g.oppTime != null) ? g.oppTime : BASE;
+  oppMeta = { name: g.oppName || "—", school: g.oppSchool || "—" };
+  currentRound = g.round || currentRound;
+  lastMoveAt = g.lastMoveAt || Date.now();
+
+  // Recompute time that passed while player was away
+  const elapsed = Math.floor((Date.now() - lastMoveAt) / 1000);
+  if (elapsed > 0 && !game.game_over()) {
+    if (game.turn() === userColor) {
+      userTime = Math.max(0, userTime - elapsed);
+    } else {
+      oppTime = Math.max(0, oppTime - elapsed);
+    }
+    lastMoveAt = Date.now();
+  }
+
+  document.getElementById("play-round").textContent = "Round " + currentRound + " / " + TOTAL_ROUNDS;
+  document.getElementById("play-team-pts").textContent = "Team: " + teamMatchPoints;
+  document.getElementById("me-name").textContent = me.name;
+  document.getElementById("opp-name").textContent = oppMeta.name;
+  document.getElementById("opp-school").textContent = oppMeta.school;
+  document.getElementById("me-side-label").textContent = (userColor === "w" ? "⬜ White · you" : "⬛ Black · you");
+  document.getElementById("opp-side-label").textContent = (userColor === "w" ? "⬛ Black" : "⬜ White");
+  document.getElementById("clock-me").textContent = fmt(userTime);
+  document.getElementById("clock-opp").textContent = fmt(oppTime);
+  document.getElementById("status").textContent = game.turn() === userColor ? "Your turn" : "Opponent is thinking…";
+
+  hideAll();
+  document.getElementById("screen-play").classList.remove("hidden");
+
+  if (board) { try { board.destroy(); } catch (e) {} }
+  setTimeout(() => {
+    board = ChessBoard("board", {
+      draggable: false,
+      position: game.fen(),
+      orientation: userColor === "w" ? "white" : "black",
+      pieceTheme: pieceTheme
+    });
+    $("#board").off("click").on("click", "[class*='square-']", function () {
+      onSquareClick($(this).attr("data-square"));
+    });
+  }, 50);
+
+  if (timer) clearInterval(timer);
+  timer = setInterval(tickClocks, 1000);
+
+  pushCloud();
+
+  // Critical: if it is AI's turn, make the AI move
+  if (game.turn() !== userColor && !game.game_over()) {
+    setTimeout(() => requestAIMove(), 300);
+  }
+
+  // Time already expired while away?
+  if (userTime <= 0) endRound(0, "Lost on time");
+  else if (oppTime <= 0) endRound(1, "Opponent lost on time");
+}
+
+/* ===== CLOCKS ===== */
+function tickClocks() {
+  if (!gameLive || !clocksStarted || !game) return;
+  if (game.game_over()) {
+    finishGame();
+    return;
+  }
+  const side = game.turn();
+  if (side === userColor) {
+    userTime--;
+    document.getElementById("clock-me").textContent = fmt(userTime);
+    document.getElementById("clock-me").classList.toggle("low", userTime <= 30);
+    document.getElementById("clock-me").classList.add("active");
+    document.getElementById("clock-opp").classList.remove("active");
+    if (userTime <= 0) {
+      endRound(0, "Lost on time");
+      return;
+    }
+  } else {
+    oppTime--;
+    document.getElementById("clock-opp").textContent = fmt(oppTime);
+    document.getElementById("clock-opp").classList.toggle("low", oppTime <= 30);
+    document.getElementById("clock-opp").classList.add("active");
+    document.getElementById("clock-me").classList.remove("active");
+    if (oppTime <= 0) {
+      endRound(1, "Opponent lost on time");
+      return;
+    }
+  }
+  // push every ~5s for spectators (do NOT change lastMoveAt)
+  if (!tickClocks._lastPush || Date.now() - tickClocks._lastPush > 5000) {
+    tickClocks._lastPush = Date.now();
+    pushCloud();
+  }
+}
+
+/* ===== MOVES ===== */
+function onSquareClick(sq) {
+  if (!gameLive || !game || game.game_over() || game.turn() !== userColor) return;
+  if (!srcSq) {
+    const p = game.get(sq);
+    if (p && p.color === userColor) {
+      srcSq = sq;
+      $(".square-"+sq).addClass("highlight-select");
+      // show legal
+      game.moves({square:sq, verbose:true}).forEach(m => {
+        $(".square-"+m.to).addClass("highlight-legal");
+      });
+    }
+    return;
+  }
+  // try move
+  const move = game.move({from: srcSq, to: sq, promotion:"q"});
+  $(".highlight-select, .highlight-legal").removeClass("highlight-select highlight-legal");
+  srcSq = null;
+  if (!move) return;
+
+  board.position(game.fen());
+  lastMoveAt = Date.now();
+  pushCloud();
+  document.getElementById("status").textContent = "Opponent is thinking…";
+
+  if (game.game_over()) {
+    finishGame();
+    return;
+  }
+  requestAIMove();
+}
+
+let aiThinking = false;
+function requestAIMove() {
+  if (!game || game.game_over() || game.turn() === userColor || aiThinking) return;
+  aiThinking = true;
+  document.getElementById("status").textContent = "Opponent is thinking…";
+  if (chessWorker) {
+    try {
+      chessWorker.postMessage("position " + game.fen());
+    } catch (e) {
+      console.warn("Worker post failed", e);
+      aiThinking = false;
+      setTimeout(doFallbackAI, 2500 + Math.random() * 3000);
+    }
+    // Safety: if worker never answers, fall back after 12s
+    setTimeout(() => {
+      if (aiThinking && game && game.turn() !== userColor && !game.game_over()) {
+        console.warn("AI timeout – fallback move");
+        aiThinking = false;
+        doFallbackAI();
+      }
+    }, 12000);
+  } else {
+    setTimeout(() => { aiThinking = false; doFallbackAI(); }, 3000 + Math.random() * 5000);
+  }
+}
+
+if (chessWorker) {
+  chessWorker.onmessage = function (e) {
+    if (typeof e.data !== "string") return;
+    if (e.data.startsWith("error")) {
+      console.warn("Engine error:", e.data);
+      aiThinking = false;
+      setTimeout(doFallbackAI, 1500);
+      return;
+    }
+    // FormatMove returns e.g. "e2e4" or "e7e8q"
+    if (e.data.length >= 4 && e.data.length <= 5) {
+      let thinkTime = 3000 + Math.floor(Math.random() * 6000); // 3–9 s
+      if (Math.random() < 0.18) thinkTime += 2500 + Math.floor(Math.random() * 4500);
+      setTimeout(() => {
+        aiThinking = false;
+        applyAIMove(e.data);
+      }, thinkTime);
+    }
+  };
+}
+
+function applyAIMove(uci) {
+  aiThinking = false;
+  if (!gameLive || !game || game.game_over() || game.turn() === userColor) return;
+
+  // Ecobank blunder curve
+  const blunderProb = Math.max(0, 0.70 - (currentRound - 1) * 0.14);
+  const legal = game.moves({ verbose: true });
+
+  let played = null;
+  if (Math.random() < blunderProb && legal.length > 0) {
+    const rnd = legal[Math.floor(Math.random() * legal.length)];
+    played = game.move(rnd);
+  } else {
+    const from = uci.substring(0, 2);
+    const to = uci.substring(2, 4);
+    const promo = uci.length > 4 ? uci[4] : "q";
+    played = game.move({ from, to, promotion: promo });
+    if (!played && legal.length) played = game.move(legal[0]);
+  }
+
+  if (played) {
+    if (board) board.position(game.fen());
+    lastMoveAt = Date.now();
+    pushCloud();
+    document.getElementById("status").textContent = "Your turn";
+  }
+  if (game.game_over()) finishGame();
+}
+
+function doFallbackAI() {
+  aiThinking = false;
+  if (!game || game.game_over() || game.turn() === userColor) return;
+  const moves = game.moves();
+  if (moves.length) {
+    game.move(moves[Math.floor(Math.random() * moves.length)]);
+    if (board) board.position(game.fen());
+    lastMoveAt = Date.now();
+    pushCloud();
+    document.getElementById("status").textContent = "Your turn";
+  }
+  if (game.game_over()) finishGame();
+}
+
+/* ===== END GAME ===== */
+function finishGame() {
+  if (!game) return;
+  let points = 0.5;
+  let reason = "Draw";
+  if (game.in_checkmate()) {
+    points = game.turn() === userColor ? 0 : 1;
+    reason = points === 1 ? "Checkmate – you win!" : "Checkmate – you lost";
+  } else if (game.in_draw() || game.in_stalemate() || game.in_threefold_repetition() || game.insufficient_material()) {
+    points = 0.5;
+    reason = "Draw";
+  }
+  endRound(points, reason);
+}
+
+function handleResign() {
+  if (!gameLive) return;
+  if (confirm("Resign this match?")) endRound(0, "Resigned");
+}
+
+function endRound(points, reason) {
+  if (!gameLive) return;
+  gameLive = false;
+  if (timer) { clearInterval(timer); timer = null; }
+
+  individualScores[me.id] = (individualScores[me.id] || 0) + points;
+  addTeamResult(oppMeta.school, points);
+  document.getElementById("play-team-pts").textContent = "Team: " + teamMatchPoints;
+
+  pushCloudFinal(points, reason);
+  saveGameToCloud(points === 1 ? "Win" : (points === 0.5 ? "Draw" : "Loss"));
+
+  showResultScreen(points, reason);
+}
+
+function showResultScreen(points, reason) {
+  hideAll();
+  document.getElementById("screen-result").classList.remove("hidden");
+  const emoji = points === 1 ? "🏆" : (points === 0.5 ? "🤝" : "😔");
+  document.getElementById("result-emoji").textContent = emoji;
+  document.getElementById("result-title").textContent = points === 1 ? "You won!" : (points === 0.5 ? "Draw" : "Defeat");
+  document.getElementById("result-sub").textContent = reason || "";
+  document.getElementById("result-pts").textContent = (points > 0 ? "+" : "") + points.toFixed(1) + " team points";
+  const btn = document.getElementById("result-next-btn");
+  if (currentRound >= TOTAL_ROUNDS) {
+    btn.textContent = "Tournament complete";
+    btn.onclick = () => showFinal();
+  } else {
+    btn.textContent = "Continue to break";
+    btn.onclick = () => enterWaitForTeam();
+  }
+}
+
+function saveGameToCloud(resultStatus) {
+  db.collection("tournament_games").add({
+    player: me.name,
+    playerId: me.id,
+    board: me.board,
+    round: currentRound,
+    opponent: oppMeta.name,
+    school: oppMeta.school,
+    pgn: game ? game.pgn() : "",
+    result: resultStatus,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
+}
+
+function pushCloud() {
+  if (!me || !game) return;
+  db.collection("bcn_live").doc(me.id).set({
+    board: me.board,
+    playerId: me.id,
+    playerName: me.name,
+    oppName: oppMeta.name,
+    oppSchool: oppMeta.school,
+    userColor,
+    fen: game.fen(),
+    pgn: game.pgn(),
+    userTime,
+    oppTime,
+    lastMoveAt,
+    turn: game.turn(),
+    round: currentRound,
+    status: gameLive ? "live" : "done",
+    updated: Date.now()
+  }, {merge:true}).catch(()=>{});
+}
+function pushCloudFinal(points, reason) {
+  if (!me) return;
+  db.collection("bcn_live").doc(me.id).set({
+    status: "done",
+    result: points,
+    reason,
+    round: currentRound,
+    fen: game ? game.fen() : null,
+    pgn: game ? game.pgn() : "",
+    userTime, oppTime,
+    updated: Date.now()
+  }, {merge:true}).catch(()=>{});
+}
+
+/* ===== BREAK & NEXT ROUND ===== */
+function enterWaitForTeam() {
+  hideAll();
+  document.getElementById("screen-wait").classList.remove("hidden");
+  document.getElementById("wait-emoji").textContent = "☕";
+  document.getElementById("wait-title").textContent = "Break — clocks frozen";
+  document.getElementById("wait-sub").textContent = "Next round starts after the 2-minute break with full 10:00 clocks.";
+
+  const end = Date.now() + BREAK_SEC * 1000;
+  db.collection("bcn_meta").doc("tourney").set({
+    status: "break",
+    breakEndsAt: end,
+    round: currentRound,
+    updated: Date.now()
+  }, {merge:true}).catch(()=>{});
+
+  const tick = () => {
+    const left = Math.max(0, Math.ceil((end - Date.now())/1000));
+    document.getElementById("wait-timer").textContent = left > 0 ? ("Break · " + left + "s") : "Starting next round…";
+    if (left <= 0) {
+      clearInterval(breakIv);
+      proceedNextRound();
+    }
+  };
+  tick();
+  const breakIv = setInterval(tick, 500);
+}
+
+function proceedNextRound() {
+  currentRound++;
+  aiThinking = false;
+  if (currentRound > TOTAL_ROUNDS) {
+    db.collection("bcn_meta").doc("tourney").set({status:"finished", round:TOTAL_ROUNDS, updated:Date.now()}, {merge:true});
+    showFinal();
+    return;
+  }
+  // Clear this player's live doc so they get a fresh game
+  db.collection("bcn_live").doc(me.id).set({
+    status: "pending",
+    round: currentRound,
+    fen: null,
+    pgn: "",
+    userTime: BASE,
+    oppTime: BASE,
+    updated: Date.now()
+  }, {merge:true}).catch(()=>{});
+
+  // Clear previous clocksAnchor so a NEW shared pairing window is created
+  const now = Date.now();
+  const pairingEndsAt = now + MATCH_SEC * 1000;
+  db.collection("bcn_meta").doc("tourney").set({
+    status: "pairing",
+    round: currentRound,
+    breakEndsAt: 0,
+    pairingEndsAt: pairingEndsAt,
+    clocksAnchor: pairingEndsAt,
+    updated: now
+  }, {merge:true}).catch(()=>{});
+
+  oppMeta = { name: "—", school: "—" };
+
+  startSharedPairing({ pairingEndsAt, clocksAnchor: pairingEndsAt });
+}
+
+/* ===== STANDINGS ===== */
+function openStandings() {
+  const visible = ["screen-wait","screen-play","screen-result","screen-spec-hub","screen-spec-one","screen-final"];
+  fromStandings = "screen-result";
+  for (const id of visible) {
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains("hidden")) { fromStandings = id; break; }
+  }
+  hideAll();
+  document.getElementById("screen-standings").classList.remove("hidden");
+  document.getElementById("stand-round-label").textContent = "After Round " + Math.min(currentRound, TOTAL_ROUNDS);
+  renderStandings();
+}
+function closeStandings() {
+  hideAll();
+  const back = fromStandings || "screen-result";
+  const el = document.getElementById(back);
+  if (el) { el.classList.remove("hidden"); return; }
+  if (gameLive) document.getElementById("screen-play").classList.remove("hidden");
+  else if (currentRound > TOTAL_ROUNDS) document.getElementById("screen-final").classList.remove("hidden");
+  else document.getElementById("screen-result").classList.remove("hidden");
+}
+function renderStandings() {
+  const ranked = Object.keys(schoolTable).map(s => ({name:s, mp:schoolTable[s].mp||0, gp:schoolTable[s].gp||0}))
+    .sort((a,b) => b.mp - a.mp || b.gp - a.gp);
+  const mcps = ranked.findIndex(x => x.name === "Maryland Convent Private School") + 1;
+  const mc = ranked.find(x => x.name === "Maryland Convent Private School") || {mp:0,gp:0};
+  document.getElementById("mcps-rank-line").textContent = "Rank #" + mcps + " of " + TOTAL_SCHOOLS;
+  document.getElementById("mcps-pts-line").textContent = "Match pts " + mc.mp.toFixed(0) + " (2=win · 1=draw) · Game pts " + mc.gp.toFixed(1);
+  document.getElementById("team-body").innerHTML = ranked.slice(0,15).map((r,i) => {
+    const you = r.name === "Maryland Convent Private School";
+    const cls = i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"";
+    return `<tr style="${you?"background:rgba(251,191,36,.12)":""}"><td class="${cls}">${i+1}</td><td class="font-bold ${you?"text-amber-300":"text-white"}">${esc(r.name)}${you?" · YOU":""}</td><td>${r.mp.toFixed(0)}</td><td>${r.gp.toFixed(1)}</td></tr>`;
+  }).join("");
+
+  const played = Math.min(currentRound, TOTAL_ROUNDS);
+  document.getElementById("ind-body").innerHTML = ROSTER.map(p => {
+    const sc = Math.min(individualScores[p.id]||0, played);
+    let st = "—";
+    if (sc === played && played > 0) st = "🥇 Gold pace";
+    else if (sc >= played - 0.5 && played > 0) st = "🥈 Silver pace";
+    else if (sc >= played * 0.6 && played > 0) st = "🥉 Bronze pace";
+    const you = me && me.id === p.id;
+    return `<tr style="${you?"background:rgba(52,211,153,.1)":""}"><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}${you?" · you":""}</td><td class="text-amber-300 font-black">${sc}/${played}</td><td>${st}</td></tr>`;
+  }).join("");
+}
+
+function showFinal() {
+  hideAll();
+  document.getElementById("screen-final").classList.remove("hidden");
+  renderStandings();
+  const ranked = Object.keys(schoolTable).map(s => ({name:s, mp:schoolTable[s].mp, gp:schoolTable[s].gp}))
+    .sort((a,b) => b.mp - a.mp || b.gp - a.gp);
+  const mcps = ranked.findIndex(x => x.name === "Maryland Convent Private School") + 1;
+  document.getElementById("final-rank").textContent = "MCPS · Rank #" + mcps;
+  document.getElementById("final-sub").textContent = "7 rounds complete · individual board medals below";
+  document.getElementById("final-ind").innerHTML = ROSTER.map(p => {
+    const sc = individualScores[p.id] || 0;
+    let med = "—";
+    if (sc >= 6.5) med = "🥇 Gold";
+    else if (sc >= 5.5) med = "🥈 Silver";
+    else if (sc >= 4.5) med = "🥉 Bronze";
+    return `<tr><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}</td><td class="text-amber-300 font-black">${sc}</td><td>${med}</td></tr>`;
+  }).join("");
+}
+
+/* ===== SPECTATOR ===== */
+function fenToImg(fen) {
+  const f = encodeURIComponent(fen || "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  return "https://lichess1.org/export/fen.gif?fen="+f+"&color=white&piece=cburnett";
+}
+function enterSpectator() {
+  if (me) { chatRole = "player"; chatName = me.name; }
+  else { chatRole = chatRole === "coach" ? "coach" : "spectator"; if (!chatName) chatName = "Visitor"; }
+  hideAll();
+  document.getElementById("screen-spec-hub").classList.remove("hidden");
+  const roleEl = document.getElementById("chat-role-label");
+  if (roleEl) roleEl.textContent = chatRole + (chatName ? " · " + chatName : "");
+  const box = document.getElementById("multi-boards");
+  if (box) box.innerHTML = "";
+  attachLobbyChat();
+  if (hubUnsub) hubUnsub();
+  hubUnsub = db.collection("bcn_live").onSnapshot(snap => {
+    const rows = [];
+    snap.forEach(d => rows.push(Object.assign({id:d.id}, d.data())));
+    renderMulti(rows);
+  }, () => renderMulti([]));
+}
+function renderMulti(rows) {
+  const box = document.getElementById("multi-boards");
+  if (!box) return;
+  const byBoard = {};
+  rows.forEach(r => { if (r.board) byBoard[r.board] = r; });
+  ROSTER.forEach(p => {
+    let card = document.getElementById("mini-card-"+p.id);
+    if (!card) {
+      card = document.createElement("div");
+      card.id = "mini-card-"+p.id;
+      card.className = "panel p-2";
+      card.innerHTML = `
+        <button type="button" class="w-full text-left" onclick="openSpecBoard('${p.id}')">
+          <div class="flex items-center justify-between mb-1 px-1">
+            <span class="text-[10px] font-black uppercase text-amber-400">Bd ${p.board} · ${esc(p.name)}</span>
+            <span class="text-[10px]" id="mini-st-${p.id}">—</span>
+          </div>
+          <img id="mini-img-${p.id}" alt="board" style="width:100%;aspect-ratio:1;object-fit:contain;border-radius:8px;background:#312e2b;display:block" src="${fenToImg('start')}"/>
+          <div class="text-[11px] text-slate-400 mt-1 px-1 truncate" id="mini-opp-${p.id}">Waiting…</div>
+          <div class="text-[10px] text-slate-500 px-1" id="mini-clk-${p.id}"></div>
+        </button>`;
+      box.appendChild(card);
+    }
+    const g = byBoard[p.board];
+    const st = document.getElementById("mini-st-"+p.id);
+    const opp = document.getElementById("mini-opp-"+p.id);
+    const clk = document.getElementById("mini-clk-"+p.id);
+    const img = document.getElementById("mini-img-"+p.id);
+    if (g && (g.status === "live" || g.status === "done") && g.fen) {
+      if (st) st.innerHTML = g.status === "live" ? '<span class="live-dot"></span> LIVE' : "Done";
+      if (opp) opp.textContent = "vs " + (g.oppName||"?") + " · " + (g.oppSchool||"");
+      if (clk) clk.textContent = "R"+(g.round||"?")+" · "+fmt(g.userTime||BASE)+" / "+fmt(g.oppTime||BASE);
+      if (img && img.dataset.fen !== g.fen) {
+        img.dataset.fen = g.fen;
+        img.src = fenToImg(g.fen);
+      }
+    } else {
+      if (st) st.textContent = g && g.status === "pending" ? "Starting…" : "—";
+      if (opp) opp.textContent = g && g.oppName ? ("vs "+g.oppName) : "Waiting for game…";
+      if (img && img.dataset.fen !== "start") { img.dataset.fen = "start"; img.src = fenToImg("start"); }
+    }
+  });
+}
+function specHubBack() {
+  if (me && gameLive) {
+    hideAll();
+    document.getElementById("screen-play").classList.remove("hidden");
+    return;
+  }
+  if (me && !gameLive) {
+    enterWaitForTeam();
+    return;
+  }
+  showWelcome();
+}
+function openSpecBoard(id) {
+  hideAll();
+  document.getElementById("screen-spec-one").classList.remove("hidden");
+  if (specUnsub) { try { specUnsub(); } catch (e) {} }
+  if (specBoard) { try { specBoard.destroy(); } catch (e) {} specBoard = null; }
+  specReplayPly = null;
+
+  // Give the container time to get a real width
+  setTimeout(() => {
+    specUnsub = db.collection("bcn_live").doc(id).onSnapshot(doc => {
+      if (!doc.exists) {
+        document.getElementById("spec-status").textContent = "No live game yet";
+        return;
+      }
+      const g = doc.data();
+      document.getElementById("spec-one-label").textContent = "Board " + (g.board || "—");
+      document.getElementById("spec-opp-name").textContent = g.oppName || "—";
+      document.getElementById("spec-opp-school").textContent = g.oppSchool || "—";
+      document.getElementById("spec-me-name").textContent = g.playerName || "—";
+      const uc = g.userColor || "w";
+      document.getElementById("spec-me-side").textContent = uc === "w" ? "⬜ White (MCPS)" : "⬛ Black (MCPS)";
+      document.getElementById("spec-opp-side").textContent = uc === "w" ? "⬛ Black" : "⬜ White";
+      document.getElementById("spec-clock-me").textContent = fmt(g.userTime != null ? g.userTime : BASE);
+      document.getElementById("spec-clock-opp").textContent = fmt(g.oppTime != null ? g.oppTime : BASE);
+      document.getElementById("spec-status").textContent = g.status === "done"
+        ? ("Result · " + (g.result === 1 ? "Win" : g.result === 0 ? "Loss" : "Draw"))
+        : (g.status === "live" ? "● LIVE" : "—");
+
+      buildSpecReplay(g.pgn || "");
+
+      if (specReplayPly === null) {
+        const fen = g.fen || "start";
+        const orient = uc === "w" ? "white" : "black";
+        if (!specBoard) {
+          const el = document.getElementById("spec-board");
+          if (el) el.style.width = "100%";
+          specBoard = ChessBoard("spec-board", {
+            position: fen,
+            draggable: false,
+            pieceTheme: pieceTheme,
+            orientation: orient,
+            appearSpeed: 0
+          });
+        } else {
+          try {
+            specBoard.orientation(orient);
+            specBoard.position(fen, false);
+          } catch (e) {}
+        }
+        document.getElementById("spec-replay-label").textContent = "Live position · use ◀ ▶ to replay";
+      }
+    });
+  }, 80);
+}
+function backFromSpecOne() {
+  if (specUnsub) { try { specUnsub(); } catch(e){} specUnsub = null; }
+  enterSpectator();
+}
+function buildSpecReplay(pgn) {
+  const c = new Chess();
+  specReplayFens = ["start"];
+  specReplaySans = [];
+  const tokens = (pgn||"").trim().split(/\s+/).filter(t => t && !/^\d+\.+$/.test(t));
+  tokens.forEach(t => {
+    const m = c.move(t, {sloppy:true});
+    if (m) { specReplaySans.push(m.san); specReplayFens.push(c.fen()); }
+  });
+}
+function specReplayStep(dir) {
+  if (!specReplayFens.length) return;
+  const max = specReplayFens.length - 1;
+  if (specReplayPly === null) specReplayPly = max;
+  specReplayPly = Math.max(0, Math.min(max, specReplayPly + dir));
+  const fen = specReplayFens[specReplayPly] || "start";
+  if (specBoard) try { specBoard.position(fen, false); } catch(e){}
+  const san = specReplayPly > 0 ? specReplaySans[specReplayPly-1] : "Start";
+  document.getElementById("spec-replay-label").textContent = "Move " + specReplayPly + "/" + max + (san ? " · " + san : "");
+  document.getElementById("spec-btn-live").textContent = "↩ Live";
+}
+function specReplayLive() {
+  specReplayPly = null;
+  document.getElementById("spec-btn-live").textContent = "● Live";
+  document.getElementById("spec-replay-label").textContent = "Live position";
+}
+
+/* ===== CHAT ===== */
+function attachLobbyChat() {
+  if (chatUnsub) chatUnsub();
+  const roleEl = document.getElementById("chat-role-label");
+  if (roleEl) roleEl.textContent = chatRole + (chatName ? " · " + chatName : "");
+  chatUnsub = db.collection("bcn_chat").orderBy("ts","asc").limitToLast(80).onSnapshot(snap => {
+    const log = document.getElementById("chat-log");
+    if (!log) return;
+    log.innerHTML = "";
+    snap.forEach(d => {
+      const m = d.data();
+      const div = document.createElement("div");
+      const isCoach = m.role === "coach";
+      div.className = "rounded-xl px-2 py-1.5 " + (isCoach ? "bg-amber-500/15 border border-amber-400/30" : "bg-white/5");
+      div.innerHTML = `<span class="font-black text-xs ${isCoach?"text-amber-300":"text-emerald-300"}">${esc(m.name||"?")}</span>
+        <span class="text-[9px] text-slate-500">${isCoach?" · coach":(m.role==="player"?" · player":" · guest")}</span>
+        <div class="text-slate-200 text-sm">${esc(m.text)}</div>`;
+      log.appendChild(div);
+    });
+    log.scrollTop = log.scrollHeight;
+  }, ()=>{});
+}
+function sendChat() {
+  if (gameLive && me) {
+    toast("Chat is available on the boards page after you finish");
+    return;
+  }
+  const input = document.getElementById("chat-input");
+  let text = (input && input.value || "").trim();
+  if (!text) return;
+  if (/^\/coach\s+/i.test(text)) {
+    const pass = text.replace(/^\/coach\s+/i, "").trim();
+    if (pass === ADMIN_PASS || pass === ADMIN_PASS_ALT) {
+      chatRole = "coach"; chatName = "Coach";
+      toast("Coach mode unlocked");
+      const roleEl = document.getElementById("chat-role-label");
+      if (roleEl) roleEl.textContent = "coach";
+      if (input) input.value = "";
+      return;
+    }
+    toast("Wrong coach password");
+    return;
+  }
+  db.collection("bcn_chat").add({
+    name: chatName || "Visitor",
+    role: chatRole || "spectator",
+    text: text.slice(0,240),
+    ts: Date.now()
+  }).catch(() => toast("Chat needs internet"));
+  if (input) input.value = "";
+}
+
+/* ===== BOOT ===== */
+initSchoolTable();
+ROSTER.forEach(p => individualScores[p.id] = 0);
+try {
+  const n = Number(localStorage.getItem("bcn_start") || 0);
+  if (n > 0) scheduledStartMs = n;
+} catch(e){}
+db.collection("bcn_meta").doc("schedule").onSnapshot(doc => {
+  if (doc.exists) {
+    const d = doc.data() || {};
+    if (d.startAt) {
+      scheduledStartMs = d.startAt;
+      try { localStorage.setItem("bcn_start", String(d.startAt)); } catch(e){}
+    }
+  }
+  updateScheduleBanner();
+}, () => updateScheduleBanner());
+setInterval(updateScheduleBanner, 1000);
+showWelcome();
+</script>
+</body>
+</html>
