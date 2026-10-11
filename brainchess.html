@@ -66,9 +66,6 @@ input{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-ra
 .highlight-select{box-shadow:inset 0 0 0 4px rgba(255,255,0,.9)!important}
 .highlight-legal{position:relative}
 .highlight-legal::after{content:'';position:absolute;left:50%;top:50%;width:18%;height:18%;min-width:9px;min-height:9px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(0,0,0,.28);pointer-events:none}
-.highlight-last{box-shadow:inset 0 0 0 3px rgba(250,204,21,.7)!important}
-.board-b72b1 .white-1e1d7.highlight-last{background-color:#f6f669!important}
-.board-b72b1 .black-3c85d.highlight-last{background-color:#baca2b!important}
 .clock{font-variant-numeric:tabular-nums;font-weight:900;font-size:1.45rem;min-width:4.2rem;text-align:right}
 .clock.active{color:#fbbf24;text-shadow:0 0 12px rgba(251,191,36,.35)}
 .clock.low{color:#f87171;animation:pulse 1s infinite}
@@ -125,7 +122,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
       <ul>
         <li><strong>Time control:</strong> 10 minutes + 2 seconds per move</li>
         <li><strong>Format:</strong> Team Swiss · match points</li>
-        <li><strong>Awards:</strong> Board Gold / Silver / Bronze</li>
+        <li><strong>Rounds:</strong> 13 minutes apart (1 min pairing + 10 min play + 2 min break)</li>
         <li><strong>Spectators:</strong> All 7 boards live + chat</li>
       </ul>
     </div>
@@ -149,13 +146,13 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <div class="panel p-6 max-w-sm w-full text-center" style="border-color:rgba(232,197,71,.4)">
     <div class="text-3xl mb-2">🔐</div>
     <h3 class="text-lg font-black text-white">Admin lock</h3>
-    <p class="text-sm text-slate-400 mt-2 mb-3">Round 1 pairing opens at this time; clocks start 60s later. Each following round opens 13 minutes after the previous round's clock start (auto-shifts if a game runs long).</p>
+    <p class="text-sm text-slate-400 mt-2 mb-3">Rounds run on a fixed schedule from this time. Round N clocks start at start + 1 min + (N-1) × 13 min. Everyone stays on the same round.</p>
     <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block text-left">Round 1 start (your local time)</label>
     <input id="admin-start-at" type="datetime-local" class="mb-3" style="color-scheme:dark">
     <input id="admin-pass" type="password" placeholder="Admin password" class="mb-3" autocomplete="off">
     <button type="button" class="btn-gold w-full mb-2" onclick="confirmAdminStart()">Save &amp; unlock schedule</button>
     <button type="button" class="btn-danger w-full mb-2" onclick="confirmAdminOpenNow()">Open doors NOW</button>
-    <button type="button" class="btn-blue w-full mb-2" onclick="adminForceNextRound()">Force next round (break + pairing)</button>
+    <button type="button" class="btn-blue w-full mb-2" onclick="adminForceNextRound()">Force next round (jump forward 13 min)</button>
     <button type="button" class="btn-soft w-full mb-2" onclick="adminResetTournament()">Reset tournament data</button>
     <button type="button" class="btn-soft w-full" onclick="closeAdminModal()">Cancel</button>
   </div>
@@ -342,21 +339,47 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 </div>
 
 <script>
-/* CONFIG */
+/* ============ CONFIG ============ */
 const firebaseConfig={apiKey:"AIzaSyCcSVTifrJhzXvhQ4m1UyObtCKd8",authDomain:"assignments-de95a.firebaseapp.com",projectId:"assignments-de95a",storageBucket:"assignments-de95a.firebasestorage.app",messagingSenderId:"1088073398299",appId:"1:1088073398299:web:dab1f57ac1d63b10dba0be"};
 firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+
 const TEAM_PASS="MCPS",ADMIN_PASS="decipher1234",ADMIN_PASS_ALT="brainchess2026";
 const TOTAL_ROUNDS=7,TOTAL_SCHOOLS=183;
-const BASE=600,INC=2,PAIRING_SEC=60,BREAK_SEC=120;
-const ROUND_GAP_MS=(PAIRING_SEC+BASE+BREAK_SEC)*1000;
-const pieceTheme="https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png";
-const ROSTER=[{id:"p1",board:1,name:"Obi Chukwuemeka"},{id:"p2",board:2,name:"Onele Chierika"},{id:"p3",board:3,name:"Semilore Beckley"},{id:"p4",board:4,name:"Sage Osafile"},{id:"p5",board:5,name:"Ajayi Oluwaseun"},{id:"p6",board:6,name:"Princewill Isioma"},{id:"p7",board:7,name:"James Enemoh"}];
-const ROUND_PLAN=[{school:"Grange School",player:"Chijioke Eze",strength:0.42},{school:"Corona Private School",player:"Adesua Balogun",strength:0.50},{school:"Atlantic Hall",player:"Tunde Owolabi",strength:0.58},{school:"Jareb Private School",player:"Ibrahim Musa",strength:0.86},{school:"Chess In Slums Academy",player:"Zainab Bello",strength:0.90},{school:"Indian Language School",player:"Emeka Nwosu",strength:0.84},{school:"Skylink International School",player:"Yusuf Hassan",strength:0.88}];
 
-/* STATE */
+/* Time control: 10 min + 2 s per move */
+const BASE=600,INC=2;
+
+/* Fixed round schedule: 60 s pairing + 10 min play + 2 min break = 13 min per round */
+const PAIRING_SEC=60, BREAK_SEC=120;
+const ROUND_GAP_MS=(PAIRING_SEC+BASE+BREAK_SEC)*1000; /* 780 s */
+
+const pieceTheme="https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png";
+
+const ROSTER=[
+  {id:"p1",board:1,name:"Obi Chukwuemeka"},
+  {id:"p2",board:2,name:"Onele Chierika"},
+  {id:"p3",board:3,name:"Semilore Beckley"},
+  {id:"p4",board:4,name:"Sage Osafile"},
+  {id:"p5",board:5,name:"Ajayi Oluwaseun"},
+  {id:"p6",board:6,name:"Princewill Isioma"},
+  {id:"p7",board:7,name:"James Enemoh"}
+];
+
+/* Opponent ladder — target Elo rises each round */
+const ROUND_PLAN=[
+  {school:"Grange School",                player:"Chijioke Eze",    strength:0.42, elo:1200, depth:2, time:80},
+  {school:"Corona Private School",        player:"Adesua Balogun",  strength:0.50, elo:1400, depth:2, time:120},
+  {school:"Atlantic Hall",                player:"Tunde Owolabi",   strength:0.58, elo:1500, depth:3, time:150},
+  {school:"Jareb Private School",         player:"Ibrahim Musa",    strength:0.86, elo:1500, depth:3, time:150},
+  {school:"Chess In Slums Academy",       player:"Zainab Bello",    strength:0.90, elo:1600, depth:3, time:200},
+  {school:"Indian Language School",       player:"Emeka Nwosu",     strength:0.84, elo:1700, depth:4, time:250},
+  {school:"Skylink International School", player:"Yusuf Hassan",    strength:0.88, elo:1800, depth:4, time:350}
+];
+
+/* ============ STATE ============ */
 let me=null,currentRound=1,roundsCompleted=0;
 let individualScores={},teamMatchPoints=0,teamGamePoints=0;
-let scheduledStartMs=0,roundAnchors={};
+let scheduledStartMs=0;
 let game=null,board=null,userColor="w",userTime=BASE,oppTime=BASE,timer=null,gameLive=false;
 let oppMeta={name:"—",school:"—",strength:0.5};
 let lastMoveAt=0,lastTick=0,srcSq=null;
@@ -366,17 +389,22 @@ let specBoard=null,specReplayFens=[],specReplaySans=[],specReplayPly=null;
 let fromStandings="screen-result",chessWorker=null;
 let waitIv=null,matchIv=null,hubTick=null,latestRows=[];
 let miniBoards={},miniDesiredFen={},miniPending={};
-try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){}
+try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){console.warn("worker missing",e);}
 
-/* UTIL */
+/* ============ UTIL ============ */
 function el(i){return document.getElementById(i);}
 function toast(m){const t=el("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function fmt(s){s=Math.max(0,Math.floor(s));const m=Math.floor(s/60),x=s%60;return(m<10?"0":"")+m+":"+(x<10?"0":"")+x;}
-function hideAll(){["screen-welcome","screen-login","screen-match","screen-play","screen-result","screen-wait","screen-standings","screen-final","screen-spec-hub","screen-spec-one"].forEach(i=>el(i).classList.add("hidden"));if(waitIv){clearInterval(waitIv);waitIv=null;}if(matchIv){clearInterval(matchIv);matchIv=null;}}
+function hideAll(){
+  ["screen-welcome","screen-login","screen-match","screen-play","screen-result","screen-wait",
+   "screen-standings","screen-final","screen-spec-hub","screen-spec-one"].forEach(i=>el(i).classList.add("hidden"));
+  if(waitIv){clearInterval(waitIv);waitIv=null;}
+  if(matchIv){clearInterval(matchIv);matchIv=null;}
+}
 function showWelcome(){hideAll();el("screen-welcome").classList.remove("hidden");}
 
-/* STATE PERSISTENCE */
+/* ============ PERSISTENCE ============ */
 function saveState(){
   try{localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound}));}catch(e){}
   db.collection("bcn_meta").doc("mcps").set({mp:teamMatchPoints,gp:teamGamePoints,round:currentRound,rc:roundsCompleted,updated:Date.now()},{merge:true}).catch(()=>{});
@@ -391,298 +419,744 @@ function loadState(){
   }catch(e){}
 }
 
-/* RNG */
+/* ============ RNG ============ */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function hashRand(s){let t=s+0x6D2B79F5;t=Math.imul(t^t>>>15,1|t);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
 
-/* SCHEDULE */
-function baseAnchor(r){return scheduledStartMs+PAIRING_SEC*1000+(r-1)*ROUND_GAP_MS;}
-function anchorFor(r){return roundAnchors[r]||baseAnchor(r);}
-function pairingStartFor(r){return anchorFor(r)-PAIRING_SEC*1000;}
+/* ============ FIXED ROUND SCHEDULE ============ */
+function baseAnchor(r){ return scheduledStartMs + PAIRING_SEC*1000 + (r-1)*ROUND_GAP_MS; }
+function anchorFor(r){ return baseAnchor(r); }
+function pairingStartFor(r){ return anchorFor(r) - PAIRING_SEC*1000; }
 function currentRoundFromClock(now){
-  if(!scheduledStartMs)return 1;
+  if(!scheduledStartMs) return 1;
   let r=1;
-  for(let i=1;i<=TOTAL_ROUNDS;i++)if(now>=pairingStartFor(i))r=i;
+  for(let i=1;i<=TOTAL_ROUNDS;i++) if(now >= pairingStartFor(i)) r=i;
   return r;
 }
-function pushAnchor(round,ms,force){if(round>TOTAL_ROUNDS||!ms)return;const cur=roundAnchors[round]||0;if(!force&&(ms<=cur||ms<=baseAnchor(round)))return;const m=Object.assign({},roundAnchors,{[round]:ms});roundAnchors=m;db.collection("bcn_meta").doc("tourney").set({roundAnchors:m,updated:Date.now()},{merge:true}).catch(()=>{});}
 
-/* 183-SCHOOL SIM */
+/* ============ 183-SCHOOL SIM ============ */
 const TOP_SCHOOLS=["Jareb Private School","Chess In Slums Academy","Indian Language School","Skylink International School"];
 const NAMED_SCHOOLS=["Grange School","Lekki British School","Corona Private School","Green Springs School","Atlantic Hall","British International School","Greensprings Ikoyi","Chrisland College","Dowen College","Whitesands School","Lagos Preparatory School","St. Saviour's School","Air Force Secondary School","Command Secondary School","Federal Government College","King's College Lagos","Queen's College Lagos","Loyola Jesuit College","Regent Secondary School","Children's International School","Rainbow College","Meadow Hall","Avi-Cenna International","Hillcrest School","Babcock University High","Caleb British International","Halifield Schools","Topfield College","Preston International","Deeper Life High School","Fountain Heights","Starfield College","Nova International","Bridge House College","Vivian Fowler Memorial","Igbinedion Education Centre"];
 const PRE=["Royal","Bright","Golden","Unity","Victory","Excel","Pinnacle","Heritage","Summit","Crown","Prime","Great","Divine","Fountain","Crescent","Crystal","Horizon","Legacy","Noble","Zenith","Star","Pace","Grace","Wisdom"];
 const SUF=["International School","Academy","College","Grammar School","High School","Model College","Comprehensive School","Secondary School","British School","Group of Schools"];
 let fieldSnapshots=[];
-function buildField(){const rng=mulberry32(20260516);const l=[];TOP_SCHOOLS.forEach((n,i)=>l.push({name:n,s:0.97-i*0.008,tie:rng()}));NAMED_SCHOOLS.forEach((n,i)=>l.push({name:n,s:0.90-(i/NAMED_SCHOOLS.length)*0.72,tie:rng()}));let idx=0;while(l.length<TOTAL_SCHOOLS-1){const name=PRE[idx%PRE.length]+" "+SUF[Math.floor(idx/PRE.length)%SUF.length];idx++;if(l.some(x=>x.name===name))continue;l.push({name,s:0.10+rng()*0.60,tie:rng()});}return l;}
-function simulateField(){const rng=mulberry32(777);const list=buildField().map(x=>({name:x.name,s:x.s,tie:x.tie,mp:0,gp:0,opp:[]}));fieldSnapshots=[list.map(x=>({name:x.name,mp:0,gp:0}))];for(let r=1;r<=TOTAL_ROUNDS;r++){const order=list.slice().sort((a,b)=>(b.mp-a.mp)||(b.gp-a.gp)||(a.tie-b.tie));const used=new Array(order.length).fill(false);for(let i=0;i<order.length;i++){if(used[i])continue;let j=i+1;while(j<order.length&&(used[j]||order[i].opp.indexOf(order[j].name)>=0))j++;if(j>=order.length){used[i]=true;order[i].mp+=2;order[i].gp+=5;continue;}used[i]=used[j]=true;const A=order[i],B=order[j];A.opp.push(B.name);B.opp.push(A.name);const pA=1/(1+Math.pow(10,(B.s-A.s)*5));const roll=rng();if(rng()<0.06){A.mp+=1;B.mp+=1;A.gp+=3.5;B.gp+=3.5;}else{const strong=(roll<pA)?A:B;const weak=(strong===A)?B:A;const g=Math.min(7,Math.round((4+rng()*3)*2)/2);strong.mp+=2;strong.gp+=g;weak.gp+=(7-g);}}fieldSnapshots.push(list.map(x=>({name:x.name,mp:x.mp,gp:x.gp})));}}
-function standingsFor(round){const snap=fieldSnapshots[Math.min(Math.max(round,0),TOTAL_ROUNDS)]||[];const rows=snap.map(x=>({name:x.name,mp:x.mp,gp:x.gp}));rows.push({name:"Maryland Convent Private School",mp:teamMatchPoints,gp:teamGamePoints,you:true});rows.sort((a,b)=>(b.mp-a.mp)||(b.gp-a.gp)||a.name.localeCompare(b.name));return rows;}
-function simBoardResult(round,boardNo,oppStrength){const h1=hashRand(round*7919+boardNo*131+11);const h2=hashRand(round*104729+boardNo*313+29);const roll=(h1+h2)/2;const winP=0.30+(1-oppStrength)*0.55;if(roll<winP)return 1;if(roll<winP+0.16)return 0.5;return 0;}
 
-/* ADMIN */
-function openAdminModal(){el("admin-modal").classList.add("open");}
-function closeAdminModal(){el("admin-modal").classList.remove("open");}
-function adminPassOK(){const p=el("admin-pass").value;return p===ADMIN_PASS||p===ADMIN_PASS_ALT;}
-function confirmAdminStart(){if(!adminPassOK())return toast("Wrong admin password");const v=el("admin-start-at").value;if(!v)return toast("Pick a start time");const ms=new Date(v).getTime();scheduledStartMs=ms;roundAnchors={};localStorage.setItem("bcn_start",String(ms));db.collection("bcn_meta").doc("schedule").set({startAt:ms,updated:Date.now()},{merge:true});db.collection("bcn_meta").doc("tourney").set({roundAnchors:{},updated:Date.now()},{merge:true});toast("Schedule saved");closeAdminModal();updateScheduleBanner();}
-function confirmAdminOpenNow(){if(!adminPassOK())return toast("Wrong admin password");scheduledStartMs=Date.now();roundAnchors={};localStorage.setItem("bcn_start",String(scheduledStartMs));db.collection("bcn_meta").doc("schedule").set({startAt:scheduledStartMs,updated:Date.now()},{merge:true});db.collection("bcn_meta").doc("tourney").set({roundAnchors:{},updated:Date.now()},{merge:true});toast("Doors open now");closeAdminModal();updateScheduleBanner();}
-function adminForceNextRound(){if(!adminPassOK())return toast("Wrong admin password");const n=Math.min(TOTAL_ROUNDS,currentRoundFromClock(Date.now())+1);pushAnchor(n,Date.now()+(BREAK_SEC+PAIRING_SEC)*1000,true);toast("Next round pushed");closeAdminModal();}
-async function adminResetTournament(){if(!adminPassOK())return toast("Wrong admin password");if(!confirm("Reset ALL tournament data?"))return;const now=Date.now();try{const live=await db.collection("bcn_live").get();const b=db.batch();live.forEach(d=>b.delete(d.ref));await b.commit();await db.collection("bcn_meta").doc("tourney").set({status:"lobby",round:1,roundAnchors:{},resetAt:now,updated:now});await db.collection("bcn_meta").doc("schedule").set({startAt:0,updated:now});await db.collection("bcn_meta").doc("mcps").set({mp:0,gp:0,round:1,rc:0,updated:now});}catch(e){}currentRound=1;roundsCompleted=0;roundAnchors={};individualScores={};ROSTER.forEach(p=>individualScores[p.id]=0);teamMatchPoints=0;teamGamePoints=0;localStorage.clear();me=null;gameLive=false;game=null;if(timer){clearInterval(timer);timer=null;}closeAdminModal();toast("Tournament reset");showWelcome();}
-function updateScheduleBanner(){const l=el("start-time-label"),c=el("start-countdown");if(!scheduledStartMs){l.textContent="Waiting for admin unlock…";c.textContent="";return;}const now=Date.now();if(now<scheduledStartMs){l.textContent=new Date(scheduledStartMs).toLocaleString();const s=Math.ceil((scheduledStartMs-now)/1000);c.textContent=`Round 1 opens in ${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;return;}const r=currentRoundFromClock(now);const a=anchorFor(r);if(now<a){l.textContent="Round "+r+" · pairing window open";c.textContent="Clocks start in "+fmt(Math.ceil((a-now)/1000));return;}const left=BASE-Math.floor((now-a)/1000);if(left<=0){l.textContent="Round "+r+" · clocks expired";c.textContent="Late arrivals forfeited";}else{l.textContent="Round "+r+" in progress";c.textContent="Join now — "+fmt(left)+" remaining";}}
+function buildField(){
+  const rng=mulberry32(20260516);const l=[];
+  TOP_SCHOOLS.forEach((n,i)=>l.push({name:n,s:0.97-i*0.008,tie:rng()}));
+  NAMED_SCHOOLS.forEach((n,i)=>l.push({name:n,s:0.90-(i/NAMED_SCHOOLS.length)*0.72,tie:rng()}));
+  let idx=0;
+  while(l.length<TOTAL_SCHOOLS-1){
+    const name=PRE[idx%PRE.length]+" "+SUF[Math.floor(idx/PRE.length)%SUF.length];idx++;
+    if(l.some(x=>x.name===name))continue;
+    l.push({name,s:0.10+rng()*0.60,tie:rng()});
+  }
+  return l;
+}
+function simulateField(){
+  const rng=mulberry32(777);
+  const list=buildField().map(x=>({name:x.name,s:x.s,tie:x.tie,mp:0,gp:0,opp:[]}));
+  fieldSnapshots=[list.map(x=>({name:x.name,mp:0,gp:0}))];
+  for(let r=1;r<=TOTAL_ROUNDS;r++){
+    const order=list.slice().sort((a,b)=>(b.mp-a.mp)||(b.gp-a.gp)||(a.tie-b.tie));
+    const used=new Array(order.length).fill(false);
+    for(let i=0;i<order.length;i++){
+      if(used[i])continue;
+      let j=i+1;
+      while(j<order.length&&(used[j]||order[i].opp.indexOf(order[j].name)>=0))j++;
+      if(j>=order.length){used[i]=true;order[i].mp+=2;order[i].gp+=5;continue;}
+      used[i]=used[j]=true;
+      const A=order[i],B=order[j];
+      A.opp.push(B.name);B.opp.push(A.name);
+      const pA=1/(1+Math.pow(10,(B.s-A.s)*5));
+      const roll=rng();
+      if(rng()<0.06){A.mp+=1;B.mp+=1;A.gp+=3.5;B.gp+=3.5;}
+      else{
+        const strong=(roll<pA)?A:B;
+        const weak=(strong===A)?B:A;
+        const g=Math.min(7,Math.round((4+rng()*3)*2)/2);
+        strong.mp+=2;strong.gp+=g;weak.gp+=(7-g);
+      }
+    }
+    fieldSnapshots.push(list.map(x=>({name:x.name,mp:x.mp,gp:x.gp})));
+  }
+}
+function standingsFor(round){
+  const snap=fieldSnapshots[Math.min(Math.max(round,0),TOTAL_ROUNDS)]||[];
+  const rows=snap.map(x=>({name:x.name,mp:x.mp,gp:x.gp}));
+  rows.push({name:"Maryland Convent Private School",mp:teamMatchPoints,gp:teamGamePoints,you:true});
+  rows.sort((a,b)=>(b.mp-a.mp)||(b.gp-a.gp)||a.name.localeCompare(b.name));
+  return rows;
+}
+function simBoardResult(round,boardNo,oppStrength){
+  const h1=hashRand(round*7919+boardNo*131+11);
+  const h2=hashRand(round*104729+boardNo*313+29);
+  const roll=(h1+h2)/2;
+  const winP=0.30+(1-oppStrength)*0.55;
+  if(roll<winP)return 1;
+  if(roll<winP+0.16)return 0.5;
+  return 0;
+}
 
-/* LOGIN */
-function showPlayerLogin(){if(!scheduledStartMs){toast("Admin has not set the start time yet");return;}if(Date.now()<scheduledStartMs){toast("Round 1 opens at "+new Date(scheduledStartMs).toLocaleTimeString());return;}hideAll();el("screen-login").classList.remove("hidden");const b=el("rep-list");b.innerHTML="";ROSTER.forEach(p=>{const x=document.createElement("button");x.type="button";x.className="rep-btn";x.innerHTML=`<span class="text-amber-400 font-black">Bd ${p.board}</span> · ${esc(p.name)}`;x.onclick=()=>{document.querySelectorAll(".rep-btn").forEach(y=>y.classList.remove("selected"));x.classList.add("selected");me=p;};b.appendChild(x);});}
-function doPlayerLogin(){if(!me)return toast("Select your board");if(el("login-pass").value!==TEAM_PASS)return toast("Wrong team password");chatRole="player";chatName=me.name;enterRound(currentRoundFromClock(Date.now()));}
+/* ============ FALLBACK ENGINE ============ */
+const PVAL={p:100,n:320,b:330,r:500,q:900,k:20000};
+const PSTP=[[0,0,0,0,0,0,0,0],[50,50,50,50,50,50,50,50],[10,10,20,30,30,20,10,10],[5,5,10,25,25,10,5,5],[0,0,0,20,20,0,0,0],[5,-5,-10,0,0,-10,-5,5],[5,10,10,-20,-20,10,10,5],[0,0,0,0,0,0,0,0]];
+const PSTN=[[-50,-40,-30,-30,-30,-30,-40,-50],[-40,-20,0,0,0,0,-20,-40],[-30,0,10,15,15,10,0,-30],[-30,5,15,20,20,15,5,-30],[-30,0,15,20,20,15,0,-30],[-30,5,10,15,15,10,5,-30],[-40,-20,0,5,5,0,-20,-40],[-50,-40,-30,-30,-30,-30,-40,-50]];
+function evalBoard(c){
+  if(c.in_checkmate())return c.turn()==="w"?-99999:99999;
+  if(c.in_draw()||c.in_stalemate()||c.in_threefold_repetition())return 0;
+  const b=c.board();let s=0;
+  for(let r=0;r<8;r++)for(let f=0;f<8;f++){
+    const p=b[r][f];if(!p)continue;
+    const v=PVAL[p.type]||0;let pv=0;
+    if(p.type==="p")pv=(PSTP[p.color==="w"?r:7-r]||[])[f]||0;
+    else if(p.type==="n")pv=(PSTN[p.color==="w"?r:7-r]||[])[f]||0;
+    s+=(p.color==="w"?1:-1)*(v+pv);
+  }
+  return s;
+}
+function minimax(c,depth,alpha,beta,maximizing){
+  if(depth===0||c.game_over())return evalBoard(c);
+  const moves=c.moves({verbose:true});
+  moves.sort((a,b)=>(b.captured?1:0)-(a.captured?1:0));
+  if(maximizing){
+    let best=-Infinity;
+    for(const m of moves){c.move(m);const v=minimax(c,depth-1,alpha,beta,false);c.undo();if(v>best)best=v;if(v>alpha)alpha=v;if(beta<=alpha)break;}
+    return best;
+  }
+  let best=Infinity;
+  for(const m of moves){c.move(m);const v=minimax(c,depth-1,alpha,beta,true);c.undo();if(v<best)best=v;if(v<beta)beta=v;if(beta<=alpha)break;}
+  return best;
+}
+function pickEngineMove(c,depth){
+  const moves=c.moves({verbose:true});
+  if(!moves.length)return null;
+  moves.sort((a,b)=>(b.captured?1:0)-(a.captured?1:0));
+  const aiIsWhite=c.turn()==="w";
+  let best=moves[0],bestV=aiIsWhite?-Infinity:Infinity;
+  for(const m of moves){
+    c.move(m);
+    const v=minimax(c,depth-1,-Infinity,Infinity,!aiIsWhite);
+    c.undo();
+    if(aiIsWhite?(v>bestV):(v<bestV)){bestV=v;best=m;}
+  }
+  return best;
+}
+function eloBlunder(elo){ return Math.max(0.02, 0.12 - (elo-1200)*0.00017); }
 
-/* ROUND ENTRY */
+/* ============ ADMIN ============ */
+function openAdminModal(){ el("admin-modal").classList.add("open"); }
+function closeAdminModal(){ el("admin-modal").classList.remove("open"); }
+function adminPassOK(){ const p=el("admin-pass").value; return p===ADMIN_PASS||p===ADMIN_PASS_ALT; }
+
+function confirmAdminStart(){
+  if(!adminPassOK()) return toast("Wrong admin password");
+  const v=el("admin-start-at").value;
+  if(!v) return toast("Pick a start time");
+  const ms=new Date(v).getTime();
+  scheduledStartMs=ms;
+  localStorage.setItem("bcn_start",String(ms));
+  db.collection("bcn_meta").doc("schedule").set({startAt:ms,updated:Date.now()},{merge:true});
+  toast("Schedule saved");
+  closeAdminModal();
+  updateScheduleBanner();
+}
+function confirmAdminOpenNow(){
+  if(!adminPassOK()) return toast("Wrong admin password");
+  scheduledStartMs=Date.now();
+  localStorage.setItem("bcn_start",String(scheduledStartMs));
+  db.collection("bcn_meta").doc("schedule").set({startAt:scheduledStartMs,updated:Date.now()},{merge:true});
+  toast("Doors open now — Round 1 pairing starts immediately");
+  closeAdminModal();
+  updateScheduleBanner();
+}
+function adminForceNextRound(){
+  if(!adminPassOK()) return toast("Wrong admin password");
+  const R=currentRoundFromClock(Date.now());
+  const newStart=Date.now() - R*ROUND_GAP_MS;
+  scheduledStartMs=newStart;
+  localStorage.setItem("bcn_start",String(newStart));
+  db.collection("bcn_meta").doc("schedule").set({startAt:newStart,updated:Date.now()},{merge:true});
+  toast("Jumped forward to round "+(R+1));
+  closeAdminModal();
+  updateScheduleBanner();
+}
+async function adminResetTournament(){
+  if(!adminPassOK()) return toast("Wrong admin password");
+  if(!confirm("Reset ALL tournament data?")) return;
+  const now=Date.now();
+  try{
+    const live=await db.collection("bcn_live").get();
+    const b=db.batch();
+    live.forEach(d=>b.delete(d.ref));
+    await b.commit();
+    await db.collection("bcn_meta").doc("tourney").set({status:"lobby",round:1,resetAt:now,updated:now});
+    await db.collection("bcn_meta").doc("schedule").set({startAt:0,updated:now});
+    await db.collection("bcn_meta").doc("mcps").set({mp:0,gp:0,round:1,rc:0,updated:now});
+  }catch(e){}
+  currentRound=1;roundsCompleted=0;
+  individualScores={};ROSTER.forEach(p=>individualScores[p.id]=0);
+  teamMatchPoints=0;teamGamePoints=0;
+  localStorage.clear();
+  me=null;gameLive=false;game=null;
+  if(timer){clearInterval(timer);timer=null;}
+  closeAdminModal();
+  toast("Tournament reset");
+  showWelcome();
+}
+function updateScheduleBanner(){
+  const l=el("start-time-label"),c=el("start-countdown");
+  if(!scheduledStartMs){ l.textContent="Waiting for admin unlock…"; c.textContent=""; return; }
+  const now=Date.now();
+  if(now<scheduledStartMs){
+    l.textContent=new Date(scheduledStartMs).toLocaleString();
+    const s=Math.ceil((scheduledStartMs-now)/1000);
+    c.textContent=`Round 1 opens in ${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+    return;
+  }
+  const r=currentRoundFromClock(now);
+  const a=anchorFor(r);
+  if(now<a){
+    l.textContent="Round "+r+" · pairing window open";
+    c.textContent="Clocks start in "+fmt(Math.ceil((a-now)/1000));
+    return;
+  }
+  const left=BASE-Math.floor((now-a)/1000);
+  if(left<=0){
+    l.textContent="Round "+r+" · clocks expired";
+    c.textContent="Late arrivals forfeited";
+  } else {
+    l.textContent="Round "+r+" in progress";
+    c.textContent="Join now — "+fmt(left)+" remaining";
+  }
+}
+
+/* ============ LOGIN ============ */
+function showPlayerLogin(){
+  if(!scheduledStartMs){ toast("Admin has not set the start time yet"); return; }
+  if(Date.now()<scheduledStartMs){ toast("Round 1 opens at "+new Date(scheduledStartMs).toLocaleTimeString()); return; }
+  hideAll(); el("screen-login").classList.remove("hidden");
+  const b=el("rep-list"); b.innerHTML="";
+  ROSTER.forEach(p=>{
+    const x=document.createElement("button");
+    x.type="button"; x.className="rep-btn";
+    x.innerHTML=`<span class="text-amber-400 font-black">Bd ${p.board}</span> · ${esc(p.name)}`;
+    x.onclick=()=>{
+      document.querySelectorAll(".rep-btn").forEach(y=>y.classList.remove("selected"));
+      x.classList.add("selected");
+      me=p;
+    };
+    b.appendChild(x);
+  });
+}
+function doPlayerLogin(){
+  if(!me) return toast("Select your board");
+  if(el("login-pass").value!==TEAM_PASS) return toast("Wrong team password");
+  chatRole="player"; chatName=me.name;
+  enterRound(currentRoundFromClock(Date.now()));
+}
+
+/* ============ ROUND ENTRY ============ */
 async function enterRound(round){
-  currentRound=Math.max(currentRound,round);
-  try{const d=await db.collection("bcn_live").doc(me.id).get();if(d.exists){const g=d.data();if(g.round===round){if(g.status==="done"){showResultScreen(g.result,g.reason||"Finished");return;}if(g.status==="live"){resumeGame(g);return;}}}}catch(e){}
-  const now=Date.now();const a=anchorFor(round);const pStart=a-PAIRING_SEC*1000;
-  if(now<pStart){showWaitScreen(round,pStart);return;}
-  if(now<a){startPairingCountdown(round,a);return;}
+  currentRound=round;
+  try{
+    const d=await db.collection("bcn_live").doc(me.id).get();
+    if(d.exists){
+      const g=d.data();
+      if(g.round===round){
+        if(g.status==="done"){ showResultScreen(g.result,g.reason||"Finished"); return; }
+        if(g.status==="live"){ resumeGame(g); return; }
+      }
+    }
+  }catch(e){}
+
+  const now=Date.now();
+  const a=anchorFor(round);
+  const pStart=a-PAIRING_SEC*1000;
+
+  if(now<pStart){ showWaitScreen(round,pStart); return; }
+  if(now<a){ startPairingCountdown(round,a); return; }
+
   const late=Math.floor((now-a)/1000);
-  if(late>=BASE){joinLateExpired(round,late);return;}
+  if(late>=BASE){ joinLateExpired(round,late); return; }
   joinLate(round,a,late);
 }
-function showWaitScreen(round,until){hideAll();el("screen-wait").classList.remove("hidden");el("wait-emoji").textContent="⏳";el("wait-title").textContent="Round "+round+" opens soon";el("wait-sub").textContent="Pairing opens at "+new Date(until).toLocaleTimeString()+" · clocks start 60s later.";const t=()=>{const left=Math.max(0,Math.ceil((until-Date.now())/1000));el("wait-timer").textContent=fmt(left);if(left<=0){clearInterval(waitIv);waitIv=null;enterRound(round);}};t();waitIv=setInterval(t,500);}
+function showWaitScreen(round,until){
+  hideAll(); el("screen-wait").classList.remove("hidden");
+  el("wait-emoji").textContent="⏳";
+  el("wait-title").textContent="Round "+round+" opens soon";
+  el("wait-sub").textContent="Pairing opens at "+new Date(until).toLocaleTimeString()+" · clocks start 60 s later.";
+  const t=()=>{
+    const left=Math.max(0,Math.ceil((until-Date.now())/1000));
+    el("wait-timer").textContent=fmt(left);
+    if(left<=0){ clearInterval(waitIv); waitIv=null; enterRound(round); }
+  };
+  t();
+  waitIv=setInterval(t,500);
+}
 function startPairingCountdown(round,anchor){
-  hideAll();el("screen-match").classList.remove("hidden");el("match-title").textContent="Pairing Round "+round;
+  hideAll(); el("screen-match").classList.remove("hidden");
+  el("match-title").textContent="Pairing Round "+round;
   const plan=ROUND_PLAN[round-1]||{player:"—",school:"—",strength:0.5};
   oppMeta={name:plan.player,school:plan.school,strength:plan.strength};
-  el("match-school").textContent=plan.school;el("match-opp").textContent="vs "+plan.player;
-  const note=el("match-note");if(note)note.textContent="Clocks start with exactly 10:00 (+2s per move) when this window closes";
-  const total=Math.max(1,anchor-Date.now());const bar=el("match-bar");bar.style.transition="none";bar.style.width="0%";setTimeout(()=>{bar.style.transition=`width ${total}ms linear`;bar.style.width="100%";},30);
+  el("match-school").textContent=plan.school;
+  el("match-opp").textContent="vs "+plan.player;
+  const note=el("match-note");
+  if(note) note.textContent="Clocks start with exactly 10:00 (+2 s per move) when this window closes";
+
+  const total=Math.max(1,anchor-Date.now());
+  const bar=el("match-bar");
+  bar.style.transition="none"; bar.style.width="0%";
+  setTimeout(()=>{ bar.style.transition=`width ${total}ms linear`; bar.style.width="100%"; },30);
+
   const msgs=["Connecting to Brain Chess servers…","Searching for schools…","Contacting team captains…","Opponent on standby…","Establishing secure board…","Finalizing pairings…"];
-  const t=()=>{const left=Math.max(0,anchor-Date.now());const i=Math.min(msgs.length-1,Math.floor((1-left/total)*msgs.length));el("match-msg").textContent=msgs[Math.max(0,i)];if(left<=0){clearInterval(matchIv);matchIv=null;setupMatch(round,anchor,0);}};t();matchIv=setInterval(t,250);
+  const t=()=>{
+    const left=Math.max(0,anchor-Date.now());
+    const i=Math.min(msgs.length-1,Math.floor((1-left/total)*msgs.length));
+    el("match-msg").textContent=msgs[Math.max(0,i)];
+    if(left<=0){ clearInterval(matchIv); matchIv=null; setupMatch(round,anchor,0); }
+  };
+  t();
+  matchIv=setInterval(t,250);
 }
-function joinLate(round,anchor,late){toast("Round already started — clocks running");setupMatch(round,anchor,late);}
+function joinLate(round,anchor,late){ toast("Round already started — clocks running"); setupMatch(round,anchor,late); }
 function joinLateExpired(round,late){
   const plan=ROUND_PLAN[round-1]||{player:"—",school:"—",strength:0.5};
-  oppMeta={name:plan.player,school:plan.school,strength:plan.strength};currentRound=Math.max(currentRound,round);gameLive=false;
+  oppMeta={name:plan.player,school:plan.school,strength:plan.strength};
+  currentRound=round;
+  gameLive=false;
   individualScores[me.id]=(individualScores[me.id]||0)+0;
   roundsCompleted=Math.max(roundsCompleted,round);
   recordRoundResult(round,0,plan.school,plan.strength);
   saveState();
-  db.collection("bcn_live").doc(me.id).set({board:me.board,playerId:me.id,playerName:me.name,oppName:plan.player,oppSchool:plan.school,round,status:"done",result:0,reason:"Lost on time — did not report",userTime:0,oppTime:BASE,userColor:Math.random()>0.5?"w":"b",fen:"start",pgn:"",updated:Date.now()},{merge:true}).catch(()=>{});
+  db.collection("bcn_live").doc(me.id).set({
+    board:me.board,playerId:me.id,playerName:me.name,
+    oppName:plan.player,oppSchool:plan.school,
+    round,status:"done",result:0,
+    reason:"Lost on time — did not report",
+    userTime:0,oppTime:BASE,
+    userColor:Math.random()>0.5?"w":"b",
+    fen:"start",pgn:"",updated:Date.now()
+  },{merge:true}).catch(()=>{});
   saveGameToCloud("Loss");
-  pushAnchor(round+1,Date.now()+(BREAK_SEC+PAIRING_SEC)*1000,false);
   showResultScreen(0,"Lost on time — "+fmt(late)+" late");
 }
 
-/* GAME SETUP */
+/* ============ GAME SETUP ============ */
 function setupMatch(round,anchor,late){
-  currentRound=Math.max(currentRound,round);
+  currentRound=round;
   const plan=ROUND_PLAN[round-1]||{player:"—",school:"—",strength:0.5};
   oppMeta={name:plan.player,school:plan.school,strength:plan.strength};
-  gameLive=true;game=new Chess();
-  userColor=Math.random()>0.5?"w":"b";userTime=BASE;oppTime=BASE;
-  if(late>0)userTime=Math.max(0,BASE-late);
-  lastMoveAt=Date.now();lastTick=Date.now();
+  gameLive=true; game=new Chess();
+  userColor=Math.random()>0.5?"w":"b";
+  userTime=BASE; oppTime=BASE;
+  if(late>0) userTime=Math.max(0,BASE-late);
+  lastMoveAt=Date.now(); lastTick=Date.now();
+
   el("play-round").textContent="Round "+round+" / "+TOTAL_ROUNDS+" · 10+2";
-  el("play-team-pts").textContent="Team: "+teamMatchPoints;el("me-name").textContent=me.name;
-  el("opp-name").textContent=oppMeta.name;el("opp-school").textContent=oppMeta.school;
+  el("play-team-pts").textContent="Team: "+teamMatchPoints;
+  el("me-name").textContent=me.name;
+  el("opp-name").textContent=oppMeta.name;
+  el("opp-school").textContent=oppMeta.school;
   el("me-side-label").textContent=userColor==="w"?"⬜ White · you":"⬛ Black · you";
   el("opp-side-label").textContent=userColor==="w"?"⬛ Black":"⬜ White";
-  el("clock-me").textContent=fmt(userTime);el("clock-opp").textContent=fmt(oppTime);
+  el("clock-me").textContent=fmt(userTime);
+  el("clock-opp").textContent=fmt(oppTime);
   el("status").textContent=userColor==="w"?"Your turn (White)":"Opponent is thinking…";
-  hideAll();el("screen-play").classList.remove("hidden");
-  if(board){try{board.destroy();}catch(e){}}
-  setTimeout(()=>{board=ChessBoard("board",{draggable:false,position:"start",orientation:userColor==="w"?"white":"black",pieceTheme});$("#board").off("click").on("click","[class*='square-']",function(){onSquareClick($(this).attr("data-square"));});},50);
-  if(timer)clearInterval(timer);timer=setInterval(tickClocks,250);pushCloud();
-  if(userColor==="b"&&!game.game_over())setTimeout(()=>requestAIMove(),400);
-  if(late>0)toast("You joined "+fmt(late)+" late");
+
+  hideAll(); el("screen-play").classList.remove("hidden");
+
+  if(board){ try{board.destroy();}catch(e){} }
+  setTimeout(()=>{
+    board=ChessBoard("board",{draggable:false,position:"start",orientation:userColor==="w"?"white":"black",pieceTheme});
+    $("#board").off("click").on("click","[class*='square-']",function(){ onSquareClick($(this).attr("data-square")); });
+  },50);
+
+  if(timer) clearInterval(timer);
+  timer=setInterval(tickClocks,250);
+  pushCloud();
+
+  if(userColor==="b" && !game.game_over()) setTimeout(()=>requestAIMove(),400);
+  if(late>0) toast("You joined "+fmt(late)+" late");
 }
 function resumeGame(g){
-  gameLive=true;game=new Chess();
-  try{if(g.pgn)game.load_pgn(g.pgn);else game.load(g.fen||"start");}catch(e){try{game.load(g.fen||"start");}catch(e2){game=new Chess();}}
-  userColor=g.userColor||"w";userTime=g.userTime!=null?g.userTime:BASE;oppTime=g.oppTime!=null?g.oppTime:BASE;
+  gameLive=true; game=new Chess();
+  try{ if(g.pgn) game.load_pgn(g.pgn); else game.load(g.fen||"start"); }
+  catch(e){ try{ game.load(g.fen||"start"); }catch(e2){ game=new Chess(); } }
+  userColor=g.userColor||"w";
+  userTime=g.userTime!=null?g.userTime:BASE;
+  oppTime=g.oppTime!=null?g.oppTime:BASE;
   const plan=ROUND_PLAN[(g.round||1)-1]||{player:"—",school:"—",strength:0.5};
   oppMeta={name:g.oppName||plan.player,school:g.oppSchool||plan.school,strength:plan.strength};
-  currentRound=Math.max(currentRound,g.round||currentRound);
-  lastMoveAt=g.lastMoveAt||Date.now();lastTick=Date.now();
+  currentRound=g.round||currentRound;
+  lastMoveAt=g.lastMoveAt||Date.now(); lastTick=Date.now();
+
   const el2=Math.floor((Date.now()-lastMoveAt)/1000);
-  if(el2>0&&!game.game_over()){if(game.turn()===userColor)userTime=Math.max(0,userTime-el2);else oppTime=Math.max(0,oppTime-el2);lastMoveAt=Date.now();}
+  if(el2>0 && !game.game_over()){
+    if(game.turn()===userColor) userTime=Math.max(0,userTime-el2);
+    else oppTime=Math.max(0,oppTime-el2);
+    lastMoveAt=Date.now();
+  }
+
   el("play-round").textContent="Round "+currentRound+" / "+TOTAL_ROUNDS+" · 10+2";
-  el("play-team-pts").textContent="Team: "+teamMatchPoints;el("me-name").textContent=me.name;
-  el("opp-name").textContent=oppMeta.name;el("opp-school").textContent=oppMeta.school;
+  el("play-team-pts").textContent="Team: "+teamMatchPoints;
+  el("me-name").textContent=me.name;
+  el("opp-name").textContent=oppMeta.name;
+  el("opp-school").textContent=oppMeta.school;
   el("me-side-label").textContent=userColor==="w"?"⬜ White · you":"⬛ Black · you";
   el("opp-side-label").textContent=userColor==="w"?"⬛ Black":"⬜ White";
-  el("clock-me").textContent=fmt(userTime);el("clock-opp").textContent=fmt(oppTime);
+  el("clock-me").textContent=fmt(userTime);
+  el("clock-opp").textContent=fmt(oppTime);
   el("status").textContent=game.turn()===userColor?"Your turn":"Opponent is thinking…";
-  hideAll();el("screen-play").classList.remove("hidden");
-  if(board){try{board.destroy();}catch(e){}}
-  setTimeout(()=>{board=ChessBoard("board",{draggable:false,position:game.fen(),orientation:userColor==="w"?"white":"black",pieceTheme});$("#board").off("click").on("click","[class*='square-']",function(){onSquareClick($(this).attr("data-square"));});},50);
-  if(timer)clearInterval(timer);timer=setInterval(tickClocks,250);pushCloud();
-  if(game.turn()!==userColor&&!game.game_over())setTimeout(()=>requestAIMove(),300);
-  if(userTime<=0)endRound(0,"Lost on time");else if(oppTime<=0)endRound(1,"Opponent lost on time");
+
+  hideAll(); el("screen-play").classList.remove("hidden");
+
+  if(board){ try{board.destroy();}catch(e){} }
+  setTimeout(()=>{
+    board=ChessBoard("board",{draggable:false,position:game.fen(),orientation:userColor==="w"?"white":"black",pieceTheme});
+    $("#board").off("click").on("click","[class*='square-']",function(){ onSquareClick($(this).attr("data-square")); });
+  },50);
+
+  if(timer) clearInterval(timer);
+  timer=setInterval(tickClocks,250);
+  pushCloud();
+  if(game.turn()!==userColor && !game.game_over()) setTimeout(()=>requestAIMove(),300);
+  if(userTime<=0) endRound(0,"Lost on time");
+  else if(oppTime<=0) endRound(1,"Opponent lost on time");
 }
 
-/* CLOCKS */
+/* ============ CLOCKS ============ */
 function tickClocks(){
-  if(!gameLive||!game)return;
-  if(game.game_over()){finishGame();return;}
-  const now=Date.now();let d=Math.floor((now-lastTick)/1000);if(d<=0)return;if(d>30)d=30;lastTick+=d*1000;
-  if(game.turn()===userColor){userTime-=d;el("clock-me").textContent=fmt(userTime);el("clock-me").classList.toggle("low",userTime<=30);el("clock-me").classList.add("active");el("clock-opp").classList.remove("active");if(userTime<=0){endRound(0,"Lost on time");return;}}
-  else{oppTime-=d;el("clock-opp").textContent=fmt(oppTime);el("clock-opp").classList.toggle("low",oppTime<=30);el("clock-opp").classList.add("active");el("clock-me").classList.remove("active");if(oppTime<=0){endRound(1,"Opponent lost on time");return;}}
-  if(!tickClocks._p||Date.now()-tickClocks._p>5000){tickClocks._p=Date.now();pushCloud();}
+  if(!gameLive||!game) return;
+  if(game.game_over()){ finishGame(); return; }
+  const now=Date.now();
+  let d=Math.floor((now-lastTick)/1000);
+  if(d<=0) return;
+  if(d>30) d=30;
+  lastTick+=d*1000;
+  if(game.turn()===userColor){
+    userTime-=d;
+    el("clock-me").textContent=fmt(userTime);
+    el("clock-me").classList.toggle("low",userTime<=30);
+    el("clock-me").classList.add("active");
+    el("clock-opp").classList.remove("active");
+    if(userTime<=0){ endRound(0,"Lost on time"); return; }
+  } else {
+    oppTime-=d;
+    el("clock-opp").textContent=fmt(oppTime);
+    el("clock-opp").classList.toggle("low",oppTime<=30);
+    el("clock-opp").classList.add("active");
+    el("clock-me").classList.remove("active");
+    if(oppTime<=0){ endRound(1,"Opponent lost on time"); return; }
+  }
+  if(!tickClocks._p || Date.now()-tickClocks._p>5000){ tickClocks._p=Date.now(); pushCloud(); }
 }
 
-/* MOVES */
+/* ============ MOVES ============ */
 function onSquareClick(sq){
-  if(!gameLive||!game||game.game_over()||game.turn()!==userColor)return;
-  if(!srcSq){const p=game.get(sq);if(p&&p.color===userColor){srcSq=sq;$(".square-"+sq).addClass("highlight-select");game.moves({square:sq,verbose:true}).forEach(m=>$(".square-"+m.to).addClass("highlight-legal"));}return;}
-  const mv=game.move({from:srcSq,to:sq,promotion:"q"});$(".highlight-select, .highlight-legal").removeClass("highlight-select highlight-legal");srcSq=null;
-  if(!mv)return;
-  userTime+=INC;el("clock-me").textContent=fmt(userTime);
-  board.position(game.fen());lastMoveAt=Date.now();pushCloud();el("status").textContent="Opponent is thinking…";
-  if(game.game_over()){finishGame();return;}
+  if(!gameLive||!game||game.game_over()||game.turn()!==userColor) return;
+  if(!srcSq){
+    const p=game.get(sq);
+    if(p&&p.color===userColor){
+      srcSq=sq;
+      $(".square-"+sq).addClass("highlight-select");
+      game.moves({square:sq,verbose:true}).forEach(m=>$(".square-"+m.to).addClass("highlight-legal"));
+    }
+    return;
+  }
+  const mv=game.move({from:srcSq,to:sq,promotion:"q"});
+  $(".highlight-select, .highlight-legal").removeClass("highlight-select highlight-legal");
+  srcSq=null;
+  if(!mv) return;
+  userTime+=INC;
+  el("clock-me").textContent=fmt(userTime);
+  board.position(game.fen());
+  lastMoveAt=Date.now();
+  pushCloud();
+  el("status").textContent="Opponent is thinking…";
+  if(game.game_over()){ finishGame(); return; }
   requestAIMove();
 }
+
 let aiThinking=false;
 function requestAIMove(){
-  if(!game||game.game_over()||game.turn()===userColor||aiThinking)return;
-  aiThinking=true;el("status").textContent="Opponent is thinking…";
-  if(chessWorker){try{chessWorker.postMessage("position "+game.fen());}catch(e){aiThinking=false;setTimeout(doFallbackAI,2500+Math.random()*3000);}setTimeout(()=>{if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){aiThinking=false;doFallbackAI();}},12000);}
-  else setTimeout(()=>{aiThinking=false;doFallbackAI();},3000+Math.random()*5000);
+  if(!game||game.game_over()||game.turn()===userColor||aiThinking) return;
+  aiThinking=true;
+  el("status").textContent="Opponent is thinking…";
+  const plan=ROUND_PLAN[currentRound-1]||{depth:2,time:80};
+  if(chessWorker){
+    try{ chessWorker.postMessage("position "+game.fen()+" depth "+plan.depth+" time "+plan.time); }
+    catch(e){ aiThinking=false; setTimeout(doFallbackAI,1000); }
+    setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, 8000);
+  } else {
+    setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, 800);
+  }
 }
-if(chessWorker){chessWorker.onmessage=function(e){if(typeof e.data!=="string")return;if(e.data.startsWith("error")){aiThinking=false;setTimeout(doFallbackAI,1500);return;}if(e.data.length>=4&&e.data.length<=5){let t=3000+Math.floor(Math.random()*6000);if(Math.random()<0.18)t+=2500+Math.floor(Math.random()*4500);setTimeout(()=>{aiThinking=false;applyAIMove(e.data);},t);}};}
+if(chessWorker){
+  chessWorker.onmessage=function(e){
+    if(typeof e.data!=="string") return;
+    if(e.data.startsWith("error")){ aiThinking=false; setTimeout(doFallbackAI,800); return; }
+    if(e.data.length>=4 && e.data.length<=5){
+      const plan=ROUND_PLAN[currentRound-1]||{depth:2};
+      const t=400+(plan.depth||2)*200+Math.floor(Math.random()*700);
+      setTimeout(()=>{ aiThinking=false; applyAIMove(e.data); }, t);
+    }
+  };
+}
 function applyAIMove(uci){
-  aiThinking=false;if(!gameLive||!game||game.game_over()||game.turn()===userColor)return;
-  const blunder=Math.max(0.05,0.62-(currentRound-1)*0.09);const legal=game.moves({verbose:true});let played=null;
-  if(Math.random()<blunder&&legal.length)played=game.move(legal[Math.floor(Math.random()*legal.length)]);
-  else{const f=uci.substring(0,2),t=uci.substring(2,4),p=uci.length>4?uci[4]:"q";played=game.move({from:f,to:t,promotion:p});if(!played&&legal.length)played=game.move(legal[0]);}
-  if(played){oppTime+=INC;el("clock-opp").textContent=fmt(oppTime);if(board)board.position(game.fen());lastMoveAt=Date.now();pushCloud();el("status").textContent="Your turn";}
-  if(game.game_over())finishGame();
+  aiThinking=false;
+  if(!gameLive||!game||game.game_over()||game.turn()===userColor) return;
+  const plan=ROUND_PLAN[currentRound-1]||{elo:1200,depth:2};
+  const blunder=eloBlunder(plan.elo);
+  const legal=game.moves({verbose:true});
+  let played=null;
+  if(Math.random()<blunder && legal.length){
+    played=game.move(legal[Math.floor(Math.random()*legal.length)]);
+  } else {
+    const f=uci.substring(0,2),t=uci.substring(2,4),p=uci.length>4?uci[4]:"q";
+    played=game.move({from:f,to:t,promotion:p});
+    if(!played && legal.length){
+      const c=new Chess(); try{c.load(game.fen());}catch(e){}
+      const m=pickEngineMove(c,Math.max(2,(plan.depth||2)-1));
+      played=m?game.move(m):game.move(legal[0]);
+    }
+  }
+  if(played){
+    oppTime+=INC;
+    el("clock-opp").textContent=fmt(oppTime);
+    if(board) board.position(game.fen());
+    lastMoveAt=Date.now();
+    pushCloud();
+    el("status").textContent="Your turn";
+  }
+  if(game.game_over()) finishGame();
 }
 function doFallbackAI(){
-  aiThinking=false;if(!game||game.game_over()||game.turn()===userColor)return;
-  const m=game.moves();if(m.length){game.move(m[Math.floor(Math.random()*m.length)]);oppTime+=INC;el("clock-opp").textContent=fmt(oppTime);if(board)board.position(game.fen());lastMoveAt=Date.now();pushCloud();el("status").textContent="Your turn";}
-  if(game.game_over())finishGame();
+  aiThinking=false;
+  if(!game||game.game_over()||game.turn()===userColor) return;
+  const plan=ROUND_PLAN[currentRound-1]||{elo:1200,depth:2};
+  const blunder=eloBlunder(plan.elo);
+  let played=null;
+  if(Math.random()<blunder){
+    const m=game.moves();
+    if(m.length) played=game.move(m[Math.floor(Math.random()*m.length)]);
+  } else {
+    const c=new Chess(); try{c.load(game.fen());}catch(e){}
+    const m=pickEngineMove(c,Math.max(2,(plan.depth||2)-1));
+    played=m?game.move(m):(function(){const ms=game.moves();return ms.length?game.move(ms[0]):null;})();
+  }
+  if(played){
+    oppTime+=INC;
+    el("clock-opp").textContent=fmt(oppTime);
+    if(board) board.position(game.fen());
+    lastMoveAt=Date.now();
+    pushCloud();
+    el("status").textContent="Your turn";
+  }
+  if(game.game_over()) finishGame();
 }
 
-/* END GAME */
-function finishGame(){if(!game)return;let p=0.5,r="Draw";if(game.in_checkmate()){p=game.turn()===userColor?0:1;r=p===1?"Checkmate – you win!":"Checkmate – you lost";}else if(game.in_draw()||game.in_stalemate()||game.in_threefold_repetition()||game.insufficient_material()){p=0.5;r="Draw";}endRound(p,r);}
-function handleResign(){if(!gameLive)return;if(confirm("Resign this match?"))endRound(0,"Resigned");}
+/* ============ END OF GAME ============ */
+function finishGame(){
+  if(!game) return;
+  let p=0.5, r="Draw";
+  if(game.in_checkmate()){ p=game.turn()===userColor?0:1; r=p===1?"Checkmate – you win!":"Checkmate – you lost"; }
+  else if(game.in_draw()||game.in_stalemate()||game.in_threefold_repetition()||game.insufficient_material()){ p=0.5; r="Draw"; }
+  endRound(p,r);
+}
+function handleResign(){ if(!gameLive) return; if(confirm("Resign this match?")) endRound(0,"Resigned"); }
+
 function recordRoundResult(round,myPts,oppSchool,oppStrength){
   let gp=myPts;
-  ROSTER.forEach(p=>{if(me&&p.id===me.id)return;const r=simBoardResult(round,p.board,oppStrength);individualScores[p.id]=(individualScores[p.id]||0)+r;gp+=r;});
+  ROSTER.forEach(p=>{
+    if(me&&p.id===me.id) return;
+    const r=simBoardResult(round,p.board,oppStrength);
+    individualScores[p.id]=(individualScores[p.id]||0)+r;
+    gp+=r;
+  });
   const mp=gp>3.5?2:(gp===3.5?1:0);
-  teamMatchPoints+=mp;teamGamePoints+=gp;
+  teamMatchPoints+=mp;
+  teamGamePoints+=gp;
 }
 function endRound(points,reason){
-  if(!gameLive)return;gameLive=false;if(timer){clearInterval(timer);timer=null;}
+  if(!gameLive) return;
+  gameLive=false;
+  if(timer){ clearInterval(timer); timer=null; }
+
   individualScores[me.id]=(individualScores[me.id]||0)+points;
   const plan=ROUND_PLAN[currentRound-1]||{school:oppMeta.school,strength:0.5};
   recordRoundResult(currentRound,points,plan.school,plan.strength);
   roundsCompleted=Math.max(roundsCompleted,currentRound);
   el("play-team-pts").textContent="Team: "+teamMatchPoints;
   saveState();
-  pushCloudFinal(points,reason);saveGameToCloud(points===1?"Win":(points===0.5?"Draw":"Loss"));
-  pushAnchor(currentRound+1,Date.now()+(BREAK_SEC+PAIRING_SEC)*1000,false);
+  pushCloudFinal(points,reason);
+  saveGameToCloud(points===1?"Win":(points===0.5?"Draw":"Loss"));
+
   showResultScreen(points,reason);
 }
 function showResultScreen(points,reason){
-  hideAll();el("screen-result").classList.remove("hidden");
+  hideAll(); el("screen-result").classList.remove("hidden");
   el("result-emoji").textContent=points===1?"🏆":(points===0.5?"🤝":"😔");
   el("result-title").textContent=points===1?"You won!":(points===0.5?"Draw":"Defeat");
   el("result-sub").textContent=reason||"";
   el("result-pts").textContent=(points>0?"+":"")+points.toFixed(1)+" board points for MCPS";
   const b=el("result-next-btn");
-  if(currentRound>=TOTAL_ROUNDS){b.textContent="Tournament complete";b.onclick=()=>showFinal();}
-  else{b.textContent="Continue to break";b.onclick=()=>enterWaitForTeam();}
+  if(currentRound>=TOTAL_ROUNDS){
+    b.textContent="Tournament complete";
+    b.onclick=()=>showFinal();
+  } else {
+    b.textContent="Continue";
+    b.onclick=()=>enterWaitForTeam();
+  }
 }
-function saveGameToCloud(r){db.collection("tournament_games").add({player:me.name,playerId:me.id,board:me.board,round:currentRound,opponent:oppMeta.name,school:oppMeta.school,pgn:game?game.pgn():"",result:r,timestamp:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});}
-function pushCloud(){if(!me||!game)return;db.collection("bcn_live").doc(me.id).set({board:me.board,playerId:me.id,playerName:me.name,oppName:oppMeta.name,oppSchool:oppMeta.school,userColor,fen:game.fen(),pgn:game.pgn(),userTime,oppTime,lastMoveAt,turn:game.turn(),round:currentRound,status:gameLive?"live":"done",updated:Date.now()},{merge:true}).catch(()=>{});}
-function pushCloudFinal(p,r){if(!me)return;db.collection("bcn_live").doc(me.id).set({status:"done",result:p,reason:r,round:currentRound,fen:game?game.fen():null,pgn:game?game.pgn():"",userTime,oppTime,updated:Date.now()},{merge:true}).catch(()=>{});}
+function saveGameToCloud(r){
+  db.collection("tournament_games").add({
+    player:me.name,playerId:me.id,board:me.board,round:currentRound,
+    opponent:oppMeta.name,school:oppMeta.school,
+    pgn:game?game.pgn():"",result:r,
+    timestamp:firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
+}
+function pushCloud(){
+  if(!me||!game) return;
+  db.collection("bcn_live").doc(me.id).set({
+    board:me.board,playerId:me.id,playerName:me.name,
+    oppName:oppMeta.name,oppSchool:oppMeta.school,
+    userColor,fen:game.fen(),pgn:game.pgn(),
+    userTime,oppTime,lastMoveAt,turn:game.turn(),
+    round:currentRound,status:gameLive?"live":"done",
+    updated:Date.now()
+  },{merge:true}).catch(()=>{});
+}
+function pushCloudFinal(p,r){
+  if(!me) return;
+  db.collection("bcn_live").doc(me.id).set({
+    status:"done",result:p,reason:r,round:currentRound,
+    fen:game?game.fen():null,pgn:game?game.pgn():"",
+    userTime,oppTime,updated:Date.now()
+  },{merge:true}).catch(()=>{});
+}
 
-/* BREAK & NEXT ROUND — every round starts like Round 1 */
+/* ============ BREAK & NEXT ROUND ============ */
 function enterWaitForTeam(){
-  const next=currentRound+1;if(next>TOTAL_ROUNDS){showFinal();return;}
-  const breakEnd=Date.now()+BREAK_SEC*1000;
-  const newAnchor=breakEnd+PAIRING_SEC*1000;
-  pushAnchor(next,newAnchor,true);
-  hideAll();el("screen-wait").classList.remove("hidden");
+  const next=currentRound+1;
+  if(next>TOTAL_ROUNDS){ showFinal(); return; }
+  const pStart=pairingStartFor(next);
+  if(Date.now()>=pStart){ enterRound(next); return; }
+
+  hideAll(); el("screen-wait").classList.remove("hidden");
   el("wait-emoji").textContent="☕";
   el("wait-title").textContent="Break — clocks frozen";
-  el("wait-sub").textContent="Round "+next+" starts like Round 1: 60s pairing window, then clocks at 10:00. No waiting for other players.";
+  el("wait-sub").textContent="Round "+next+" opens at "+new Date(pStart).toLocaleTimeString()+" — 60 s pairing, then clocks at 10:00. Everyone stays in sync.";
   const t=()=>{
-    const left=Math.max(0,Math.ceil((breakEnd-Date.now())/1000));
+    const left=Math.max(0,Math.ceil((pStart-Date.now())/1000));
     el("wait-timer").textContent=left>0?fmt(left):"Starting round "+next+"…";
-    if(left<=0){clearInterval(waitIv);waitIv=null;startPairingCountdown(next,newAnchor);}
+    if(left<=0){ clearInterval(waitIv); waitIv=null; enterRound(next); }
   };
-  t();waitIv=setInterval(t,500);
+  t();
+  waitIv=setInterval(t,500);
 }
 
-/* STANDINGS */
+/* ============ STANDINGS ============ */
 function openStandings(){
   const v=["screen-wait","screen-play","screen-result","screen-spec-hub","screen-spec-one","screen-final"];
   fromStandings="screen-result";
-  for(const id of v){const e=el(id);if(e&&!e.classList.contains("hidden")){fromStandings=id;break;}}
-  hideAll();el("screen-standings").classList.remove("hidden");
+  for(const id of v){ const e=el(id); if(e&&!e.classList.contains("hidden")){ fromStandings=id; break; } }
+  hideAll(); el("screen-standings").classList.remove("hidden");
   const played=Math.max(roundsCompleted,0);
-  el("stand-round-label").textContent="After Round "+played;renderStandings(played);
+  el("stand-round-label").textContent="After Round "+played;
+  renderStandings(played);
 }
 function closeStandings(){
-  hideAll();const back=fromStandings||"screen-result";const e=el(back);
-  if(e){e.classList.remove("hidden");return;}
-  if(gameLive)el("screen-play").classList.remove("hidden");
-  else if(currentRound>=TOTAL_ROUNDS)el("screen-final").classList.remove("hidden");
+  hideAll();
+  const back=fromStandings||"screen-result";
+  const e=el(back);
+  if(e){ e.classList.remove("hidden"); return; }
+  if(gameLive) el("screen-play").classList.remove("hidden");
+  else if(currentRound>=TOTAL_ROUNDS) el("screen-final").classList.remove("hidden");
   else el("screen-result").classList.remove("hidden");
 }
 function renderStandings(roundOverride){
   const played=(roundOverride!=null)?roundOverride:Math.max(roundsCompleted,0);
-  const ranked=standingsFor(played);const mcps=ranked.findIndex(x=>x.you)+1;const mc=ranked.find(x=>x.you)||{mp:0,gp:0};
+  const ranked=standingsFor(played);
+  const mcps=ranked.findIndex(x=>x.you)+1;
+  const mc=ranked.find(x=>x.you)||{mp:0,gp:0};
   el("mcps-rank-line").textContent="Rank #"+mcps+" of "+TOTAL_SCHOOLS;
   el("mcps-pts-line").textContent="Match pts "+mc.mp.toFixed(0)+" (2=win · 1=draw) · Game pts "+mc.gp.toFixed(1);
-  el("team-body").innerHTML=ranked.slice(0,16).map((r,i)=>{const c=i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"";return `<tr style="${r.you?"background:rgba(251,191,36,.12)":""}"><td class="${c}">${i+1}</td><td class="font-bold ${r.you?"text-amber-300":"text-white"}">${esc(r.name)}${r.you?" · YOU":""}</td><td>${r.mp.toFixed(0)}</td><td>${r.gp.toFixed(1)}</td></tr>`;}).join("");
+  el("team-body").innerHTML=ranked.slice(0,16).map((r,i)=>{
+    const c=i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"";
+    return `<tr style="${r.you?"background:rgba(251,191,36,.12)":""}"><td class="${c}">${i+1}</td><td class="font-bold ${r.you?"text-amber-300":"text-white"}">${esc(r.name)}${r.you?" · YOU":""}</td><td>${r.mp.toFixed(0)}</td><td>${r.gp.toFixed(1)}</td></tr>`;
+  }).join("");
   el("ind-body").innerHTML=ROSTER.map(p=>{
     const sc=(individualScores[p.id]||0);
     let st="—";
-    if(played>0&&sc>=played-0.001)st="🥇 Gold pace";
-    else if(played>0&&sc>=played-0.5)st="🥈 Silver pace";
-    else if(played>0&&sc>=played*0.6)st="🥉 Bronze pace";
+    if(played>0&&sc>=played-0.001) st="🥇 Gold pace";
+    else if(played>0&&sc>=played-0.5) st="🥈 Silver pace";
+    else if(played>0&&sc>=played*0.6) st="🥉 Bronze pace";
     const you=me&&me.id===p.id;
     return `<tr style="${you?"background:rgba(52,211,153,.1)":""}"><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}${you?" · you":""}</td><td class="text-amber-300 font-black">${sc}/${played}</td><td>${st}</td></tr>`;
   }).join("");
 }
 function showFinal(){
-  hideAll();el("screen-final").classList.remove("hidden");
-  const ranked=standingsFor(TOTAL_ROUNDS);const mcps=ranked.findIndex(x=>x.you)+1;
+  hideAll(); el("screen-final").classList.remove("hidden");
+  const ranked=standingsFor(TOTAL_ROUNDS);
+  const mcps=ranked.findIndex(x=>x.you)+1;
   el("final-rank").textContent="MCPS · Rank #"+mcps;
   el("final-sub").textContent="7 rounds complete · individual board medals below";
-  el("final-ind").innerHTML=ROSTER.map(p=>{const sc=individualScores[p.id]||0;let m="—";if(sc>=6.5)m="🥇 Gold";else if(sc>=5.5)m="🥈 Silver";else if(sc>=4.5)m="🥉 Bronze";return `<tr><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}</td><td class="text-amber-300 font-black">${sc}</td><td>${m}</td></tr>`;}).join("");
+  el("final-ind").innerHTML=ROSTER.map(p=>{
+    const sc=individualScores[p.id]||0;
+    let m="—";
+    if(sc>=6.5) m="🥇 Gold";
+    else if(sc>=5.5) m="🥈 Silver";
+    else if(sc>=4.5) m="🥉 Bronze";
+    return `<tr><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}</td><td class="text-amber-300 font-black">${sc}</td><td>${m}</td></tr>`;
+  }).join("");
 }
 
-/* SPECTATOR */
-function fenToImg(f){const e=encodeURIComponent(f||"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");return"https://lichess1.org/export/fen.gif?fen="+e+"&color=white&piece=cburnett";}
+/* ============ SPECTATOR ============ */
+function fenToImg(f){ const e=encodeURIComponent(f||"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); return "https://lichess1.org/export/fen.gif?fen="+e+"&color=white&piece=cburnett"; }
 function boardClockInfo(g){
   const now=Date.now();
   if(g&&(g.status==="live"||g.status==="done")){
-    let ut=g.userTime!=null?g.userTime:BASE,ot=g.oppTime!=null?g.oppTime:BASE;
-    if(g.status==="live"&&g.lastMoveAt){const e=Math.floor((now-g.lastMoveAt)/1000);if(e>0){if(g.turn===g.userColor)ut=Math.max(0,ut-e);else ot=Math.max(0,ot-e);}}
-    return{ut,ot,live:g.status==="live",status:g.status,round:g.round};
+    let ut=g.userTime!=null?g.userTime:BASE;
+    let ot=g.oppTime!=null?g.oppTime:BASE;
+    if(g.status==="live"&&g.lastMoveAt){
+      const e=Math.floor((now-g.lastMoveAt)/1000);
+      if(e>0){
+        if(g.turn===g.userColor) ut=Math.max(0,ut-e);
+        else ot=Math.max(0,ot-e);
+      }
+    }
+    return {ut,ot,live:g.status==="live",status:g.status,round:g.round};
   }
-  const r=currentRoundFromClock(now);const a=anchorFor(r);
-  if(!scheduledStartMs)return{ut:BASE,ot:BASE,live:false,idle:true,round:r};
-  if(now<a)return{ut:BASE,ot:BASE,live:false,pairing:true,round:r};
+  const r=currentRoundFromClock(now);
+  const a=anchorFor(r);
+  if(!scheduledStartMs) return {ut:BASE,ot:BASE,live:false,idle:true,round:r};
+  if(now<a) return {ut:BASE,ot:BASE,live:false,pairing:true,round:r};
   const left=Math.max(0,BASE-Math.floor((now-a)/1000));
-  return{ut:left,ot:BASE,live:left>0,late:left<=0,round:r,notLogged:true};
+  return {ut:left,ot:BASE,live:left>0,late:left<=0,round:r,notLogged:true};
 }
 function enterSpectator(){
-  if(me){chatRole="player";chatName=me.name;}else{chatRole=chatRole==="coach"?"coach":"spectator";if(!chatName)chatName="Visitor";}
-  hideAll();el("screen-spec-hub").classList.remove("hidden");
+  if(me){ chatRole="player"; chatName=me.name; }
+  else { chatRole=chatRole==="coach"?"coach":"spectator"; if(!chatName) chatName="Visitor"; }
+  hideAll(); el("screen-spec-hub").classList.remove("hidden");
   attachLobbyChat();
-  if(hubUnsub)hubUnsub();
-  hubUnsub=db.collection("bcn_live").onSnapshot(s=>{latestRows=[];s.forEach(d=>latestRows.push(Object.assign({id:d.id},d.data())));renderMulti(latestRows);},()=>{latestRows=[];renderMulti([]);});
-  if(hubTick)clearInterval(hubTick);
-  hubTick=setInterval(()=>{if(!el("screen-spec-hub").classList.contains("hidden"))renderMulti(latestRows);},1000);
+  if(hubUnsub) hubUnsub();
+  hubUnsub=db.collection("bcn_live").onSnapshot(s=>{
+    latestRows=[];
+    s.forEach(d=>latestRows.push(Object.assign({id:d.id},d.data())));
+    renderMulti(latestRows);
+  },()=>{ latestRows=[]; renderMulti([]); });
+  if(hubTick) clearInterval(hubTick);
+  hubTick=setInterval(()=>{ if(!el("screen-spec-hub").classList.contains("hidden")) renderMulti(latestRows); },1000);
 }
 function renderMulti(rows){
-  const box=el("multi-boards");if(!box)return;
-  const byB={};rows.forEach(r=>{if(r.board)byB[r.board]=r;});
+  const box=el("multi-boards"); if(!box) return;
+  const byB={}; rows.forEach(r=>{ if(r.board) byB[r.board]=r; });
   ROSTER.forEach(p=>{
     let card=el("mini-card-"+p.id);
     if(!card){
-      card=document.createElement("div");card.id="mini-card-"+p.id;card.className="panel p-2";
+      card=document.createElement("div"); card.id="mini-card-"+p.id; card.className="panel p-2";
       card.innerHTML=`<button type="button" class="w-full text-left" onclick="openSpecBoard('${p.id}')"><div class="flex items-center justify-between mb-1 px-1"><span class="text-[10px] font-black uppercase text-amber-400">Bd ${p.board} · ${esc(p.name)}</span><span class="text-[10px]" id="mini-st-${p.id}">—</span></div><div id="mini-board-${p.id}" class="mini-board" style="width:100%;pointer-events:none"></div><div class="text-[11px] text-slate-400 mt-1 px-1 truncate" id="mini-opp-${p.id}">Waiting…</div><div class="text-[10px] text-slate-500 px-1" id="mini-clk-${p.id}"></div></button>`;
       box.appendChild(card);
     }
@@ -690,7 +1164,7 @@ function renderMulti(rows){
       miniPending[p.id]=true;
       (function(pid){
         setTimeout(function(){
-          try{ miniBoards[pid]=ChessBoard("mini-board-"+pid,{position:miniDesiredFen[pid]||"start",draggable:false,pieceTheme:pieceTheme,showNotation:false,appearSpeed:0,moveSpeed:0}); }catch(e){}
+          try{ miniBoards[pid]=ChessBoard("mini-board-"+pid,{position:miniDesiredFen[pid]||"start",draggable:false,pieceTheme,showNotation:false,appearSpeed:0,moveSpeed:0}); }catch(e){}
           delete miniPending[pid];
         },60);
       })(p.id);
@@ -698,70 +1172,106 @@ function renderMulti(rows){
     const g=byB[p.board];
     const fen=(g&&g.fen)?g.fen:"start";
     miniDesiredFen[p.id]=fen;
-    if(miniBoards[p.id]){try{miniBoards[p.id].position(fen,false);}catch(e){}}
+    if(miniBoards[p.id]){ try{miniBoards[p.id].position(fen,false);}catch(e){} }
     const st=el("mini-st-"+p.id),opp=el("mini-opp-"+p.id),clk=el("mini-clk-"+p.id);
     if(g&&(g.status==="live"||g.status==="done")&&g.fen){
-      if(st)st.innerHTML=g.status==="live"?'<span class="live-dot"></span> LIVE':"Done";
-      if(opp)opp.textContent="vs "+(g.oppName||"?")+" · "+(g.oppSchool||"");
-      const ci=boardClockInfo(g);if(clk)clk.textContent="R"+(g.round||"?")+" · "+fmt(ci.ut)+" / "+fmt(ci.ot);
-    }else{
-      const ci=boardClockInfo(null);const plan=ROUND_PLAN[Math.max(0,ci.round-1)]||{};
-      if(st)st.textContent=ci.late?"⏱ LOST":(ci.live?"● CLOCK":(ci.pairing?"Pairing":"—"));
-      if(opp)opp.textContent="vs "+(plan.player||"—")+" · "+(plan.school||"—");
-      if(clk)clk.textContent="R"+ci.round+" · not logged in · "+fmt(ci.ut)+" left";
+      if(st) st.innerHTML=g.status==="live"?'<span class="live-dot"></span> LIVE':"Done";
+      if(opp) opp.textContent="vs "+(g.oppName||"?")+" · "+(g.oppSchool||"");
+      const ci=boardClockInfo(g);
+      if(clk) clk.textContent="R"+(g.round||"?")+" · "+fmt(ci.ut)+" / "+fmt(ci.ot);
+    } else {
+      const ci=boardClockInfo(null);
+      const plan=ROUND_PLAN[Math.max(0,ci.round-1)]||{};
+      if(st) st.textContent=ci.late?"⏱ LOST":(ci.live?"● CLOCK":(ci.pairing?"Pairing":"—"));
+      if(opp) opp.textContent="vs "+(plan.player||"—")+" · "+(plan.school||"—");
+      if(clk) clk.textContent="R"+ci.round+" · not logged in · "+fmt(ci.ut)+" left";
     }
   });
 }
-function specHubBack(){if(me&&gameLive){hideAll();el("screen-play").classList.remove("hidden");return;}if(me){enterWaitForTeam();return;}showWelcome();}
+function specHubBack(){
+  if(me&&gameLive){ hideAll(); el("screen-play").classList.remove("hidden"); return; }
+  if(me){ enterWaitForTeam(); return; }
+  showWelcome();
+}
 function openSpecBoard(id){
-  hideAll();el("screen-spec-one").classList.remove("hidden");
-  if(specUnsub){try{specUnsub();}catch(e){}}
-  if(specBoard){try{specBoard.destroy();}catch(e){}specBoard=null;}
+  hideAll(); el("screen-spec-one").classList.remove("hidden");
+  if(specUnsub){ try{specUnsub();}catch(e){} }
+  if(specBoard){ try{specBoard.destroy();}catch(e){} specBoard=null; }
   specReplayPly=null;
   attachLobbyChat();
   setTimeout(()=>{
     specUnsub=db.collection("bcn_live").doc(id).onSnapshot(doc=>{
-      const re=ROSTER.find(r=>r.id===id)||{};const plan=ROUND_PLAN[Math.max(0,currentRoundFromClock(Date.now())-1)]||{};
+      const re=ROSTER.find(r=>r.id===id)||{};
+      const plan=ROUND_PLAN[Math.max(0,currentRoundFromClock(Date.now())-1)]||{};
       if(!doc.exists){
         const ci=boardClockInfo(null);
         el("spec-one-label").textContent="Board "+(re.board||"—");
-        el("spec-opp-name").textContent=plan.player||"—";el("spec-opp-school").textContent=plan.school||"—";
-        el("spec-me-name").textContent=re.name||"—";el("spec-me-side").textContent="MCPS";
-        el("spec-clock-me").textContent=fmt(ci.ut);el("spec-clock-opp").textContent=fmt(ci.ot);
+        el("spec-opp-name").textContent=plan.player||"—";
+        el("spec-opp-school").textContent=plan.school||"—";
+        el("spec-me-name").textContent=re.name||"—";
+        el("spec-me-side").textContent="MCPS";
+        el("spec-clock-me").textContent=fmt(ci.ut);
+        el("spec-clock-opp").textContent=fmt(ci.ot);
         el("spec-status").textContent=ci.late?"⏱ Lost on time (never reported)":(ci.pairing?"Pairing window":"Not logged in · clock running");
         return;
       }
       const g=doc.data();
       el("spec-one-label").textContent="Board "+(g.board||"—");
-      el("spec-opp-name").textContent=g.oppName||"—";el("spec-opp-school").textContent=g.oppSchool||"—";
+      el("spec-opp-name").textContent=g.oppName||"—";
+      el("spec-opp-school").textContent=g.oppSchool||"—";
       el("spec-me-name").textContent=g.playerName||"—";
       const uc=g.userColor||"w";
       el("spec-me-side").textContent=uc==="w"?"⬜ White (MCPS)":"⬛ Black (MCPS)";
       el("spec-opp-side").textContent=uc==="w"?"⬛ Black":"⬜ White";
       const ci=boardClockInfo(g);
-      el("spec-clock-me").textContent=fmt(ci.ut);el("spec-clock-opp").textContent=fmt(ci.ot);
+      el("spec-clock-me").textContent=fmt(ci.ut);
+      el("spec-clock-opp").textContent=fmt(ci.ot);
       el("spec-status").textContent=g.status==="done"?("Result · "+(g.result===1?"Win":g.result===0?"Loss":"Draw")):(g.status==="live"?"● LIVE · 10+2":"—");
       buildSpecReplay(g.pgn||"");
       if(specReplayPly===null){
-        const fen=g.fen||"start";const o=uc==="w"?"white":"black";
-        if(!specBoard){const e=el("spec-board");if(e)e.style.width="100%";specBoard=ChessBoard("spec-board",{position:fen,draggable:false,pieceTheme,orientation:o,appearSpeed:0});}
-        else try{specBoard.orientation(o);specBoard.position(fen,false);}catch(e){}
+        const fen=g.fen||"start";
+        const o=uc==="w"?"white":"black";
+        if(!specBoard){
+          const e=el("spec-board"); if(e) e.style.width="100%";
+          specBoard=ChessBoard("spec-board",{position:fen,draggable:false,pieceTheme,orientation:o,appearSpeed:0});
+        } else {
+          try{ specBoard.orientation(o); specBoard.position(fen,false); }catch(e){}
+        }
         el("spec-replay-label").textContent="Live position · use ◀ ▶ to replay";
       }
     });
   },80);
 }
-function backFromSpecOne(){if(specUnsub){try{specUnsub();}catch(e){}specUnsub=null;}enterSpectator();}
-function buildSpecReplay(pgn){const c=new Chess();specReplayFens=["start"];specReplaySans=[];const t=(pgn||"").trim().split(/\s+/).filter(x=>x&&!/^\d+\.+$/.test(x));t.forEach(x=>{const m=c.move(x,{sloppy:true});if(m){specReplaySans.push(m.san);specReplayFens.push(c.fen());}});}
-function specReplayStep(d){if(!specReplayFens.length)return;const max=specReplayFens.length-1;if(specReplayPly===null)specReplayPly=max;specReplayPly=Math.max(0,Math.min(max,specReplayPly+d));const f=specReplayFens[specReplayPly]||"start";if(specBoard)try{specBoard.position(f,false);}catch(e){}const s=specReplayPly>0?specReplaySans[specReplayPly-1]:"Start";el("spec-replay-label").textContent="Move "+specReplayPly+"/"+max+(s?" · "+s:"");el("spec-btn-live").textContent="↩ Live";}
-function specReplayLive(){specReplayPly=null;el("spec-btn-live").textContent="● Live";el("spec-replay-label").textContent="Live position";}
+function backFromSpecOne(){ if(specUnsub){ try{specUnsub();}catch(e){} specUnsub=null; } enterSpectator(); }
+function buildSpecReplay(pgn){
+  const c=new Chess();
+  specReplayFens=["start"]; specReplaySans=[];
+  const t=(pgn||"").trim().split(/\s+/).filter(x=>x&&!/^\d+\.+$/.test(x));
+  t.forEach(x=>{ const m=c.move(x,{sloppy:true}); if(m){ specReplaySans.push(m.san); specReplayFens.push(c.fen()); } });
+}
+function specReplayStep(d){
+  if(!specReplayFens.length) return;
+  const max=specReplayFens.length-1;
+  if(specReplayPly===null) specReplayPly=max;
+  specReplayPly=Math.max(0,Math.min(max,specReplayPly+d));
+  const f=specReplayFens[specReplayPly]||"start";
+  if(specBoard) try{specBoard.position(f,false);}catch(e){}
+  const s=specReplayPly>0?specReplaySans[specReplayPly-1]:"Start";
+  el("spec-replay-label").textContent="Move "+specReplayPly+"/"+max+(s?" · "+s:"");
+  el("spec-btn-live").textContent="↩ Live";
+}
+function specReplayLive(){
+  specReplayPly=null;
+  el("spec-btn-live").textContent="● Live";
+  el("spec-replay-label").textContent="Live position";
+}
 
-/* CHAT — shared across hub and single-board views */
+/* ============ CHAT ============ */
 function attachLobbyChat(){
-  if(chatUnsub)chatUnsub();
+  if(chatUnsub) chatUnsub();
   document.querySelectorAll("#chat-role-label, .chat-role").forEach(r=>r.textContent=chatRole+(chatName?" · "+chatName:""));
   chatUnsub=db.collection("bcn_chat").orderBy("ts","asc").limitToLast(80).onSnapshot(s=>{
-    const msgs=[];s.forEach(d=>msgs.push(d.data()));
+    const msgs=[]; s.forEach(d=>msgs.push(d.data()));
     document.querySelectorAll("#chat-log, .chat-log").forEach(log=>{
       log.innerHTML="";
       msgs.forEach(m=>{
@@ -782,36 +1292,51 @@ function sendChatFrom(btn){
   doSendChat(input);
 }
 function doSendChat(input){
-  if(gameLive&&me){toast("Chat is available on the boards page after you finish");return;}
-  if(!input)return;
-  let t=(input.value||"").trim();if(!t)return;
+  if(gameLive&&me){ toast("Chat is available on the boards page after you finish"); return; }
+  if(!input) return;
+  let t=(input.value||"").trim(); if(!t) return;
   if(/^\/coach\s+/i.test(t)){
     const p=t.replace(/^\/coach\s+/i,"").trim();
     if(p===ADMIN_PASS||p===ADMIN_PASS_ALT){
-      chatRole="coach";chatName="Coach";toast("Coach mode unlocked");
+      chatRole="coach"; chatName="Coach"; toast("Coach mode unlocked");
       document.querySelectorAll("#chat-role-label, .chat-role").forEach(r=>r.textContent="coach");
-      input.value="";return;
+      input.value=""; return;
     }
-    toast("Wrong coach password");return;
+    toast("Wrong coach password"); return;
   }
   db.collection("bcn_chat").add({name:chatName||"Visitor",role:chatRole||"spectator",text:t.slice(0,240),ts:Date.now()}).catch(()=>toast("Chat needs internet"));
   input.value="";
 }
 
-/* BOOT */
+/* ============ BOOT ============ */
 simulateField();
 ROSTER.forEach(p=>individualScores[p.id]=0);
 loadState();
-try{const n=Number(localStorage.getItem("bcn_start")||0);if(n>0)scheduledStartMs=n;}catch(e){}
-db.collection("bcn_meta").doc("schedule").onSnapshot(d=>{if(d.exists){const x=d.data()||{};if(x.startAt){scheduledStartMs=x.startAt;try{localStorage.setItem("bcn_start",String(x.startAt));}catch(e){}}}updateScheduleBanner();},()=>updateScheduleBanner());
-db.collection("bcn_meta").doc("tourney").onSnapshot(d=>{if(d.exists){const x=d.data()||{};roundAnchors=x.roundAnchors||{};}},()=>{});
+try{ const n=Number(localStorage.getItem("bcn_start")||0); if(n>0) scheduledStartMs=n; }catch(e){}
+
+db.collection("bcn_meta").doc("schedule").onSnapshot(d=>{
+  if(d.exists){
+    const x=d.data()||{};
+    if(x.startAt){
+      scheduledStartMs=x.startAt;
+      try{ localStorage.setItem("bcn_start",String(x.startAt)); }catch(e){}
+    }
+  }
+  updateScheduleBanner();
+},()=>updateScheduleBanner());
+
 db.collection("bcn_meta").doc("mcps").onSnapshot(d=>{
-  if(d.exists){const x=d.data()||{};
-    if((x.rc||0)>(roundsCompleted||0)){roundsCompleted=x.rc;teamMatchPoints=x.mp||0;teamGamePoints=x.gp||0;
-      try{localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound}));}catch(e){}
+  if(d.exists){
+    const x=d.data()||{};
+    if((x.rc||0)>(roundsCompleted||0)){
+      roundsCompleted=x.rc;
+      teamMatchPoints=x.mp||0;
+      teamGamePoints=x.gp||0;
+      try{ localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound})); }catch(e){}
     }
   }
 },()=>{});
+
 setInterval(updateScheduleBanner,1000);
 showWelcome();
 </script>
