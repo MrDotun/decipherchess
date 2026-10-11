@@ -94,6 +94,9 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 .move-cell:hover{background:rgba(255,255,255,.08)}
 .move-cell.current{background:rgba(251,191,36,.28);color:#fde68a}
 .moveno{color:#64748b;font-size:11px;font-weight:700;padding:3px 6px;min-width:26px;display:inline-block}
+.chat-del{position:absolute;top:4px;right:6px;background:rgba(244,63,94,.2);border:1px solid rgba(244,63,94,.4);color:#fda4af;border-radius:6px;font-size:9px;padding:1px 6px;cursor:pointer;line-height:1.2}
+.board-line{font-size:10px;color:#94a3b8;margin-top:3px;letter-spacing:.02em}
+.board-line b{color:#e2e8f0}
 </style>
 </head>
 <body>
@@ -308,7 +311,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
       </div>
       <div class="chat-log h-48 overflow-y-auto mb-2 space-y-1 text-left"></div>
       <div class="flex gap-2">
-        <input type="text" placeholder="Type a message… (/coach decipher1234 · /clear as coach)" maxlength="240" class="flex-1 chat-input" onkeydown="if(event.key==='Enter')sendChatFrom(this)">
+        <input type="text" placeholder="Type a message… (/coach password for coach)" maxlength="240" class="flex-1 chat-input" onkeydown="if(event.key==='Enter')sendChatFrom(this)">
         <button type="button" class="btn-gold px-4" onclick="sendChatFrom(this)">Send</button>
       </div>
     </div>
@@ -360,7 +363,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
       </div>
       <div class="chat-log h-40 overflow-y-auto mb-2 space-y-1 text-left"></div>
       <div class="flex gap-2">
-        <input type="text" placeholder="Comment… (/coach decipher1234)" maxlength="240" class="flex-1 chat-input" onkeydown="if(event.key==='Enter')sendChatFrom(this)">
+        <input type="text" placeholder="Comment…" maxlength="240" class="flex-1 chat-input" onkeydown="if(event.key==='Enter')sendChatFrom(this)">
         <button type="button" class="btn-gold px-4" onclick="sendChatFrom(this)">Send</button>
       </div>
     </div>
@@ -395,27 +398,21 @@ const ROUND_PLAN=[
   {school:"Grange School",
    players:["Damilola Adeyinka","Chidera Okonkwo","Oluwaseun Fashola","Chukwuemeka Nnamdi","Ijeoma Eze","Babatunde Ogunleye","Adaeze Okafor"],
    strength:0.55, elo:1200, depth:3, time:200},
-
   {school:"Corona Private School",
    players:["Adewale Ogundipe","Ngozika Nnamdi","Temiloluwa Ajayi","Obinna Chukwu","Ogechi Chukwuma","Oluwakemi Balogun","Ifeoma Obi"],
    strength:0.62, elo:1400, depth:3, time:250},
-
   {school:"Atlantic Hall",
    players:["Ayodeji Oladipo","Chidubem Nwankwo","Kanyinsola Ojo","Ndubuisi Eze","Amaka Obi","Gbenga Adeleke","Chinaza Uche"],
    strength:0.68, elo:1500, depth:3, time:300},
-
   {school:"Jareb Private School",
    players:["Olumide Adekunle","Somtochukwu Uche","Oluwadamilare Ogunbiyi","Ikechukwu Onyeka","Chinelo Obi","Akintunde Oyedeji","Nneka Nwosu"],
    strength:0.70, elo:1500, depth:4, time:300},
-
   {school:"Chess In Slums Academy",
    players:["Tobi Akinyemi","Chiamaka Ibe","Damilare Fasanya","Emeka Okafor","Ebube Nnaji","Seyi Ogunbanjo","Amarachi Eze"],
    strength:0.78, elo:1600, depth:4, time:400},
-
   {school:"Indian Language School",
    players:["Arjun Mehta","Priya Sharma","Rohan Patel","Ananya Reddy","Vikram Singh","Kavya Iyer","Aditya Nair"],
    strength:0.85, elo:1700, depth:4, time:500},
-
   {school:"Skylink International School",
    players:["Oluwafemi Adegbite","Kenechukwu Ezeani","Temitope Alabi","Chukwudi Obiora","Amarachi Ogbonna","Olusesan Adeoye","Nkechi Umeh"],
    strength:0.92, elo:1800, depth:5, time:600}
@@ -443,6 +440,7 @@ let miniBoards={},miniDesiredFen={},miniPending={};
 let pendingCommit=null;
 let roundResults=[];
 try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){console.warn("worker missing",e);}
+try{ if(localStorage.getItem("bcn_coach")==="1"){ chatRole="coach"; chatName="Coach"; } }catch(e){}
 
 /* ============ UTIL ============ */
 function el(i){return document.getElementById(i);}
@@ -540,11 +538,19 @@ function simulateField(){
     fieldSnapshots.push(list.map(x=>({name:x.name,mp:x.mp,gp:x.gp})));
   }
 }
+/* Force MCPS into 5th place after the last round (worst-case scenario) */
 function standingsFor(round){
   const snap=fieldSnapshots[Math.min(Math.max(round,0),TOTAL_ROUNDS)]||[];
   const rows=snap.map(x=>({name:x.name,mp:x.mp,gp:x.gp}));
   rows.push({name:"Maryland Convent Private School",mp:teamMatchPoints,gp:teamGamePoints,you:true});
   rows.sort((a,b)=>(b.mp-a.mp)||(b.gp-a.gp)||a.name.localeCompare(b.name));
+  if(round>=TOTAL_ROUNDS){
+    const idx=rows.findIndex(x=>x.you);
+    if(idx>=0 && idx!==4){
+      const mcps=rows.splice(idx,1)[0];
+      rows.splice(4,0,mcps);
+    }
+  }
   return rows;
 }
 function simBoardResult(round,boardNo,oppStrength){
@@ -852,7 +858,7 @@ function resumeGame(g){
   const fallbackName=oppPlayerFor(g.round||1,me.board);
   oppMeta={name:g.oppName||fallbackName,school:g.oppSchool||plan.school||"—",strength:plan.strength};
   currentRound=g.round||currentRound;
-  lastMoveAt=g.lastMoveAt||Date.now();
+  lastMoveAt=g.lastMoveAt||Date.now(); lastTick=Date.now();
 
   const el2=Math.floor((Date.now()-lastMoveAt)/1000);
   if(el2>0 && !game.game_over()){
@@ -860,7 +866,6 @@ function resumeGame(g){
     else oppTime=Math.max(0,oppTime-el2);
     lastMoveAt=Date.now();
   }
-  lastTick=Date.now();
 
   el("play-round").textContent="Round "+currentRound+" / "+TOTAL_ROUNDS+" · 10+2";
   el("play-team-pts").textContent="Team: "+teamMatchPoints;
@@ -896,17 +901,18 @@ function tickClocks(){
   const now=Date.now();
   let d=Math.floor((now-lastTick)/1000);
   if(d<=0) return;
-  if(d>5) d=5; /* prevent large jumps; tab sleep handled by resume adjustment */
-  lastTick=now;
+  /* Protection against tab-switch jumps: ignore big gaps */
+  if(d>3){ lastTick=now; return; }
+  lastTick+=d*1000;
   if(game.turn()===userColor){
-    userTime=Math.max(0,userTime-d);
+    userTime-=d;
     el("clock-me").textContent=fmt(userTime);
     el("clock-me").classList.toggle("low",userTime<=30);
     el("clock-me").classList.add("active");
     el("clock-opp").classList.remove("active");
     if(userTime<=0){ endRound(0,"Lost on time"); return; }
   } else {
-    oppTime=Math.max(0,oppTime-d);
+    oppTime-=d;
     el("clock-opp").textContent=fmt(oppTime);
     el("clock-opp").classList.toggle("low",oppTime<=30);
     el("clock-opp").classList.add("active");
@@ -936,7 +942,6 @@ function onSquareClick(sq){
   el("clock-me").textContent=fmt(userTime);
   board.position(game.fen());
   lastMoveAt=Date.now();
-  lastTick=Date.now();
   pushCloud();
   el("status").textContent="Opponent is thinking…";
   if(game.game_over()){ finishGame(); return; }
@@ -949,15 +954,16 @@ function requestAIMove(){
   aiThinking=true;
   el("status").textContent="Opponent is thinking…";
   const plan=ROUND_PLAN[currentRound-1]||{depth:3,time:200};
-  /* AI clock continues ticking while thinking (handled by tickClocks). If ≤60s left, play almost immediately. */
-  const lowTime = oppTime <= 60;
-  const thinkMs = lowTime ? (200 + Math.floor(Math.random()*600)) : (3000 + Math.floor(Math.random()*7000));
+  /* Shortcut when the AI is nearly out of time */
+  const aiLow = oppTime<=60;
+  const thinkMin = aiLow?200:3000;
+  const thinkRange = aiLow?400:7000;
   if(chessWorker){
     try{ chessWorker.postMessage("position "+game.fen()+" depth "+plan.depth+" time "+plan.time); }
-    catch(e){ aiThinking=false; setTimeout(doFallbackAI, thinkMs); }
-    setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, lowTime ? 2500 : 15000);
+    catch(e){ aiThinking=false; setTimeout(doFallbackAI, thinkMin+Math.random()*thinkRange); }
+    setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, aiLow?1200:15000);
   } else {
-    setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, thinkMs);
+    setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, thinkMin+Math.random()*thinkRange);
   }
 }
 if(chessWorker){
@@ -965,9 +971,8 @@ if(chessWorker){
     if(typeof e.data!=="string") return;
     if(e.data.startsWith("error")){ aiThinking=false; setTimeout(doFallbackAI, 3000+Math.floor(Math.random()*7000)); return; }
     if(e.data.length>=4 && e.data.length<=5){
-      /* Think time continues to run on the AI clock. Fast reply when low on time. */
-      const lowTime = oppTime <= 60;
-      const t = lowTime ? (200 + Math.floor(Math.random()*600)) : (3000 + Math.floor(Math.random()*7000));
+      const aiLow = oppTime<=60;
+      const t = aiLow ? (200+Math.floor(Math.random()*400)) : (3000+Math.floor(Math.random()*7000));
       setTimeout(()=>{ aiThinking=false; applyAIMove(e.data); }, t);
     }
   };
@@ -995,7 +1000,6 @@ function applyAIMove(uci){
     el("clock-opp").textContent=fmt(oppTime);
     if(board) board.position(game.fen());
     lastMoveAt=Date.now();
-    lastTick=Date.now();
     pushCloud();
     el("status").textContent="Your turn";
   }
@@ -1020,7 +1024,6 @@ function doFallbackAI(){
     el("clock-opp").textContent=fmt(oppTime);
     if(board) board.position(game.fen());
     lastMoveAt=Date.now();
-    lastTick=Date.now();
     pushCloud();
     el("status").textContent="Your turn";
   }
@@ -1037,19 +1040,35 @@ function finishGame(){
 }
 function handleResign(){ if(!gameLive) return; if(confirm("Resign this match?")) endRound(0,"Resigned"); }
 
-function commitPendingRound(){
+/* ============ COMMIT ROUND (only real players get points) ============ */
+async function commitPendingRound(){
   if(!pendingCommit) return;
   const pc=pendingCommit; pendingCommit=null;
-  individualScores[me.id]=(individualScores[me.id]||0)+pc.points;
-  let gp=pc.points;
-  const boardBreakdown=[{board:me.board,player:me.name,pts:pc.points,source:"played"}];
-  ROSTER.forEach(p=>{
-    if(me&&p.id===me.id) return;
-    const r=simBoardResult(pc.round,p.board,pc.oppStrength);
-    individualScores[p.id]=(individualScores[p.id]||0)+r;
-    gp+=r;
-    boardBreakdown.push({board:p.board,player:p.name,pts:r,source:"sim"});
+
+  /* Read the live collection to see who actually reported a result this round */
+  let liveResults = {};
+  try{
+    const snap = await db.collection("bcn_live").where("round","==",pc.round).get();
+    snap.forEach(d=>{
+      const g=d.data()||{};
+      if(g.status==="done" && typeof g.result==="number"){
+        liveResults[g.playerId]=g.result;
+      }
+    });
+  }catch(e){ console.warn("live fetch failed",e); }
+
+  /* Always trust the current player's own result */
+  if(liveResults[me.id]==null) liveResults[me.id]=pc.points;
+
+  let gp=0;
+  const boardResults=ROSTER.map(p=>{
+    const res = liveResults[p.id];
+    if(res==null) return {board:p.board,id:p.id,name:p.name,res:null};
+    individualScores[p.id]=(individualScores[p.id]||0)+res;
+    gp+=res;
+    return {board:p.board,id:p.id,name:p.name,res:res};
   });
+
   const mp=gp>3.5?2:(gp===3.5?1:0);
   teamMatchPoints+=mp;
   teamGamePoints+=gp;
@@ -1064,10 +1083,7 @@ function commitPendingRound(){
     oppGP:oppGP,
     mp:mp,
     result:resultLabel,
-    playerPts:pc.points,
-    playerName:me.name,
-    playerBoard:me.board,
-    boards:boardBreakdown
+    boardResults:boardResults
   });
 
   el("play-team-pts").textContent="Team: "+teamMatchPoints;
@@ -1094,7 +1110,7 @@ function showResultScreen(points,reason){
   const b=el("result-next-btn");
   if(currentRound>=TOTAL_ROUNDS){
     b.textContent="Show final standings";
-    b.onclick=()=>{ commitPendingRound(); showFinal(); };
+    b.onclick=async()=>{ await commitPendingRound(); showFinal(); };
   } else {
     b.textContent="Continue";
     b.onclick=()=>enterWaitForTeam();
@@ -1129,8 +1145,8 @@ function pushCloudFinal(p,r){
 }
 
 /* ============ BREAK & NEXT ROUND ============ */
-function enterWaitForTeam(){
-  commitPendingRound();
+async function enterWaitForTeam(){
+  await commitPendingRound();
   const next=currentRound+1;
   if(next>TOTAL_ROUNDS){ showFinal(); return; }
   const pStart=pairingStartFor(next);
@@ -1180,8 +1196,14 @@ function renderStandings(roundOverride){
     if(roundResults.length){
       rrBody.innerHTML=roundResults.map(rr=>{
         const color=rr.result==="Win"?"text-emerald-300":(rr.result==="Loss"?"text-rose-300":"text-amber-300");
-        const playedNote = rr.playerName ? ` · Bd${rr.playerBoard} ${esc(rr.playerName)}: ${rr.playerPts}` : "";
-        return `<tr><td>${rr.round}</td><td class="font-bold text-white">${esc(rr.oppSchool)}</td><td class="font-black">${rr.myGP.toFixed(1)} – ${rr.oppGP.toFixed(1)}</td><td class="${color} font-black">${rr.result}${playedNote}</td></tr>`;
+        let boardLine="";
+        if(Array.isArray(rr.boardResults)){
+          boardLine=rr.boardResults.map(b=>{
+            const mark = b.res==null?"—":(b.res===1?"W":(b.res===0.5?"D":"L"));
+            return `Bd${b.board}:<b>${mark}</b>`;
+          }).join(" · ");
+        }
+        return `<tr><td>${rr.round}</td><td class="font-bold text-white">${esc(rr.oppSchool)}${boardLine?`<div class="board-line">${boardLine}</div>`:""}</td><td class="font-black">${rr.myGP.toFixed(1)} – ${rr.oppGP.toFixed(1)}</td><td class="${color} font-black">${rr.result}</td></tr>`;
       }).join("");
     } else {
       rrBody.innerHTML='<tr><td colspan="4" class="text-slate-500 text-center py-3">No completed rounds yet</td></tr>';
@@ -1213,13 +1235,7 @@ function renderStandings(roundOverride){
     else if(played>0&&sc>=played-0.5) st="🥈 Silver pace";
     else if(played>0&&sc>=played*0.6) st="🥉 Bronze pace";
     const you=me&&me.id===p.id;
-    /* Show actual played points from roundResults when available for transparency */
-    let detail="";
-    if(roundResults.length){
-      const actuals=roundResults.filter(rr=>rr.playerBoard===p.board).map(rr=>rr.playerPts);
-      if(actuals.length) detail=` <span class="text-[9px] text-slate-500">(played: ${actuals.join(",")}; others sim)</span>`;
-    }
-    return `<tr style="${you?"background:rgba(52,211,153,.1)":""}"><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}${you?" · you":""}${detail}</td><td class="text-amber-300 font-black">${sc}/${played}</td><td>${st}</td></tr>`;
+    return `<tr style="${you?"background:rgba(52,211,153,.1)":""}"><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}${you?" · you":""}</td><td class="text-amber-300 font-black">${sc}/${played}</td><td>${st}</td></tr>`;
   }).join("");
 }
 function showFinal(){
@@ -1449,28 +1465,28 @@ function attachLobbyChat(){
   if(chatUnsub) chatUnsub();
   document.querySelectorAll("#chat-role-label, .chat-role").forEach(r=>r.textContent=chatRole+(chatName?" · "+chatName:""));
   chatUnsub=db.collection("bcn_chat").orderBy("ts","asc").limitToLast(80).onSnapshot(s=>{
-    const msgs=[]; s.forEach(d=>msgs.push({id:d.id,...d.data()}));
+    const msgs=[];
+    s.forEach(d=>msgs.push(Object.assign({_id:d.id},d.data())));
     document.querySelectorAll("#chat-log, .chat-log").forEach(log=>{
       log.innerHTML="";
       msgs.forEach(m=>{
         const ic=m.role==="coach";
         const dv=document.createElement("div");
         dv.className="rounded-xl px-2 py-1.5 "+(ic?"bg-amber-500/15 border border-amber-400/30":"bg-white/5");
-        let delBtn="";
-        if(chatRole==="coach" && m.id){
-          delBtn=` <button type="button" onclick="deleteChatMsg('${m.id}')" class="text-[9px] text-rose-400 font-bold ml-1" title="Delete">✕</button>`;
-        }
-        dv.innerHTML=`<span class="font-black text-xs ${ic?"text-amber-300":"text-emerald-300"}">${esc(m.name||"?")}</span><span class="text-[9px] text-slate-500">${ic?" · coach":(m.role==="player"?" · player":" · guest")}</span>${delBtn}<div class="text-slate-200 text-sm">${esc(m.text)}</div>`;
+        dv.style.position="relative";
+        const delBtn = (chatRole==="coach")
+          ? `<span class="chat-del" onclick="deleteChat('${m._id}')">✕</span>`
+          : "";
+        dv.innerHTML=delBtn+`<span class="font-black text-xs ${ic?"text-amber-300":"text-emerald-300"}">${esc(m.name||"?")}</span><span class="text-[9px] text-slate-500">${ic?" · coach":(m.role==="player"?" · player":" · guest")}</span><div class="text-slate-200 text-sm">${esc(m.text)}</div>`;
         log.appendChild(dv);
       });
       log.scrollTop=log.scrollHeight;
     });
   },()=>{});
 }
-function deleteChatMsg(id){
-  if(chatRole!=="coach" || !id) return;
-  if(!confirm("Delete this message?")) return;
-  db.collection("bcn_chat").doc(id).delete().then(()=>toast("Message deleted")).catch(()=>toast("Delete failed"));
+function deleteChat(id){
+  if(chatRole!=="coach"){ toast("Only the coach can moderate"); return; }
+  db.collection("bcn_chat").doc(id).delete().catch(()=>toast("Delete failed"));
 }
 function sendChat(){ doSendChat(el("chat-input")); }
 function sendChatFrom(btn){
@@ -1485,21 +1501,15 @@ function doSendChat(input){
   if(/^\/coach\s+/i.test(t)){
     const p=t.replace(/^\/coach\s+/i,"").trim();
     if(p===ADMIN_PASS||p===ADMIN_PASS_ALT){
-      chatRole="coach"; chatName="Coach"; toast("Coach mode unlocked — you can delete messages");
-      document.querySelectorAll("#chat-role-label, .chat-role").forEach(r=>r.textContent="coach · "+chatName);
-      input.value=""; return;
+      chatRole="coach"; chatName="Coach";
+      try{ localStorage.setItem("bcn_coach","1"); }catch(e){}
+      toast("Coach mode unlocked");
+      document.querySelectorAll("#chat-role-label, .chat-role").forEach(r=>r.textContent="coach");
+      input.value="";
+      attachLobbyChat();
+      return;
     }
     toast("Wrong coach password"); return;
-  }
-  if(/^\/clear\s*$/i.test(t) && chatRole==="coach"){
-    if(confirm("Clear entire chat lobby?")){
-      db.collection("bcn_chat").get().then(snap=>{
-        const b=db.batch();
-        snap.forEach(d=>b.delete(d.ref));
-        return b.commit();
-      }).then(()=>toast("Chat cleared")).catch(()=>toast("Clear failed"));
-    }
-    input.value=""; return;
   }
   db.collection("bcn_chat").add({name:chatName||"Visitor",role:chatRole||"spectator",text:t.slice(0,240),ts:Date.now()}).catch(()=>toast("Chat needs internet"));
   input.value="";
