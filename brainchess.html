@@ -632,12 +632,13 @@ function confirmAdminOpenNow(){
   if(!adminPassOk(pass)){toast('Wrong admin password');return;}
   const now=Date.now();
   setScheduledStart(now-1000);
-  sharedRoundStart=now;
+  // Doors open only — clocks do NOT start until loading finishes and beginGame runs
+  sharedRoundStart=0;
   db.collection('bcn_meta').doc('tourney').set({
-    status:'playing', round:1, roundStartedAt:now, breakEndsAt:0, updated:now
+    status:'playing', round:1, roundStartedAt:0, clocksAnchor:0, breakEndsAt:0, updated:now
   },{merge:true}).catch(()=>{});
   closeAdminModal();
-  toast('Doors open NOW — Round 1 clocks started for all boards');
+  toast('Doors open — clocks start at full 10:00 after pairing loads');
 }
 function confirmAdminStart(){
   const pass=(document.getElementById('admin-pass')&&document.getElementById('admin-pass').value||'').trim();
@@ -649,12 +650,12 @@ function confirmAdminStart(){
     if(!isNaN(parsed)&&parsed>0) ms=parsed;
   }
   setScheduledStart(ms);
-  sharedRoundStart=ms;
+  sharedRoundStart=0;
   db.collection('bcn_meta').doc('tourney').set({
-    status:'lobby', round:1, roundStartedAt:ms, breakEndsAt:0, updated:Date.now()
+    status:'lobby', round:1, roundStartedAt:0, clocksAnchor:0, breakEndsAt:0, doorsAt:ms, updated:Date.now()
   },{merge:true}).catch(()=>{});
   closeAdminModal();
-  toast('Schedule saved — Round 1 clocks anchor at set time');
+  toast('Schedule saved — full 10:00 when each board finishes loading');
 }
 
 let selectedId=null;
@@ -847,8 +848,12 @@ function resumeGameFromCloud(g){
   if(timer) clearInterval(timer);
   timer=setInterval(tickClocks,200);
   toast('Game resumed — clocks kept running while you were away');
-  // If it is AI's turn, let AI move
-  if(game.turn()!==userColor) setTimeout(aiMove, 500);
+  // AI's turn only — never auto-move for the human
+  if(game.turn()!==userColor) setTimeout(aiMove, 400);
+  else {
+    const st=document.getElementById('play-status');
+    if(st) st.textContent='Your turn — move a piece';
+  }
 }
 
 function loadProgress(){
@@ -938,23 +943,31 @@ function assignBoardColor(boardNum, round){
 
 async function beginGame(){
   game=new Chess();
-  // Mixed colours: never all White. Odd boards White on odd rounds; even boards opposite.
   userColor=assignBoardColor(me.board, currentRound);
   oppMeta.color=userColor==='w'?'b':'w';
   playerDrawOffers=0; aiDrawOffers=0;
   pendingDraw=false; aiThinking=false; sourceSquare=null;
   clocksFrozen=false; gameLive=true;
 
-  // SHARED round clock: all boards start from the same moment. Late joiners lose elapsed time.
-  let startAt=sharedRoundStart||0;
+  /*
+   * CLOCK RULES (critical):
+   * - Loading / break NEVER eat into the 10 minutes.
+   * - Clocks start only when the board is ready → full 10:00.
+   * - Late joiners (after clocksAnchor for this round) lose elapsed time only.
+   * - Sync buffer: +3s grace so network lag doesn't steal a second.
+   */
+  const SYNC_GRACE=3;
+  let clocksAnchor=0;
   try{
     const doc=await db.collection('bcn_meta').doc('tourney').get();
     const d=doc.exists?doc.data():{};
-    if(d.round===currentRound&&d.roundStartedAt) startAt=d.roundStartedAt;
-    if(!startAt){
-      startAt=Date.now();
+    if(d.round===currentRound&&d.clocksAnchor) clocksAnchor=d.clocksAnchor;
+    if(!clocksAnchor){
+      // First board ready this round — everyone who arrives on time gets full 10:00
+      clocksAnchor=Date.now();
       await db.collection('bcn_meta').doc('tourney').set({
-        status:'playing', round:currentRound, roundStartedAt:startAt, updated:Date.now()
+        status:'playing', round:currentRound, clocksAnchor:clocksAnchor,
+        roundStartedAt:clocksAnchor, breakEndsAt:0, updated:Date.now()
       },{merge:true});
     } else {
       await db.collection('bcn_meta').doc('tourney').set({
@@ -962,21 +975,16 @@ async function beginGame(){
       },{merge:true});
     }
   }catch(e){
-    if(!startAt) startAt=Date.now();
+    clocksAnchor=Date.now();
   }
-  sharedRoundStart=startAt;
-  lastMoveAt=startAt;
+  sharedRoundStart=clocksAnchor;
 
-  // Elapsed since team round start — White's time already burns if nobody moved
-  const elapsed=Math.max(0,(Date.now()-startAt)/1000);
   userTime=BASE; oppTime=BASE;
-  if(userColor==='w'){
-    userTime=Math.max(0, BASE-elapsed);
-  } else {
-    // Black: white's clock ran until (if white never moved, white still on clock)
-    // For a fresh board with no moves, white is to move — so only white loses time
-    // Opponent (white AI) is to move first when user is black
-    oppTime=Math.max(0, BASE-elapsed);
+  const late=Math.max(0, (Date.now()-clocksAnchor)/1000 - SYNC_GRACE);
+  if(late>2){
+    // Only late arrivals lose time; on-time / loading sequence does not
+    if(userColor==='w') userTime=Math.max(0, BASE-late);
+    else oppTime=Math.max(0, BASE-late); // AI White already on the clock
   }
 
   if(userColor==='w'&&userTime<=0){endGame(0,'flag');return;}
@@ -997,16 +1005,17 @@ async function beginGame(){
   const orient=userColor==='w'?'white':'black';
   if(!boardWidget){
     boardWidget=ChessBoard('board',{position:'start',orientation:orient,draggable:false,pieceTheme:pieceTheme,appearSpeed:0,moveSpeed:120});
-    $('#board').on('click','[class*="square-"]',function(){const sq=$(this).attr('data-square');if(sq)onSquareClick(sq);});
+    $('#board').off('click','[class*="square-"]').on('click','[class*="square-"]',function(){const sq=$(this).attr('data-square');if(sq)onSquareClick(sq);});
   } else {
     boardWidget.orientation(orient);
     boardWidget.position('start',false);
   }
-  lastMoveAt=Date.now(); // continue ticking from now with already-reduced times
+  lastMoveAt=Date.now();
   pushCloud();
   if(timer) clearInterval(timer);
   timer=setInterval(tickClocks,200);
-  if(userColor==='b') setTimeout(aiMove, 800+Math.random()*1200);
+  // AI is White → must move without waiting for the kid
+  if(userColor==='b') setTimeout(aiMove, 900+Math.random()*1500);
 }
 
 /** Reliable 10+2: only the side to move loses time; +INC only after a completed move. */
@@ -1144,13 +1153,17 @@ function humanThinkMs(cfg){
 
 function aiMove(){
   if(!gameLive||!game||game.game_over()) return;
+  // Never move for the human
   if(game.turn()===userColor) return;
+  if(aiThinking) return;
   aiThinking=true;
-  document.getElementById('play-status').textContent=oppMeta.name+' is thinking…';
+  const st=document.getElementById('play-status');
+  if(st) st.textContent=(oppMeta.name||'Opponent')+' is thinking…';
   const cfg=AI_CFG[currentRound]||AI_CFG[7];
   const think=humanThinkMs(cfg);
   setTimeout(()=>{
-    if(!gameLive||game.game_over()){aiThinking=false;return;}
+    if(!gameLive||!game||game.game_over()){aiThinking=false;return;}
+    if(game.turn()===userColor){aiThinking=false;return;} // still human's turn — abort
     const score=evalBoard(game);
     const aiIsWhite=userColor==='b';
     const aiScore=aiIsWhite?score:-score;
@@ -1173,14 +1186,57 @@ function aiMove(){
     if(m){
       oppTime+=INC;
       lastMoveAt=Date.now();
-      boardWidget.position(game.fen(),false);
+      if(boardWidget) boardWidget.position(game.fen(),false);
       lastHL(m.from,m.to);
       pushCloud();
     }
     aiThinking=false;
     if(game.game_over()){finishByRules();return;}
-    document.getElementById('play-status').textContent='Your turn — move a piece';
+    if(st) st.textContent='Your turn — move a piece';
   }, think);
+}
+
+/** Advance AI moves on live boards where AI is to move (works even if kid is offline). */
+let orphanAIBusy=false;
+async function advanceOrphanAI(){
+  if(orphanAIBusy) return;
+  orphanAIBusy=true;
+  try{
+    const snap=await db.collection('bcn_live').get();
+    for(const d of snap.docs){
+      const g=d.data();
+      if(!g||g.status!=='live'||!g.fen) continue;
+      // Skip the board this client is actively playing
+      if(me&&d.id===me.id&&gameLive) continue;
+      const uc=g.userColor||'w';
+      const turn=g.turn||new Chess(g.fen).turn();
+      // AI to move when turn !== player's colour
+      if(turn===uc) continue;
+      const cg=new Chess(g.fen);
+      if(cg.game_over()) continue;
+      const round=g.round||currentRound;
+      const cfg=AI_CFG[round]||AI_CFG[7];
+      let move=null;
+      const legal=cg.moves({verbose:true});
+      if(!legal.length) continue;
+      if(Math.random()<cfg.blunder) move=legal[Math.floor(Math.random()*legal.length)];
+      else {
+        const res=minimax(cg, Math.min(3,cfg.depth), -Infinity, Infinity, cg.turn()==='w');
+        move=res.move||legal[0];
+      }
+      const m=cg.move(move);
+      if(!m) continue;
+      let oppT=(typeof g.oppTime==='number'?g.oppTime:BASE)+INC;
+      // burn a little think time already reflected — keep stored clocks mostly
+      await db.collection('bcn_live').doc(d.id).set({
+        fen:cg.fen(), pgn:cg.pgn(), turn:cg.turn(),
+        oppTime:oppT, lastMoveAt:Date.now(), updated:Date.now(),
+        status:cg.game_over()?'done':'live',
+        result:cg.game_over()?(cg.in_checkmate()?(cg.turn()===uc?1:0):0.5):null
+      },{merge:true});
+    }
+  }catch(e){}
+  orphanAIBusy=false;
 }
 
 function showDrawOfferModal(text){
@@ -1436,7 +1492,8 @@ function enterWaitForTeam(){
   document.getElementById('wait-sub').textContent='Clocks are frozen. Next round starts only after all 7 boards finish + '+BREAK_SEC+'s break. You can watch live games and chat meanwhile.';
   if(waitPoll) clearInterval(waitPoll);
   pollTeamFinished();
-  waitPoll=setInterval(pollTeamFinished, 2000);
+  advanceOrphanAI();
+  waitPoll=setInterval(()=>{ pollTeamFinished(); advanceOrphanAI(); }, 3000);
 }
 function goWatchGames(){
   // From wait/result — open multi-board + lobby chat
@@ -1621,22 +1678,19 @@ function proceedNextRoundSynced(){
     showFinal();
     return;
   }
-  const nextStart=Date.now();
-  sharedRoundStart=nextStart;
-  // Clear live status so boards start fresh — scores kept
+  // New round: clocks NOT running yet — full 10:00 after each player's load sequence
+  sharedRoundStart=0;
   ROSTER.forEach(p=>{
     db.collection('bcn_live').doc(p.id).set({
-      status:'pending', round:currentRound, updated:Date.now()
+      status:'pending', round:currentRound, fen:null, pgn:'', updated:Date.now()
     },{merge:true}).catch(()=>{});
   });
   db.collection('bcn_meta').doc('tourney').set({
-    status:'playing', round:currentRound, breakEndsAt:0, roundStartedAt:nextStart, updated:Date.now()
+    status:'playing', round:currentRound, breakEndsAt:0,
+    roundStartedAt:0, clocksAnchor:0, updated:Date.now()
   },{merge:true}).catch(()=>{});
   clocksFrozen=false;
-  if(me){
-    // Only start if this player is on the page
-    startMatchmaking();
-  }
+  if(me) startMatchmaking();
 }
 
 function proceedNextRound(){
@@ -1765,11 +1819,18 @@ function enterSpectator(){
   },()=>{renderMulti([]);});
 }
 
+function fenToImg(fen){
+  // Always show position via Lichess fen GIF — works even if chessboard.js fails on tiny cards
+  const f=encodeURIComponent(fen||'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+  return 'https://lichess1.org/export/fen.gif?fen='+f+'&color=white&piece=cburnett';
+}
 function renderMulti(rows){
   const box=document.getElementById('multi-boards');
   if(!box) return;
   const byBoard={};
   rows.forEach(r=>{ if(r.board) byBoard[r.board]=r; });
+  // Also try to advance AI-to-move boards while lobby is open
+  advanceOrphanAI();
   ROSTER.forEach(p=>{
     let card=document.getElementById('mini-card-'+p.id);
     if(!card){
@@ -1782,43 +1843,29 @@ function renderMulti(rows){
             <span class="text-[10px] font-black uppercase text-amber-400">Bd ${p.board} · ${esc(p.name)}</span>
             <span class="text-[10px]" id="mini-st-${p.id}">—</span>
           </div>
-          <div id="mini-board-${p.id}" style="width:100%;aspect-ratio:1;max-width:100%;margin:0 auto"></div>
+          <img id="mini-img-${p.id}" alt="board" style="width:100%;aspect-ratio:1;object-fit:contain;border-radius:8px;background:#312e2b;display:block" src="${fenToImg('start')}"/>
           <div class="text-[11px] text-slate-400 mt-1 px-1 truncate" id="mini-opp-${p.id}">Waiting…</div>
           <div class="text-[10px] text-slate-500 px-1" id="mini-clk-${p.id}"></div>
         </button>`;
       box.appendChild(card);
-      requestAnimationFrame(()=>{
-        try{
-          const el=document.getElementById('mini-board-'+p.id);
-          if(el&&!miniBoards[p.id]){
-            miniBoards[p.id]=ChessBoard('mini-board-'+p.id,{
-              position:'start', draggable:false, pieceTheme:pieceTheme, appearSpeed:0
-            });
-            setTimeout(()=>{ try{ if(miniBoards[p.id]&&miniBoards[p.id].resize) miniBoards[p.id].resize(); }catch(e){} },50);
-          }
-        }catch(e){}
-      });
     }
     const g=byBoard[p.board];
     const st=document.getElementById('mini-st-'+p.id);
     const opp=document.getElementById('mini-opp-'+p.id);
     const clk=document.getElementById('mini-clk-'+p.id);
-    if(g){
-      if(st) st.innerHTML=g.status==='live'?'<span class="live-dot"></span> LIVE':(g.status==='done'?'Done':'—');
+    const img=document.getElementById('mini-img-'+p.id);
+    if(g&&(g.status==='live'||g.status==='done')&&g.fen){
+      if(st) st.innerHTML=g.status==='live'?'<span class="live-dot"></span> LIVE':'Done';
       if(opp) opp.textContent='vs '+(g.oppName||'?')+' · '+(g.oppSchool||'');
       if(clk) clk.textContent='R'+(g.round||'?')+' · '+fmt(g.userTime||BASE)+' / '+fmt(g.oppTime||BASE);
-      if(miniBoards[p.id]){
-        try{
-          miniBoards[p.id].position(g.fen||'start',false);
-          if(miniBoards[p.id].resize) miniBoards[p.id].resize();
-        }catch(e){}
+      if(img&&img.dataset.fen!==g.fen){
+        img.dataset.fen=g.fen;
+        img.src=fenToImg(g.fen);
       }
     } else {
-      if(st) st.textContent='—';
-      if(opp) opp.textContent='Waiting for game…';
-      if(miniBoards[p.id]){
-        try{ miniBoards[p.id].position('start',false); }catch(e){}
-      }
+      if(st) st.textContent=g&&g.status==='pending'?'Starting…':'—';
+      if(opp) opp.textContent=g&&g.oppName?('vs '+g.oppName):'Waiting for game…';
+      if(img&&img.dataset.fen!=='start'){ img.dataset.fen='start'; img.src=fenToImg('start'); }
     }
   });
 }
