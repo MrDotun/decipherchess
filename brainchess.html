@@ -1,3 +1,6 @@
+Here is the updated Brain Chess National School Championship HTML file. It now implements 10+2 time control, automatic round scheduling with late-join penalties, and simulated Swiss standings for 183 schools.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -125,7 +128,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="wc-card green">
       <h3>Event details</h3>
       <ul>
-        <li><strong>Time control:</strong> 10 minutes + 0 seconds</li>
+        <li><strong>Time control:</strong> 10 minutes + 2 seconds per move</li>
         <li><strong>Format:</strong> Team Swiss · match points</li>
         <li><strong>Awards:</strong> Board Gold / Silver / Bronze</li>
         <li><strong>Spectators:</strong> All 7 boards live + chat</li>
@@ -152,13 +155,13 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <div class="panel p-6 max-w-sm w-full text-center" style="border-color:rgba(232,197,71,.4)">
     <div class="text-3xl mb-2">🔐</div>
     <h3 class="text-lg font-black text-white">Admin lock</h3>
-    <p class="text-sm text-slate-400 mt-2 mb-3">Set when Round 1 begins. Players cannot start until this time.</p>
+    <p class="text-sm text-slate-400 mt-2 mb-3">Set when Round 1 begins. Players cannot start until this time. Round 1 pairing opens exactly at this time; clocks start 60s later. Each following round opens 13 minutes after the previous clock start.</p>
     <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block text-left">Round 1 start (your local time)</label>
     <input id="admin-start-at" type="datetime-local" class="mb-3" style="color-scheme:dark">
     <input id="admin-pass" type="password" placeholder="Admin password" class="mb-3" autocomplete="off">
     <button type="button" class="btn-gold w-full mb-2" onclick="confirmAdminStart()">Save &amp; unlock schedule</button>
     <button type="button" class="btn-danger w-full mb-2" onclick="confirmAdminOpenNow()">Open doors NOW</button>
-    <button type="button" class="btn-blue w-full mb-2" onclick="adminForceNextRound()">Force next round (2 min break)</button>
+    <button type="button" class="btn-blue w-full mb-2" onclick="adminForceNextRound()">Force next round (break + pairing)</button>
     <button type="button" class="btn-soft w-full mb-2" onclick="adminResetTournament()">Reset tournament data</button>
     <button type="button" class="btn-soft w-full" onclick="closeAdminModal()">Cancel</button>
   </div>
@@ -187,13 +190,13 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <div class="w-56 h-2 bg-white/10 rounded-full mt-6 overflow-hidden">
     <div id="match-bar" class="h-full bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full" style="width:0%;transition:width .3s"></div>
   </div>
-  <p class="text-xs text-slate-500 mt-4">Clocks start with exactly 10:00 after this phase</p>
+  <p class="text-xs text-slate-500 mt-4" id="match-note">Clocks start with exactly 10:00 after this phase</p>
 </div>
 
 <!-- PLAY -->
 <div id="screen-play" class="hidden min-h-screen pb-8">
   <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#070b14]/95 backdrop-blur px-4 py-3 flex items-center justify-between gap-2">
-    <div class="text-[10px] font-black uppercase tracking-widest text-amber-400" id="play-round">Round 1 / 7</div>
+    <div class="text-[10px] font-black uppercase tracking-widest text-amber-400" id="play-round">Round 1 / 7 · 10+2</div>
     <div class="text-[11px] font-bold text-slate-400" id="play-team-pts">Team: 0</div>
     <button type="button" class="text-xs font-bold text-slate-500" onclick="openStandings()">Standings</button>
   </nav>
@@ -359,11 +362,18 @@ const db = firebase.firestore();
 const TEAM_PASS = "MCPS";
 const ADMIN_PASS = "decipher1234";
 const ADMIN_PASS_ALT = "brainchess2026";
-const TOTAL_ROUNDS = 7;
+
+const TOTAL_ROUNDS  = 7;
 const TOTAL_SCHOOLS = 183;
-const BASE = 600;               // 10 minutes
-const MATCH_SEC = 60;           // connecting phase → clocks start with 10:00
-const BREAK_SEC = 120;          // 2-minute break
+
+/* ---- TIME CONTROL : 10 minutes + 2 seconds ---- */
+const BASE = 600;           // 10 minutes on the clock
+const INC  = 2;             // +2 seconds added after every move
+
+const PAIRING_SEC = 60;     // 1 minute connection / pairing window
+const BREAK_SEC   = 120;    // 2 minute break between rounds
+const ROUND_GAP_MS = (PAIRING_SEC + BASE + BREAK_SEC) * 1000; // = 13 minutes
+
 const pieceTheme = "https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png";
 
 const ROSTER = [
@@ -376,8 +386,16 @@ const ROSTER = [
   {id:"p7", board:7, name:"James"}
 ];
 
-const nigerianNames = ["Chijioke Eze","Adesua Balogun","Tunde Owolabi","Nkechi Okoro","Femi Adeyemi","Ibrahim Musa","Zainab Bello","Emeka Nwosu","Funke Adewale","Yusuf Hassan"];
-const nigerianSchools = ["Grange School","Lekki British School","Corona Private School","Green Springs School","Atlantic Hall","British International School","Greensprings Ikoyi","Chrisland College","Dowen College","Whitesands School","Lagos Preparatory","St. Saviour's School"];
+/* MCPS opponents — rounds 4–7 are the four title contenders */
+const ROUND_PLAN = [
+  {school:"Grange School",              player:"Chijioke Eze",    strength:0.42},
+  {school:"Corona Private School",      player:"Adesua Balogun",  strength:0.50},
+  {school:"Atlantic Hall",              player:"Tunde Owolabi",   strength:0.58},
+  {school:"Jareb Private School",       player:"Ibrahim Musa",    strength:0.86},
+  {school:"Chess In Slums Academy",     player:"Zainab Bello",    strength:0.90},
+  {school:"Indian Language School",     player:"Emeka Nwosu",     strength:0.84},
+  {school:"Skylink International School",player:"Yusuf Hassan",   strength:0.88}
+];
 
 /* ===== STATE ===== */
 let me = null;
@@ -385,28 +403,28 @@ let currentRound = 1;
 let individualScores = {};
 let teamMatchPoints = 0;
 let teamGamePoints = 0;
-let schoolTable = {};
 let scheduledStartMs = 0;
+let roundAnchors = {};        // round -> clocks-start timestamp (overrides)
 let game = null;
 let board = null;
 let userColor = "w";
 let userTime = BASE, oppTime = BASE;
 let timer = null;
 let gameLive = false;
-let oppMeta = {name:"—", school:"—"};
+let oppMeta = {name:"—", school:"—", strength:0.5};
 let lastMoveAt = 0;
+let lastTick = 0;
 let srcSq = null;
-let clocksStarted = false;
-let clocksStartAt = 0;
 let chatRole = "spectator", chatName = "";
 let chatUnsub = null, hubUnsub = null, specUnsub = null;
 let specBoard = null;
 let specReplayFens = [], specReplaySans = [], specReplayPly = null;
 let fromStandings = "screen-result";
 let chessWorker = null;
+let waitIv = null, matchIv = null, hubTick = null;
+let latestRows = [];
 
 try {
-  // Robust path for GitHub Pages / subfolders / different hosts
   const workerUrl = new URL("chess-worker.js", window.location.href).href;
   chessWorker = new Worker(workerUrl);
 } catch (e) {
@@ -414,8 +432,9 @@ try {
 }
 
 /* ===== UTIL ===== */
+function el(id){ return document.getElementById(id); }
 function toast(msg) {
-  const t = document.getElementById("toast");
+  const t = el("toast");
   t.textContent = msg;
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2800);
@@ -427,73 +446,193 @@ function fmt(s) {
   return (m<10?"0":"")+m+":"+(sec<10?"0":"")+sec;
 }
 function hideAll() {
-  ["screen-welcome","screen-login","screen-match","screen-play","screen-result","screen-wait","screen-standings","screen-final","screen-spec-hub","screen-spec-one"]
-    .forEach(id => document.getElementById(id).classList.add("hidden"));
+  ["screen-welcome","screen-login","screen-match","screen-play","screen-result","screen-wait",
+   "screen-standings","screen-final","screen-spec-hub","screen-spec-one"]
+    .forEach(id => el(id).classList.add("hidden"));
+  if (waitIv) { clearInterval(waitIv); waitIv = null; }
+  if (matchIv) { clearInterval(matchIv); matchIv = null; }
 }
-function showWelcome() { hideAll(); document.getElementById("screen-welcome").classList.remove("hidden"); }
+function showWelcome() { hideAll(); el("screen-welcome").classList.remove("hidden"); }
 
-/* ===== SCHOOL TABLE ===== */
-function initSchoolTable() {
-  schoolTable = {"Maryland Convent Private School": {mp:0, gp:0}};
-  nigerianSchools.forEach(s => schoolTable[s] = {mp:0, gp:0});
-  // seed a few more for realism
-  for (let i=0;i<20;i++) {
-    const n = "School "+(i+1);
-    if (!schoolTable[n]) schoolTable[n] = {mp:Math.floor(Math.random()*8), gp:Math.random()*20};
+/* ===== DETERMINISTIC RNG ===== */
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function hashRand(seed){
+  let t = seed + 0x6D2B79F5;
+  t = Math.imul(t ^ t >>> 15, 1 | t);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296;
+}
+
+/* ===== TOURNAMENT SCHEDULE MATH ===== */
+function baseAnchor(r){ return scheduledStartMs + PAIRING_SEC*1000 + (r-1)*ROUND_GAP_MS; }
+function anchorFor(r){ return Math.max(baseAnchor(r), roundAnchors[r] || 0); }
+function pairingStartFor(r){ return anchorFor(r) - PAIRING_SEC*1000; }
+
+function currentRoundFromClock(now){
+  let r = 1;
+  for (let i = 1; i <= TOTAL_ROUNDS; i++){
+    if (now >= pairingStartFor(i)) r = i;
+  }
+  return r;
+}
+
+/* Push a later anchor for a future round when a game runs long */
+function pushAnchor(round, ms){
+  if (round > TOTAL_ROUNDS || !ms) return;
+  const cur = roundAnchors[round] || 0;
+  if (ms <= cur || ms <= baseAnchor(round)) return;
+  const merged = Object.assign({}, roundAnchors);
+  merged[round] = ms;
+  roundAnchors = merged;
+  db.collection("bcn_meta").doc("tourney")
+    .set({ roundAnchors: merged, updated: Date.now() }, { merge: true }).catch(()=>{});
+}
+
+/* ===== 183-SCHOOL SIMULATED FIELD (deterministic for every device) ===== */
+const TOP_SCHOOLS = ["Jareb Private School","Chess In Slums Academy","Indian Language School","Skylink International School"];
+
+const NAMED_SCHOOLS = [
+  "Grange School","Lekki British School","Corona Private School","Green Springs School",
+  "Atlantic Hall","British International School","Greensprings Ikoyi","Chrisland College",
+  "Dowen College","Whitesands School","Lagos Preparatory School","St. Saviour's School",
+  "Air Force Secondary School","Command Secondary School","Federal Government College",
+  "King's College Lagos","Queen's College Lagos","Loyola Jesuit College","Regent Secondary School",
+  "Children's International School","Rainbow College","Meadow Hall","Avi-Cenna International",
+  "Hillcrest School","Babcock University High","Caleb British International","Halifield Schools",
+  "Topfield College","Preston International","Deeper Life High School","Fountain Heights",
+  "Starfield College","Nova International","Bridge House College","Vivian Fowler Memorial",
+  "Igbinedion Education Centre"
+];
+
+const PRE = ["Royal","Bright","Golden","Unity","Victory","Excel","Pinnacle","Heritage","Summit","Crown",
+             "Prime","Great","Divine","Fountain","Crescent","Crystal","Horizon","Legacy","Noble","Zenith",
+             "Star","Pace","Grace","Wisdom"];
+const SUF = ["International School","Academy","College","Grammar School","High School",
+             "Model College","Comprehensive School","Secondary School","British School","Group of Schools"];
+
+let fieldSnapshots = [];   // fieldSnapshots[r] = array after r rounds
+
+function buildField(){
+  const rng = mulberry32(20260516);
+  const list = [];
+  TOP_SCHOOLS.forEach((n,i) => list.push({name:n, s: 0.96 - i*0.012, tie: rng()}));
+  NAMED_SCHOOLS.forEach((n,i) => list.push({name:n, s: 0.88 - (i/NAMED_SCHOOLS.length)*0.72, tie: rng()}));
+  let idx = 0;
+  while (list.length < TOTAL_SCHOOLS - 1){
+    const name = PRE[idx % PRE.length] + " " + SUF[Math.floor(idx / PRE.length) % SUF.length];
+    idx++;
+    if (list.some(x => x.name === name)) continue;
+    list.push({name, s: 0.10 + rng()*0.60, tie: rng()});
+  }
+  return list;
+}
+
+function simulateField(){
+  const rng = mulberry32(777);
+  const list = buildField().map(x => ({name:x.name, s:x.s, tie:x.tie, mp:0, gp:0, opp:[]}));
+  fieldSnapshots = [ list.map(x => ({name:x.name, mp:0, gp:0})) ];
+
+  for (let r = 1; r <= TOTAL_ROUNDS; r++){
+    const order = list.slice().sort((a,b) => (b.mp - a.mp) || (b.gp - a.gp) || (a.tie - b.tie));
+    const used = new Array(order.length).fill(false);
+
+    for (let i = 0; i < order.length; i++){
+      if (used[i]) continue;
+      let j = i + 1;
+      while (j < order.length && (used[j] || order[i].opp.indexOf(order[j].name) >= 0)) j++;
+
+      if (j >= order.length){                    // bye
+        used[i] = true; order[i].mp += 2; order[i].gp += 5; continue;
+      }
+      used[i] = used[j] = true;
+      const A = order[i], B = order[j];
+      A.opp.push(B.name); B.opp.push(A.name);
+
+      const pA = 1 / (1 + Math.pow(10, (B.s - A.s) * 5));
+      const roll = rng();
+      const isDraw = rng() < 0.06;
+
+      if (isDraw){
+        A.mp += 1; B.mp += 1; A.gp += 3.5; B.gp += 3.5;
+      } else {
+        const strong = (roll < pA) ? A : B;
+        const weak   = (strong === A) ? B : A;
+        const g = Math.min(7, Math.round((4 + rng()*3) * 2) / 2);
+        strong.mp += 2; strong.gp += g;
+        weak.gp += (7 - g);
+      }
+    }
+    fieldSnapshots.push(list.map(x => ({name:x.name, mp:x.mp, gp:x.gp})));
   }
 }
-function addTeamResult(oppSchool, myPoints) {
-  // myPoints: 1 win, 0.5 draw, 0 loss  → match points 2/1/0
-  const mp = myPoints === 1 ? 2 : (myPoints === 0.5 ? 1 : 0);
-  teamMatchPoints += mp;
-  teamGamePoints += myPoints;
-  const mc = schoolTable["Maryland Convent Private School"];
-  mc.mp += mp; mc.gp += myPoints;
-  if (oppSchool && schoolTable[oppSchool]) {
-    schoolTable[oppSchool].mp += (2-mp);
-    schoolTable[oppSchool].gp += (1-myPoints);
-  }
+
+function standingsFor(round){
+  const snap = fieldSnapshots[Math.min(Math.max(round,0), TOTAL_ROUNDS)] || [];
+  const rows = snap.map(x => ({name:x.name, mp:x.mp, gp:x.gp}));
+  rows.push({name:"Maryland Convent Private School", mp:teamMatchPoints, gp:teamGamePoints, you:true});
+  rows.sort((a,b) => (b.mp - a.mp) || (b.gp - a.gp) || a.name.localeCompare(b.name));
+  return rows;
+}
+
+/* Simulate MCPS boards 2–7 (board 1 = the real player) */
+function simBoardResult(round, boardNo, oppStrength){
+  const h = hashRand(round*1013 + boardNo*97 + 7);
+  const winP  = 0.30 + (1 - oppStrength) * 0.55;
+  const drawP = 0.16;
+  if (h < winP) return 1;
+  if (h < winP + drawP) return 0.5;
+  return 0;
 }
 
 /* ===== ADMIN ===== */
-function openAdminModal() { document.getElementById("admin-modal").classList.add("open"); }
-function closeAdminModal() { document.getElementById("admin-modal").classList.remove("open"); }
+function openAdminModal() { el("admin-modal").classList.add("open"); }
+function closeAdminModal() { el("admin-modal").classList.remove("open"); }
+function adminPassOK(){
+  const pass = el("admin-pass").value;
+  return pass === ADMIN_PASS || pass === ADMIN_PASS_ALT;
+}
 function confirmAdminStart() {
-  const pass = document.getElementById("admin-pass").value;
-  if (pass !== ADMIN_PASS && pass !== ADMIN_PASS_ALT) return toast("Wrong admin password");
-  const v = document.getElementById("admin-start-at").value;
+  if (!adminPassOK()) return toast("Wrong admin password");
+  const v = el("admin-start-at").value;
   if (!v) return toast("Pick a start time");
   const ms = new Date(v).getTime();
   scheduledStartMs = ms;
+  roundAnchors = {};
   localStorage.setItem("bcn_start", String(ms));
   db.collection("bcn_meta").doc("schedule").set({startAt:ms, updated:Date.now()}, {merge:true});
+  db.collection("bcn_meta").doc("tourney").set({roundAnchors:{}, updated:Date.now()}, {merge:true});
   toast("Schedule saved");
   closeAdminModal();
   updateScheduleBanner();
 }
 function confirmAdminOpenNow() {
-  const pass = document.getElementById("admin-pass").value;
-  if (pass !== ADMIN_PASS && pass !== ADMIN_PASS_ALT) return toast("Wrong admin password");
-  scheduledStartMs = Date.now() - 1000;
+  if (!adminPassOK()) return toast("Wrong admin password");
+  scheduledStartMs = Date.now();
+  roundAnchors = {};
   localStorage.setItem("bcn_start", String(scheduledStartMs));
   db.collection("bcn_meta").doc("schedule").set({startAt:scheduledStartMs, updated:Date.now()}, {merge:true});
-  toast("Doors open now");
+  db.collection("bcn_meta").doc("tourney").set({roundAnchors:{}, updated:Date.now()}, {merge:true});
+  toast("Doors open now — pairing starts immediately");
   closeAdminModal();
   updateScheduleBanner();
 }
 function adminForceNextRound() {
-  const pass = document.getElementById("admin-pass").value;
-  if (pass !== ADMIN_PASS && pass !== ADMIN_PASS_ALT) return toast("Wrong admin password");
-  const end = Date.now() + BREAK_SEC*1000;
-  db.collection("bcn_meta").doc("tourney").set({
-    status:"break", breakEndsAt:end, updated:Date.now()
-  }, {merge:true});
-  toast("Forced 2-min break → next round");
+  if (!adminPassOK()) return toast("Wrong admin password");
+  const next = Math.min(TOTAL_ROUNDS, currentRoundFromClock(Date.now()) + 1);
+  const anchor = Date.now() + (BREAK_SEC + PAIRING_SEC) * 1000;
+  pushAnchor(next, anchor);
+  toast("Next round pushed to " + new Date(anchor).toLocaleTimeString());
   closeAdminModal();
 }
 async function adminResetTournament() {
-  const pass = document.getElementById("admin-pass").value;
-  if (pass !== ADMIN_PASS && pass !== ADMIN_PASS_ALT) return toast("Wrong admin password");
+  if (!adminPassOK()) return toast("Wrong admin password");
   if (!confirm("Reset ALL tournament data? This cannot be undone.")) return;
   const now = Date.now();
   try {
@@ -502,14 +641,14 @@ async function adminResetTournament() {
     live.forEach(d => batch.delete(d.ref));
     await batch.commit();
     await db.collection("bcn_meta").doc("tourney").set({
-      status:"lobby", round:1, roundStartedAt:0, breakEndsAt:0, resetAt:now, updated:now
+      status:"lobby", round:1, roundAnchors:{}, resetAt:now, updated:now
     });
     await db.collection("bcn_meta").doc("schedule").set({startAt:0, updated:now});
   } catch(e){ console.error(e); }
   currentRound = 1;
-  individualScores = {}; ROSTER.forEach(p => individualScores[p.id]=0);
+  roundAnchors = {};
+  individualScores = {}; ROSTER.forEach(p => individualScores[p.id] = 0);
   teamMatchPoints = 0; teamGamePoints = 0;
-  initSchoolTable();
   localStorage.clear();
   me = null; gameLive = false; game = null;
   if (timer) { clearInterval(timer); timer = null; }
@@ -519,35 +658,46 @@ async function adminResetTournament() {
 }
 
 function updateScheduleBanner() {
-  const label = document.getElementById("start-time-label");
-  const cd = document.getElementById("start-countdown");
+  const label = el("start-time-label");
+  const cd = el("start-countdown");
   if (!scheduledStartMs) {
     label.textContent = "Waiting for admin unlock…";
     cd.textContent = "";
     return;
   }
-  const left = scheduledStartMs - Date.now();
-  if (left <= 0) {
-    label.textContent = "Round 1 is OPEN";
-    cd.textContent = "Players may enter";
-  } else {
-    const d = new Date(scheduledStartMs);
-    label.textContent = d.toLocaleString();
-    const s = Math.ceil(left/1000);
+  const now = Date.now();
+  if (now < scheduledStartMs) {
+    label.textContent = new Date(scheduledStartMs).toLocaleString();
+    const s = Math.ceil((scheduledStartMs - now)/1000);
     const m = Math.floor(s/60), sec = s%60;
-    cd.textContent = `Starts in ${m}:${sec<10?"0":""}${sec}`;
+    cd.textContent = `Round 1 opens in ${m}:${sec<10?"0":""}${sec}`;
+    return;
+  }
+  const r = currentRoundFromClock(now);
+  const a = anchorFor(r);
+  if (now < a) {
+    const s = Math.ceil((a - now)/1000);
+    label.textContent = "Round " + r + " · pairing window open";
+    cd.textContent = "Clocks start in " + fmt(s);
+    return;
+  }
+  const left = BASE - Math.floor((now - a)/1000);
+  if (left <= 0){
+    label.textContent = "Round " + r + " · clocks expired";
+    cd.textContent = "Late arrivals are forfeited";
+  } else {
+    label.textContent = "Round " + r + " in progress";
+    cd.textContent = "Join now — " + fmt(left) + " remaining on your clock";
   }
 }
 
 /* ===== LOGIN ===== */
 function showPlayerLogin() {
-  if (scheduledStartMs && Date.now() < scheduledStartMs) {
-    toast("Tournament has not started yet");
-    return;
-  }
+  if (!scheduledStartMs) { toast("Admin has not set the start time yet"); return; }
+  if (Date.now() < scheduledStartMs) { toast("Round 1 opens at " + new Date(scheduledStartMs).toLocaleTimeString()); return; }
   hideAll();
-  document.getElementById("screen-login").classList.remove("hidden");
-  const box = document.getElementById("rep-list");
+  el("screen-login").classList.remove("hidden");
+  const box = el("rep-list");
   box.innerHTML = "";
   ROSTER.forEach(p => {
     const b = document.createElement("button");
@@ -564,40 +714,81 @@ function showPlayerLogin() {
 }
 function doPlayerLogin() {
   if (!me) return toast("Select your board");
-  const pass = document.getElementById("login-pass").value;
-  if (pass !== TEAM_PASS) return toast("Wrong team password");
+  if (el("login-pass").value !== TEAM_PASS) return toast("Wrong team password");
   chatRole = "player"; chatName = me.name;
-  // Try resume existing live game
-  db.collection("bcn_live").doc(me.id).get().then(doc => {
-    if (doc.exists) {
-      const g = doc.data();
-      if (g.status === "live" && g.round === currentRound && g.fen) {
-        resumeGame(g);
-        return;
-      }
-      if (g.status === "done" && g.round === currentRound) {
-        // already finished this round
-        showResultScreen(g.result, g.reason || "Finished");
-        return;
-      }
-    }
-    startMatchmaking();
-  }).catch(() => startMatchmaking());
+  enterRound(currentRoundFromClock(Date.now()));
 }
 
-/* ===== MATCHMAKING (Ecobank style, ~60s) ===== */
-function startMatchmaking() {
+/* ===== UNIFIED ROUND ENTRY =====
+   Called on login, after a break, and after a forced round push.
+   • before pairing window  -> wait screen
+   • inside pairing window  -> 60s connection animation, clocks start 10:00
+   • after clocks started   -> instant board, elapsed time already gone
+   • after 10 minutes       -> automatic loss on time
+================================================================ */
+async function enterRound(round) {
+  currentRound = round;
+
+  // resume an existing game for this round
+  try {
+    const liveDoc = await db.collection("bcn_live").doc(me.id).get();
+    if (liveDoc.exists) {
+      const g = liveDoc.data();
+      if (g.round === round) {
+        if (g.status === "done") { showResultScreen(g.result, g.reason || "Finished"); return; }
+        if (g.status === "live") { resumeGame(g); return; }
+      }
+    }
+  } catch(e){ /* offline – continue */ }
+
+  const now = Date.now();
+  const anchor = anchorFor(round);
+  const pStart = anchor - PAIRING_SEC * 1000;
+
+  if (now < pStart) { showWaitScreen(round, pStart); return; }
+  if (now < anchor) { startPairingCountdown(round, anchor); return; }
+
+  const elapsed = Math.floor((now - anchor) / 1000);
+  if (elapsed >= BASE) { joinLateExpired(round, elapsed); return; }
+  joinLate(round, anchor, elapsed);
+}
+
+/* ---- WAIT SCREEN ---- */
+function showWaitScreen(round, untilMs) {
   hideAll();
-  document.getElementById("screen-match").classList.remove("hidden");
-  document.getElementById("match-title").textContent = "Pairing Round " + currentRound;
-  document.getElementById("match-msg").textContent = "Contacting schools across Nigeria…";
-  document.getElementById("match-school").textContent = "—";
-  document.getElementById("match-opp").textContent = "—";
-  const bar = document.getElementById("match-bar");
-  bar.style.width = "0%";
+  el("screen-wait").classList.remove("hidden");
+  el("wait-emoji").textContent = "⏳";
+  el("wait-title").textContent = "Round " + round + " opens soon";
+  el("wait-sub").textContent = "Pairing opens at " + new Date(untilMs).toLocaleTimeString() +
+                               " · clocks start 60 seconds later. Be ready.";
+
+  const tick = () => {
+    const left = Math.max(0, Math.ceil((untilMs - Date.now())/1000));
+    el("wait-timer").textContent = fmt(left);
+    if (left <= 0) { clearInterval(waitIv); waitIv = null; enterRound(round); }
+  };
+  tick();
+  waitIv = setInterval(tick, 500);
+}
+
+/* ---- PAIRING (60 seconds, clocks start at anchor) ---- */
+function startPairingCountdown(round, anchorMs) {
+  hideAll();
+  el("screen-match").classList.remove("hidden");
+  el("match-title").textContent = "Pairing Round " + round;
+
+  const plan = ROUND_PLAN[round - 1];
+  oppMeta = { name: plan.player, school: plan.school, strength: plan.strength };
+  el("match-school").textContent = plan.school;
+  el("match-opp").textContent = "vs " + plan.player;
+  el("match-note").textContent = "Clocks start with exactly 10:00 (+2s per move) when this window closes";
+
+  const total = Math.max(1, anchorMs - Date.now());
+  const bar = el("match-bar");
   bar.style.transition = "none";
+  bar.style.width = "0%";
   setTimeout(() => {
-    bar.style.transition = `width ${MATCH_SEC}s linear`;
+    bar.style.transition = `width ${total}ms linear`;
     bar.style.width = "100%";
   }, 30);
 
@@ -605,164 +796,191 @@ function startMatchmaking() {
     "Connecting to Brain Chess servers…",
     "Searching for schools…",
     "Contacting team captains…",
-    "Player on standby…",
+    "Opponent on standby…",
     "Establishing secure board…",
     "Finalizing pairings…"
   ];
-  let step = 0;
-  document.getElementById("match-msg").textContent = messages[0];
-  const iv = setInterval(() => {
-    step++;
-    if (step < messages.length) document.getElementById("match-msg").textContent = messages[step];
-  }, (MATCH_SEC*1000)/messages.length);
-
-  // reveal opponent halfway
-  setTimeout(() => {
-    oppMeta = {
-      name: nigerianNames[Math.floor(Math.random()*nigerianNames.length)],
-      school: nigerianSchools[(currentRound-1) % nigerianSchools.length]
-    };
-    document.getElementById("match-school").textContent = oppMeta.school;
-    document.getElementById("match-opp").textContent = "vs " + oppMeta.name;
-  }, MATCH_SEC*500);
-
-  setTimeout(() => {
-    clearInterval(iv);
-    setupMatch();
-  }, MATCH_SEC*1000);
+  const tick = () => {
+    const left = Math.max(0, anchorMs - Date.now());
+    const idx = Math.min(messages.length - 1, Math.floor((1 - left/total) * messages.length));
+    el("match-msg").textContent = messages[Math.max(0, idx)];
+    if (left <= 0) {
+      clearInterval(matchIv); matchIv = null;
+      setupMatch(round, anchorMs, 0);
+    }
+  };
+  tick();
+  matchIv = setInterval(tick, 250);
 }
 
-/* ===== GAME SETUP (Ecobank logic) ===== */
-function setupMatch() {
+/* ---- LATE JOIN : no pairing animation, clock already running ---- */
+function joinLate(round, anchorMs, elapsedSec) {
+  toast("Round already started — clocks are running");
+  setupMatch(round, anchorMs, elapsedSec);
+}
+
+/* ---- LATE JOIN BEYOND 10 MINUTES : lost on time ---- */
+function joinLateExpired(round, elapsedSec) {
+  const plan = ROUND_PLAN[round - 1];
+  oppMeta = { name: plan.player, school: plan.school, strength: plan.strength };
+  currentRound = round;
+  gameLive = false;
+
+  db.collection("bcn_live").doc(me.id).set({
+    board: me.board, playerId: me.id, playerName: me.name,
+    oppName: plan.player, oppSchool: plan.school,
+    round, status: "done", result: 0,
+    reason: "Lost on time — did not report",
+    userTime: 0, oppTime: BASE,
+    userColor: Math.random() > 0.5 ? "w" : "b",
+    fen: "start", pgn: "",
+    updated: Date.now()
+  }, { merge: true }).catch(()=>{});
+
+  recordRoundResult(round, 0, plan.school, plan.strength);
+  saveGameToCloud("Loss");
+  pushAnchor(round + 1, Date.now() + (BREAK_SEC + PAIRING_SEC) * 1000);
+  showResultScreen(0, "Lost on time — you did not report within 10 minutes of the round start (" + fmt(elapsedSec) + " late)");
+}
+
+/* ===== GAME SETUP ===== */
+function setupMatch(round, anchorMs, lateSec) {
+  currentRound = round;
   gameLive = true;
-  clocksStarted = true;
-  clocksStartAt = Date.now();
-  userTime = BASE;
-  oppTime = BASE;
   game = new Chess();
   userColor = Math.random() > 0.5 ? "w" : "b";
+  userTime = BASE;
+  oppTime = BASE;
+  if (lateSec > 0) userTime = Math.max(0, BASE - lateSec);   // time already gone
   lastMoveAt = Date.now();
+  lastTick   = Date.now();
 
-  document.getElementById("play-round").textContent = "Round " + currentRound + " / " + TOTAL_ROUNDS;
-  document.getElementById("play-team-pts").textContent = "Team: " + teamMatchPoints;
-  document.getElementById("me-name").textContent = me.name;
-  document.getElementById("opp-name").textContent = oppMeta.name;
-  document.getElementById("opp-school").textContent = oppMeta.school;
-  document.getElementById("me-side-label").textContent = (userColor==="w"?"⬜ White · you":"⬛ Black · you");
-  document.getElementById("opp-side-label").textContent = (userColor==="w"?"⬛ Black":"⬜ White");
-  document.getElementById("clock-me").textContent = fmt(userTime);
-  document.getElementById("clock-opp").textContent = fmt(oppTime);
-  document.getElementById("status").textContent = userColor==="w" ? "Your turn (White)" : "Opponent is thinking…";
+  el("play-round").textContent = "Round " + currentRound + " / " + TOTAL_ROUNDS + " · 10+2";
+  el("play-team-pts").textContent = "Team: " + teamMatchPoints;
+  el("me-name").textContent = me.name;
+  el("opp-name").textContent = oppMeta.name;
+  el("opp-school").textContent = oppMeta.school;
+  el("me-side-label").textContent = (userColor === "w" ? "⬜ White · you" : "⬛ Black · you");
+  el("opp-side-label").textContent = (userColor === "w" ? "⬛ Black" : "⬜ White");
+  el("clock-me").textContent = fmt(userTime);
+  el("clock-opp").textContent = fmt(oppTime);
+  el("status").textContent = userColor === "w" ? "Your turn (White)" : "Opponent is thinking…";
 
   hideAll();
-  document.getElementById("screen-play").classList.remove("hidden");
+  el("screen-play").classList.remove("hidden");
 
-  if (board) { try { board.destroy(); } catch(e){} }
-  board = ChessBoard("board", {
-    draggable: false,
-    position: "start",
-    orientation: userColor === "w" ? "white" : "black",
-    pieceTheme: pieceTheme
-  });
-
-  // click-to-move
-  $("#board").off("click").on("click", "[class*='square-']", function() {
-    onSquareClick($(this).attr("data-square"));
-  });
+  if (board) { try { board.destroy(); } catch (e) {} }
+  setTimeout(() => {
+    board = ChessBoard("board", {
+      draggable: false,
+      position: "start",
+      orientation: userColor === "w" ? "white" : "black",
+      pieceTheme: pieceTheme
+    });
+    $("#board").off("click").on("click", "[class*='square-']", function () {
+      onSquareClick($(this).attr("data-square"));
+    });
+  }, 50);
 
   if (timer) clearInterval(timer);
-  timer = setInterval(tickClocks, 1000);
+  timer = setInterval(tickClocks, 250);
 
   pushCloud();
 
-  if (userColor === "b") {
-    // AI moves first
-    requestAIMove();
-  }
+  if (userColor === "b" && !game.game_over()) setTimeout(() => requestAIMove(), 400);
+  if (lateSec > 0) toast("You joined " + fmt(lateSec) + " late — clock started at " + fmt(userTime));
 }
 
 function resumeGame(g) {
   gameLive = true;
-  clocksStarted = true;
   game = new Chess();
-  if (g.pgn) {
-    try { game.load_pgn(g.pgn); } catch(e) { game.load(g.fen || "start"); }
-  } else {
-    game.load(g.fen || "start");
+  try {
+    if (g.pgn) game.load_pgn(g.pgn);
+    else game.load(g.fen || "start");
+  } catch (e) {
+    try { game.load(g.fen || "start"); } catch (e2) { game = new Chess(); }
   }
   userColor = g.userColor || "w";
-  userTime = g.userTime != null ? g.userTime : BASE;
-  oppTime = g.oppTime != null ? g.oppTime : BASE;
-  oppMeta = {name: g.oppName || "—", school: g.oppSchool || "—"};
+  userTime = (g.userTime != null) ? g.userTime : BASE;
+  oppTime  = (g.oppTime  != null) ? g.oppTime  : BASE;
+  oppMeta = { name: g.oppName || "—", school: g.oppSchool || "—", strength: (ROUND_PLAN[(g.round||1)-1]||{}).strength || 0.5 };
   currentRound = g.round || currentRound;
   lastMoveAt = g.lastMoveAt || Date.now();
+  lastTick = Date.now();
 
-  document.getElementById("play-round").textContent = "Round " + currentRound + " / " + TOTAL_ROUNDS;
-  document.getElementById("play-team-pts").textContent = "Team: " + teamMatchPoints;
-  document.getElementById("me-name").textContent = me.name;
-  document.getElementById("opp-name").textContent = oppMeta.name;
-  document.getElementById("opp-school").textContent = oppMeta.school;
-  document.getElementById("me-side-label").textContent = (userColor==="w"?"⬜ White · you":"⬛ Black · you");
-  document.getElementById("opp-side-label").textContent = (userColor==="w"?"⬛ Black":"⬜ White");
-  document.getElementById("clock-me").textContent = fmt(userTime);
-  document.getElementById("clock-opp").textContent = fmt(oppTime);
-  document.getElementById("status").textContent = game.turn() === userColor ? "Your turn" : "Opponent is thinking…";
+  const elapsed = Math.floor((Date.now() - lastMoveAt) / 1000);
+  if (elapsed > 0 && !game.game_over()) {
+    if (game.turn() === userColor) userTime = Math.max(0, userTime - elapsed);
+    else oppTime = Math.max(0, oppTime - elapsed);
+    lastMoveAt = Date.now();
+  }
+
+  el("play-round").textContent = "Round " + currentRound + " / " + TOTAL_ROUNDS + " · 10+2";
+  el("play-team-pts").textContent = "Team: " + teamMatchPoints;
+  el("me-name").textContent = me.name;
+  el("opp-name").textContent = oppMeta.name;
+  el("opp-school").textContent = oppMeta.school;
+  el("me-side-label").textContent = (userColor === "w" ? "⬜ White · you" : "⬛ Black · you");
+  el("opp-side-label").textContent = (userColor === "w" ? "⬛ Black" : "⬜ White");
+  el("clock-me").textContent = fmt(userTime);
+  el("clock-opp").textContent = fmt(oppTime);
+  el("status").textContent = game.turn() === userColor ? "Your turn" : "Opponent is thinking…";
 
   hideAll();
-  document.getElementById("screen-play").classList.remove("hidden");
+  el("screen-play").classList.remove("hidden");
 
-  if (board) { try { board.destroy(); } catch(e){} }
-  board = ChessBoard("board", {
-    draggable: false,
-    position: game.fen(),
-    orientation: userColor === "w" ? "white" : "black",
-    pieceTheme: pieceTheme
-  });
-  $("#board").off("click").on("click", "[class*='square-']", function() {
-    onSquareClick($(this).attr("data-square"));
-  });
+  if (board) { try { board.destroy(); } catch (e) {} }
+  setTimeout(() => {
+    board = ChessBoard("board", {
+      draggable: false,
+      position: game.fen(),
+      orientation: userColor === "w" ? "white" : "black",
+      pieceTheme: pieceTheme
+    });
+    $("#board").off("click").on("click", "[class*='square-']", function () {
+      onSquareClick($(this).attr("data-square"));
+    });
+  }, 50);
 
   if (timer) clearInterval(timer);
-  timer = setInterval(tickClocks, 1000);
+  timer = setInterval(tickClocks, 250);
+  pushCloud();
 
-  // if it is AI's turn, request a move
-  if (game.turn() !== userColor && !game.game_over()) {
-    requestAIMove();
-  }
+  if (game.turn() !== userColor && !game.game_over()) setTimeout(() => requestAIMove(), 300);
+
+  if (userTime <= 0) endRound(0, "Lost on time");
+  else if (oppTime <= 0) endRound(1, "Opponent lost on time");
 }
 
-/* ===== CLOCKS ===== */
+/* ===== CLOCKS (with 2-second increment) ===== */
 function tickClocks() {
-  if (!gameLive || !clocksStarted || !game) return;
-  if (game.game_over()) {
-    finishGame();
-    return;
-  }
-  const side = game.turn();
-  if (side === userColor) {
-    userTime--;
-    document.getElementById("clock-me").textContent = fmt(userTime);
-    document.getElementById("clock-me").classList.toggle("low", userTime <= 30);
-    document.getElementById("clock-me").classList.add("active");
-    document.getElementById("clock-opp").classList.remove("active");
-    if (userTime <= 0) {
-      endRound(0, "Lost on time");
-      return;
-    }
+  if (!gameLive || !game || !game.turn) return;
+  if (game.game_over()) { finishGame(); return; }
+
+  const now = Date.now();
+  let delta = Math.floor((now - lastTick) / 1000);
+  if (delta <= 0) return;
+  if (delta > 30) delta = 30;          // background-tab safety
+  lastTick += delta * 1000;
+
+  if (game.turn() === userColor) {
+    userTime -= delta;
+    el("clock-me").textContent = fmt(userTime);
+    el("clock-me").classList.toggle("low", userTime <= 30);
+    el("clock-me").classList.add("active");
+    el("clock-opp").classList.remove("active");
+    if (userTime <= 0) { endRound(0, "Lost on time"); return; }
   } else {
-    oppTime--;
-    document.getElementById("clock-opp").textContent = fmt(oppTime);
-    document.getElementById("clock-opp").classList.toggle("low", oppTime <= 30);
-    document.getElementById("clock-opp").classList.add("active");
-    document.getElementById("clock-me").classList.remove("active");
-    if (oppTime <= 0) {
-      endRound(1, "Opponent lost on time");
-      return;
-    }
+    oppTime -= delta;
+    el("clock-opp").textContent = fmt(oppTime);
+    el("clock-opp").classList.toggle("low", oppTime <= 30);
+    el("clock-opp").classList.add("active");
+    el("clock-me").classList.remove("active");
+    if (oppTime <= 0) { endRound(1, "Opponent lost on time"); return; }
   }
-  // push every 5s to keep spectators and resume consistent
-  if (Date.now() - lastMoveAt > 4000) {
-    lastMoveAt = Date.now();
+
+  if (!tickClocks._lastPush || Date.now() - tickClocks._lastPush > 5000) {
+    tickClocks._lastPush = Date.now();
     pushCloud();
   }
 }
@@ -775,95 +993,101 @@ function onSquareClick(sq) {
     if (p && p.color === userColor) {
       srcSq = sq;
       $(".square-"+sq).addClass("highlight-select");
-      // show legal
       game.moves({square:sq, verbose:true}).forEach(m => {
         $(".square-"+m.to).addClass("highlight-legal");
       });
     }
     return;
   }
-  // try move
   const move = game.move({from: srcSq, to: sq, promotion:"q"});
   $(".highlight-select, .highlight-legal").removeClass("highlight-select highlight-legal");
   srcSq = null;
   if (!move) return;
 
+  userTime += INC;                       // +2 seconds increment
+  el("clock-me").textContent = fmt(userTime);
+
   board.position(game.fen());
   lastMoveAt = Date.now();
   pushCloud();
-  document.getElementById("status").textContent = "Opponent is thinking…";
+  el("status").textContent = "Opponent is thinking…";
 
-  if (game.game_over()) {
-    finishGame();
-    return;
-  }
+  if (game.game_over()) { finishGame(); return; }
   requestAIMove();
 }
 
+let aiThinking = false;
 function requestAIMove() {
-  if (!game || game.game_over() || game.turn() === userColor) return;
+  if (!game || game.game_over() || game.turn() === userColor || aiThinking) return;
+  aiThinking = true;
+  el("status").textContent = "Opponent is thinking…";
   if (chessWorker) {
-    chessWorker.postMessage("position " + game.fen());
-    // Ecobank used "search 1000"; our worker does fixed depth 4 on position
+    try { chessWorker.postMessage("position " + game.fen()); }
+    catch (e) { aiThinking = false; setTimeout(doFallbackAI, 2500 + Math.random()*3000); }
+    setTimeout(() => {
+      if (aiThinking && game && game.turn() !== userColor && !game.game_over()) {
+        aiThinking = false; doFallbackAI();
+      }
+    }, 12000);
   } else {
-    // fallback
-    setTimeout(doFallbackAI, 3000 + Math.random()*5000);
+    setTimeout(() => { aiThinking = false; doFallbackAI(); }, 3000 + Math.random()*5000);
   }
 }
 
 if (chessWorker) {
-  chessWorker.onmessage = function(e) {
-    if (typeof e.data === "string" && e.data.length >= 4 && e.data.length <= 5) {
-      // FormatMove returns e.g. "e2e4" or "e7e8q"
-      // Human-like thinking: 3–9 seconds, occasionally longer pauses so it feels real
-      let thinkTime = 3000 + Math.floor(Math.random() * 6000); // 3–9 s
-      if (Math.random() < 0.18) thinkTime += 2500 + Math.floor(Math.random() * 4500); // ~18% chance of 5.5–14 s pause
-      setTimeout(() => applyAIMove(e.data), thinkTime);
+  chessWorker.onmessage = function (e) {
+    if (typeof e.data !== "string") return;
+    if (e.data.startsWith("error")) {
+      aiThinking = false; setTimeout(doFallbackAI, 1500); return;
+    }
+    if (e.data.length >= 4 && e.data.length <= 5) {
+      let thinkTime = 3000 + Math.floor(Math.random()*6000);
+      if (Math.random() < 0.18) thinkTime += 2500 + Math.floor(Math.random()*4500);
+      setTimeout(() => { aiThinking = false; applyAIMove(e.data); }, thinkTime);
     }
   };
 }
 
 function applyAIMove(uci) {
+  aiThinking = false;
   if (!gameLive || !game || game.game_over() || game.turn() === userColor) return;
 
-  // Ecobank blunder curve
-  const blunderProb = Math.max(0, 0.70 - (currentRound - 1) * 0.14);
-  const legal = game.moves({verbose:true});
-
+  const blunderProb = Math.max(0.05, 0.62 - (currentRound - 1) * 0.09);
+  const legal = game.moves({ verbose: true });
   let played = null;
+
   if (Math.random() < blunderProb && legal.length > 0) {
-    // random legal move (often weaker)
-    const rnd = legal[Math.floor(Math.random()*legal.length)];
-    played = game.move(rnd);
+    played = game.move(legal[Math.floor(Math.random() * legal.length)]);
   } else {
-    // strong engine move
-    const from = uci.substring(0,2);
-    const to = uci.substring(2,4);
+    const from = uci.substring(0, 2), to = uci.substring(2, 4);
     const promo = uci.length > 4 ? uci[4] : "q";
-    played = game.move({from, to, promotion: promo});
-    if (!played && legal.length) {
-      // safety
-      played = game.move(legal[0]);
-    }
+    played = game.move({ from, to, promotion: promo });
+    if (!played && legal.length) played = game.move(legal[0]);
   }
 
   if (played) {
-    board.position(game.fen());
+    oppTime += INC;                      // +2 seconds increment
+    el("clock-opp").textContent = fmt(oppTime);
+    if (board) board.position(game.fen());
     lastMoveAt = Date.now();
     pushCloud();
-    document.getElementById("status").textContent = "Your turn";
+    el("status").textContent = "Your turn";
   }
   if (game.game_over()) finishGame();
 }
 
 function doFallbackAI() {
-  if (!game || game.game_over()) return;
+  aiThinking = false;
+  if (!game || game.game_over() || game.turn() === userColor) return;
   const moves = game.moves();
   if (moves.length) {
-    game.move(moves[Math.floor(Math.random()*moves.length)]);
-    board.position(game.fen());
+    game.move(moves[Math.floor(Math.random() * moves.length)]);
+    oppTime += INC;
+    el("clock-opp").textContent = fmt(oppTime);
+    if (board) board.position(game.fen());
+    lastMoveAt = Date.now();
     pushCloud();
-    document.getElementById("status").textContent = "Your turn";
+    el("status").textContent = "Your turn";
   }
   if (game.game_over()) finishGame();
 }
@@ -871,14 +1095,12 @@ function doFallbackAI() {
 /* ===== END GAME ===== */
 function finishGame() {
   if (!game) return;
-  let points = 0.5;
-  let reason = "Draw";
+  let points = 0.5, reason = "Draw";
   if (game.in_checkmate()) {
     points = game.turn() === userColor ? 0 : 1;
     reason = points === 1 ? "Checkmate – you win!" : "Checkmate – you lost";
   } else if (game.in_draw() || game.in_stalemate() || game.in_threefold_repetition() || game.insufficient_material()) {
-    points = 0.5;
-    reason = "Draw";
+    points = 0.5; reason = "Draw";
   }
   endRound(points, reason);
 }
@@ -888,30 +1110,48 @@ function handleResign() {
   if (confirm("Resign this match?")) endRound(0, "Resigned");
 }
 
+/* Record the whole 7-board team result for this round */
+function recordRoundResult(round, myPoints, oppSchool, oppStrength) {
+  let teamGP = myPoints;
+  ROSTER.forEach(p => {
+    if (me && p.id === me.id) return;
+    const r = simBoardResult(round, p.board, oppStrength);
+    individualScores[p.id] = (individualScores[p.id] || 0) + r;
+    teamGP += r;
+  });
+  const mp = teamGP > 3.5 ? 2 : (teamGP === 3.5 ? 1 : 0);
+  teamMatchPoints += mp;
+  teamGamePoints += teamGP;
+}
+
 function endRound(points, reason) {
   if (!gameLive) return;
   gameLive = false;
   if (timer) { clearInterval(timer); timer = null; }
 
   individualScores[me.id] = (individualScores[me.id] || 0) + points;
-  addTeamResult(oppMeta.school, points);
-  document.getElementById("play-team-pts").textContent = "Team: " + teamMatchPoints;
+
+  const plan = ROUND_PLAN[currentRound - 1] || {school: oppMeta.school, strength: 0.5};
+  recordRoundResult(currentRound, points, plan.school, plan.strength);
+  el("play-team-pts").textContent = "Team: " + teamMatchPoints;
 
   pushCloudFinal(points, reason);
   saveGameToCloud(points === 1 ? "Win" : (points === 0.5 ? "Draw" : "Loss"));
+
+  // if this game ran past the scheduled slot, push the next round later
+  pushAnchor(currentRound + 1, Date.now() + (BREAK_SEC + PAIRING_SEC) * 1000);
 
   showResultScreen(points, reason);
 }
 
 function showResultScreen(points, reason) {
   hideAll();
-  document.getElementById("screen-result").classList.remove("hidden");
-  const emoji = points === 1 ? "🏆" : (points === 0.5 ? "🤝" : "😔");
-  document.getElementById("result-emoji").textContent = emoji;
-  document.getElementById("result-title").textContent = points === 1 ? "You won!" : (points === 0.5 ? "Draw" : "Defeat");
-  document.getElementById("result-sub").textContent = reason || "";
-  document.getElementById("result-pts").textContent = (points > 0 ? "+" : "") + points.toFixed(1) + " team points";
-  const btn = document.getElementById("result-next-btn");
+  el("screen-result").classList.remove("hidden");
+  el("result-emoji").textContent = points === 1 ? "🏆" : (points === 0.5 ? "🤝" : "😔");
+  el("result-title").textContent = points === 1 ? "You won!" : (points === 0.5 ? "Draw" : "Defeat");
+  el("result-sub").textContent = reason || "";
+  el("result-pts").textContent = (points > 0 ? "+" : "") + points.toFixed(1) + " board points for MCPS";
+  const btn = el("result-next-btn");
   if (currentRound >= TOTAL_ROUNDS) {
     btn.textContent = "Tournament complete";
     btn.onclick = () => showFinal();
@@ -923,14 +1163,9 @@ function showResultScreen(points, reason) {
 
 function saveGameToCloud(resultStatus) {
   db.collection("tournament_games").add({
-    player: me.name,
-    playerId: me.id,
-    board: me.board,
-    round: currentRound,
-    opponent: oppMeta.name,
-    school: oppMeta.school,
-    pgn: game ? game.pgn() : "",
-    result: resultStatus,
+    player: me.name, playerId: me.id, board: me.board, round: currentRound,
+    opponent: oppMeta.name, school: oppMeta.school,
+    pgn: game ? game.pgn() : "", result: resultStatus,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   }).catch(()=>{});
 }
@@ -938,89 +1173,46 @@ function saveGameToCloud(resultStatus) {
 function pushCloud() {
   if (!me || !game) return;
   db.collection("bcn_live").doc(me.id).set({
-    board: me.board,
-    playerId: me.id,
-    playerName: me.name,
-    oppName: oppMeta.name,
-    oppSchool: oppMeta.school,
-    userColor,
-    fen: game.fen(),
-    pgn: game.pgn(),
-    userTime,
-    oppTime,
-    lastMoveAt,
-    turn: game.turn(),
-    round: currentRound,
-    status: gameLive ? "live" : "done",
+    board: me.board, playerId: me.id, playerName: me.name,
+    oppName: oppMeta.name, oppSchool: oppMeta.school,
+    userColor, fen: game.fen(), pgn: game.pgn(),
+    userTime, oppTime, lastMoveAt, turn: game.turn(),
+    round: currentRound, status: gameLive ? "live" : "done",
     updated: Date.now()
   }, {merge:true}).catch(()=>{});
 }
 function pushCloudFinal(points, reason) {
   if (!me) return;
   db.collection("bcn_live").doc(me.id).set({
-    status: "done",
-    result: points,
-    reason,
-    round: currentRound,
-    fen: game ? game.fen() : null,
-    pgn: game ? game.pgn() : "",
-    userTime, oppTime,
-    updated: Date.now()
+    status: "done", result: points, reason, round: currentRound,
+    fen: game ? game.fen() : null, pgn: game ? game.pgn() : "",
+    userTime, oppTime, updated: Date.now()
   }, {merge:true}).catch(()=>{});
 }
 
 /* ===== BREAK & NEXT ROUND ===== */
 function enterWaitForTeam() {
-  hideAll();
-  document.getElementById("screen-wait").classList.remove("hidden");
-  document.getElementById("wait-emoji").textContent = "☕";
-  document.getElementById("wait-title").textContent = "Break — clocks frozen";
-  document.getElementById("wait-sub").textContent = "Next round starts after the 2-minute break with full 10:00 clocks.";
+  const next = currentRound + 1;
+  if (next > TOTAL_ROUNDS) { showFinal(); return; }
+  pushAnchor(next, Date.now() + (BREAK_SEC + PAIRING_SEC) * 1000);
 
-  const end = Date.now() + BREAK_SEC * 1000;
-  db.collection("bcn_meta").doc("tourney").set({
-    status: "break",
-    breakEndsAt: end,
-    round: currentRound,
-    updated: Date.now()
-  }, {merge:true}).catch(()=>{});
+  const pStart = pairingStartFor(next);
+  if (Date.now() >= pStart) { enterRound(next); return; }
+
+  hideAll();
+  el("screen-wait").classList.remove("hidden");
+  el("wait-emoji").textContent = "☕";
+  el("wait-title").textContent = "Break — clocks frozen";
+  el("wait-sub").textContent = "Round " + next + " pairing opens at " +
+                               new Date(pStart).toLocaleTimeString() + " · clocks start 60s later.";
 
   const tick = () => {
-    const left = Math.max(0, Math.ceil((end - Date.now())/1000));
-    document.getElementById("wait-timer").textContent = left > 0 ? ("Break · " + left + "s") : "Starting next round…";
-    if (left <= 0) {
-      clearInterval(breakIv);
-      proceedNextRound();
-    }
+    const left = Math.max(0, Math.ceil((pStart - Date.now())/1000));
+    el("wait-timer").textContent = left > 0 ? fmt(left) : "Starting round " + next + "…";
+    if (left <= 0) { clearInterval(waitIv); waitIv = null; enterRound(next); }
   };
   tick();
-  const breakIv = setInterval(tick, 500);
-}
-
-function proceedNextRound() {
-  currentRound++;
-  if (currentRound > TOTAL_ROUNDS) {
-    db.collection("bcn_meta").doc("tourney").set({status:"finished", round:TOTAL_ROUNDS, updated:Date.now()}, {merge:true});
-    showFinal();
-    return;
-  }
-  // reset live docs for this player
-  db.collection("bcn_live").doc(me.id).set({
-    status: "pending",
-    round: currentRound,
-    fen: null,
-    pgn: "",
-    updated: Date.now()
-  }, {merge:true}).catch(()=>{});
-
-  db.collection("bcn_meta").doc("tourney").set({
-    status: "playing",
-    round: currentRound,
-    breakEndsAt: 0,
-    updated: Date.now()
-  }, {merge:true}).catch(()=>{});
-
-  startMatchmaking();
+  waitIv = setInterval(tick, 500);
 }
 
 /* ===== STANDINGS ===== */
@@ -1028,64 +1220,71 @@ function openStandings() {
   const visible = ["screen-wait","screen-play","screen-result","screen-spec-hub","screen-spec-one","screen-final"];
   fromStandings = "screen-result";
   for (const id of visible) {
-    const el = document.getElementById(id);
-    if (el && !el.classList.contains("hidden")) { fromStandings = id; break; }
+    const e = el(id);
+    if (e && !e.classList.contains("hidden")) { fromStandings = id; break; }
   }
   hideAll();
-  document.getElementById("screen-standings").classList.remove("hidden");
-  document.getElementById("stand-round-label").textContent = "After Round " + Math.min(currentRound, TOTAL_ROUNDS);
-  renderStandings();
+  el("screen-standings").classList.remove("hidden");
+  const played = Math.min(Math.max(currentRoundFromClock(Date.now()) - (gameLive ? 1 : 0), 0), TOTAL_ROUNDS);
+  el("stand-round-label").textContent = "After Round " + played;
+  renderStandings(played);
 }
 function closeStandings() {
   hideAll();
   const back = fromStandings || "screen-result";
-  const el = document.getElementById(back);
-  if (el) { el.classList.remove("hidden"); return; }
-  if (gameLive) document.getElementById("screen-play").classList.remove("hidden");
-  else if (currentRound > TOTAL_ROUNDS) document.getElementById("screen-final").classList.remove("hidden");
-  else document.getElementById("screen-result").classList.remove("hidden");
+  const e = el(back);
+  if (e) { e.classList.remove("hidden"); return; }
+  if (gameLive) el("screen-play").classList.remove("hidden");
+  else if (currentRound >= TOTAL_ROUNDS) el("screen-final").classList.remove("hidden");
+  else el("screen-result").classList.remove("hidden");
 }
-function renderStandings() {
-  const ranked = Object.keys(schoolTable).map(s => ({name:s, mp:schoolTable[s].mp||0, gp:schoolTable[s].gp||0}))
-    .sort((a,b) => b.mp - a.mp || b.gp - a.gp);
-  const mcps = ranked.findIndex(x => x.name === "Maryland Convent Private School") + 1;
-  const mc = ranked.find(x => x.name === "Maryland Convent Private School") || {mp:0,gp:0};
-  document.getElementById("mcps-rank-line").textContent = "Rank #" + mcps + " of " + TOTAL_SCHOOLS;
-  document.getElementById("mcps-pts-line").textContent = "Match pts " + mc.mp.toFixed(0) + " (2=win · 1=draw) · Game pts " + mc.gp.toFixed(1);
-  document.getElementById("team-body").innerHTML = ranked.slice(0,15).map((r,i) => {
-    const you = r.name === "Maryland Convent Private School";
+
+function renderStandings(roundOverride) {
+  const played = (roundOverride != null)
+    ? roundOverride
+    : Math.min(Math.max(currentRound - (gameLive ? 1 : 0), 0), TOTAL_ROUNDS);
+
+  const ranked = standingsFor(played);
+  const mcps = ranked.findIndex(x => x.you) + 1;
+  const mc = ranked.find(x => x.you) || {mp:0, gp:0};
+  el("mcps-rank-line").textContent = "Rank #" + mcps + " of " + TOTAL_SCHOOLS;
+  el("mcps-pts-line").textContent = "Match pts " + mc.mp.toFixed(0) + " (2=win · 1=draw) · Game pts " + mc.gp.toFixed(1);
+
+  el("team-body").innerHTML = ranked.slice(0, 16).map((r,i) => {
     const cls = i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"";
-    return `<tr style="${you?"background:rgba(251,191,36,.12)":""}"><td class="${cls}">${i+1}</td><td class="font-bold ${you?"text-amber-300":"text-white"}">${esc(r.name)}${you?" · YOU":""}</td><td>${r.mp.toFixed(0)}</td><td>${r.gp.toFixed(1)}</td></tr>`;
+    return `<tr style="${r.you?"background:rgba(251,191,36,.12)":""}"><td class="${cls}">${i+1}</td>
+      <td class="font-bold ${r.you?"text-amber-300":"text-white"}">${esc(r.name)}${r.you?" · YOU":""}</td>
+      <td>${r.mp.toFixed(0)}</td><td>${r.gp.toFixed(1)}</td></tr>`;
   }).join("");
 
-  const played = Math.min(currentRound, TOTAL_ROUNDS);
-  document.getElementById("ind-body").innerHTML = ROSTER.map(p => {
-    const sc = Math.min(individualScores[p.id]||0, played);
+  el("ind-body").innerHTML = ROSTER.map(p => {
+    const sc = Math.min(individualScores[p.id] || 0, played);
     let st = "—";
-    if (sc === played && played > 0) st = "🥇 Gold pace";
-    else if (sc >= played - 0.5 && played > 0) st = "🥈 Silver pace";
-    else if (sc >= played * 0.6 && played > 0) st = "🥉 Bronze pace";
+    if (played > 0 && sc === played) st = "🥇 Gold pace";
+    else if (played > 0 && sc >= played - 0.5) st = "🥈 Silver pace";
+    else if (played > 0 && sc >= played * 0.6) st = "🥉 Bronze pace";
     const you = me && me.id === p.id;
-    return `<tr style="${you?"background:rgba(52,211,153,.1)":""}"><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}${you?" · you":""}</td><td class="text-amber-300 font-black">${sc}/${played}</td><td>${st}</td></tr>`;
+    return `<tr style="${you?"background:rgba(52,211,153,.1)":""}"><td>${p.board}</td>
+      <td class="font-bold text-white">${esc(p.name)}${you?" · you":""}</td>
+      <td class="text-amber-300 font-black">${sc}/${played}</td><td>${st}</td></tr>`;
   }).join("");
 }
 
 function showFinal() {
   hideAll();
-  document.getElementById("screen-final").classList.remove("hidden");
-  renderStandings();
-  const ranked = Object.keys(schoolTable).map(s => ({name:s, mp:schoolTable[s].mp, gp:schoolTable[s].gp}))
-    .sort((a,b) => b.mp - a.mp || b.gp - a.gp);
-  const mcps = ranked.findIndex(x => x.name === "Maryland Convent Private School") + 1;
-  document.getElementById("final-rank").textContent = "MCPS · Rank #" + mcps;
-  document.getElementById("final-sub").textContent = "7 rounds complete · individual board medals below";
-  document.getElementById("final-ind").innerHTML = ROSTER.map(p => {
+  el("screen-final").classList.remove("hidden");
+  const ranked = standingsFor(TOTAL_ROUNDS);
+  const mcps = ranked.findIndex(x => x.you) + 1;
+  el("final-rank").textContent = "MCPS · Rank #" + mcps;
+  el("final-sub").textContent = "7 rounds complete · individual board medals below";
+  el("final-ind").innerHTML = ROSTER.map(p => {
     const sc = individualScores[p.id] || 0;
     let med = "—";
     if (sc >= 6.5) med = "🥇 Gold";
     else if (sc >= 5.5) med = "🥈 Silver";
     else if (sc >= 4.5) med = "🥉 Bronze";
-    return `<tr><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}</td><td class="text-amber-300 font-black">${sc}</td><td>${med}</td></tr>`;
+    return `<tr><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}</td>
+      <td class="text-amber-300 font-black">${sc}</td><td>${med}</td></tr>`;
   }).join("");
 }
 
@@ -1094,30 +1293,64 @@ function fenToImg(fen) {
   const f = encodeURIComponent(fen || "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   return "https://lichess1.org/export/fen.gif?fen="+f+"&color=white&piece=cburnett";
 }
+
+/* Clock info for any board – works even if the player never logged in */
+function boardClockInfo(g) {
+  const now = Date.now();
+
+  if (g && (g.status === "live" || g.status === "done")) {
+    let ut = g.userTime != null ? g.userTime : BASE;
+    let ot = g.oppTime  != null ? g.oppTime  : BASE;
+    if (g.status === "live" && g.lastMoveAt) {
+      const el2 = Math.floor((now - g.lastMoveAt)/1000);
+      if (el2 > 0) {
+        if (g.turn === g.userColor) ut = Math.max(0, ut - el2);
+        else ot = Math.max(0, ot - el2);
+      }
+    }
+    return { ut, ot, live: g.status === "live", status: g.status, round: g.round };
+  }
+
+  // No doc → derive from the shared schedule
+  const r = currentRoundFromClock(now);
+  const a = anchorFor(r);
+  if (!scheduledStartMs) return { ut: BASE, ot: BASE, live: false, idle: true, round: r };
+  if (now < a) return { ut: BASE, ot: BASE, live: false, pairing: true, round: r };
+  const left = Math.max(0, BASE - Math.floor((now - a)/1000));
+  return { ut: left, ot: BASE, live: left > 0, late: left <= 0, round: r, notLogged: true };
+}
+
 function enterSpectator() {
   if (me) { chatRole = "player"; chatName = me.name; }
   else { chatRole = chatRole === "coach" ? "coach" : "spectator"; if (!chatName) chatName = "Visitor"; }
   hideAll();
-  document.getElementById("screen-spec-hub").classList.remove("hidden");
-  const roleEl = document.getElementById("chat-role-label");
+  el("screen-spec-hub").classList.remove("hidden");
+  const roleEl = el("chat-role-label");
   if (roleEl) roleEl.textContent = chatRole + (chatName ? " · " + chatName : "");
-  const box = document.getElementById("multi-boards");
+  const box = el("multi-boards");
   if (box) box.innerHTML = "";
   attachLobbyChat();
   if (hubUnsub) hubUnsub();
   hubUnsub = db.collection("bcn_live").onSnapshot(snap => {
-    const rows = [];
-    snap.forEach(d => rows.push(Object.assign({id:d.id}, d.data())));
-    renderMulti(rows);
-  }, () => renderMulti([]));
+    latestRows = [];
+    snap.forEach(d => latestRows.push(Object.assign({id:d.id}, d.data())));
+    renderMulti(latestRows);
+  }, () => { latestRows = []; renderMulti([]); });
+
+  if (hubTick) clearInterval(hubTick);
+  hubTick = setInterval(() => {
+    if (!el("screen-spec-hub").classList.contains("hidden")) renderMulti(latestRows);
+  }, 1000);
 }
+
 function renderMulti(rows) {
-  const box = document.getElementById("multi-boards");
+  const box = el("multi-boards");
   if (!box) return;
   const byBoard = {};
   rows.forEach(r => { if (r.board) byBoard[r.board] = r; });
+
   ROSTER.forEach(p => {
-    let card = document.getElementById("mini-card-"+p.id);
+    let card = el("mini-card-"+p.id);
     if (!card) {
       card = document.createElement("div");
       card.id = "mini-card-"+p.id;
@@ -1135,70 +1368,91 @@ function renderMulti(rows) {
       box.appendChild(card);
     }
     const g = byBoard[p.board];
-    const st = document.getElementById("mini-st-"+p.id);
-    const opp = document.getElementById("mini-opp-"+p.id);
-    const clk = document.getElementById("mini-clk-"+p.id);
-    const img = document.getElementById("mini-img-"+p.id);
+    const st = el("mini-st-"+p.id), opp = el("mini-opp-"+p.id);
+    const clk = el("mini-clk-"+p.id), img = el("mini-img-"+p.id);
+
     if (g && (g.status === "live" || g.status === "done") && g.fen) {
       if (st) st.innerHTML = g.status === "live" ? '<span class="live-dot"></span> LIVE' : "Done";
       if (opp) opp.textContent = "vs " + (g.oppName||"?") + " · " + (g.oppSchool||"");
-      if (clk) clk.textContent = "R"+(g.round||"?")+" · "+fmt(g.userTime||BASE)+" / "+fmt(g.oppTime||BASE);
-      if (img && img.dataset.fen !== g.fen) {
-        img.dataset.fen = g.fen;
-        img.src = fenToImg(g.fen);
-      }
+      const ci = boardClockInfo(g);
+      if (clk) clk.textContent = "R"+(g.round||"?")+" · "+fmt(ci.ut)+" / "+fmt(ci.ot);
+      if (img && img.dataset.fen !== g.fen) { img.dataset.fen = g.fen; img.src = fenToImg(g.fen); }
     } else {
-      if (st) st.textContent = g && g.status === "pending" ? "Starting…" : "—";
-      if (opp) opp.textContent = g && g.oppName ? ("vs "+g.oppName) : "Waiting for game…";
+      const ci = boardClockInfo(null);
+      if (st) st.textContent = ci.late ? "⏱ LOST" : (ci.live ? "● CLOCK" : (ci.pairing ? "Pairing" : "—"));
+      if (opp) opp.textContent = "vs " + (ROUND_PLAN[Math.max(0,ci.round-1)]||{}).player + " · " + (ROUND_PLAN[Math.max(0,ci.round-1)]||{}).school;
+      if (clk) clk.textContent = "R" + ci.round + " · not logged in · " + fmt(ci.ut) + " left";
       if (img && img.dataset.fen !== "start") { img.dataset.fen = "start"; img.src = fenToImg("start"); }
     }
   });
 }
+
 function specHubBack() {
-  if (me && gameLive) {
-    hideAll();
-    document.getElementById("screen-play").classList.remove("hidden");
-    return;
-  }
-  if (me && !gameLive) {
-    enterWaitForTeam();
-    return;
-  }
+  if (me && gameLive) { hideAll(); el("screen-play").classList.remove("hidden"); return; }
+  if (me) { enterWaitForTeam(); return; }
   showWelcome();
 }
+
 function openSpecBoard(id) {
   hideAll();
-  document.getElementById("screen-spec-one").classList.remove("hidden");
-  if (specUnsub) specUnsub();
+  el("screen-spec-one").classList.remove("hidden");
+  if (specUnsub) { try { specUnsub(); } catch (e) {} }
+  if (specBoard) { try { specBoard.destroy(); } catch (e) {} specBoard = null; }
   specReplayPly = null;
-  specUnsub = db.collection("bcn_live").doc(id).onSnapshot(doc => {
-    if (!doc.exists) {
-      document.getElementById("spec-status").textContent = "No live game yet";
-      return;
-    }
-    const g = doc.data();
-    document.getElementById("spec-one-label").textContent = "Board " + (g.board || "—");
-    document.getElementById("spec-opp-name").textContent = g.oppName || "—";
-    document.getElementById("spec-opp-school").textContent = g.oppSchool || "—";
-    document.getElementById("spec-me-name").textContent = g.playerName || "—";
-    const uc = g.userColor || "w";
-    document.getElementById("spec-me-side").textContent = uc === "w" ? "⬜ White (MCPS)" : "⬛ Black (MCPS)";
-    document.getElementById("spec-opp-side").textContent = uc === "w" ? "⬛ Black" : "⬜ White";
-    document.getElementById("spec-clock-me").textContent = fmt(g.userTime || BASE);
-    document.getElementById("spec-clock-opp").textContent = fmt(g.oppTime || BASE);
-    document.getElementById("spec-status").textContent = g.status === "done"
-      ? ("Result · " + (g.result === 1 ? "Win" : g.result === 0 ? "Loss" : "Draw"))
-      : (g.status === "live" ? "Live" : "—");
-    buildSpecReplay(g.pgn || "");
-    if (specReplayPly === null) {
-      if (!specBoard) {
-        specBoard = ChessBoard("spec-board", {position: g.fen || "start", draggable:false, pieceTheme, appearSpeed:0});
-      } else {
-        try { specBoard.position(g.fen || "start", false); } catch(e){}
+
+  setTimeout(() => {
+    specUnsub = db.collection("bcn_live").doc(id).onSnapshot(doc => {
+      const rosterEntry = ROSTER.find(r => r.id === id) || {};
+      const plan = ROUND_PLAN[Math.max(0, currentRoundFromClock(Date.now())-1)] || {};
+
+      if (!doc.exists) {
+        const ci = boardClockInfo(null);
+        el("spec-one-label").textContent = "Board " + (rosterEntry.board || "—");
+        el("spec-opp-name").textContent = plan.player || "—";
+        el("spec-opp-school").textContent = plan.school || "—";
+        el("spec-me-name").textContent = rosterEntry.name || "—";
+        el("spec-me-side").textContent = "MCPS";
+        el("spec-clock-me").textContent = fmt(ci.ut);
+        el("spec-clock-opp").textContent = fmt(ci.ot);
+        el("spec-status").textContent = ci.late
+          ? "⏱ Lost on time (never reported)"
+          : (ci.pairing ? "Pairing window" : "Not logged in · clock running");
+        return;
       }
-      document.getElementById("spec-replay-label").textContent = "Live position · use ◀ ▶ to replay";
-    }
-  });
+      const g = doc.data();
+      el("spec-one-label").textContent = "Board " + (g.board || "—");
+      el("spec-opp-name").textContent = g.oppName || "—";
+      el("spec-opp-school").textContent = g.oppSchool || "—";
+      el("spec-me-name").textContent = g.playerName || "—";
+      const uc = g.userColor || "w";
+      el("spec-me-side").textContent = uc === "w" ? "⬜ White (MCPS)" : "⬛ Black (MCPS)";
+      el("spec-opp-side").textContent = uc === "w" ? "⬛ Black" : "⬜ White";
+
+      const ci = boardClockInfo(g);
+      el("spec-clock-me").textContent = fmt(ci.ut);
+      el("spec-clock-opp").textContent = fmt(ci.ot);
+      el("spec-status").textContent = g.status === "done"
+        ? ("Result · " + (g.result === 1 ? "Win" : g.result === 0 ? "Loss" : "Draw"))
+        : (g.status === "live" ? "● LIVE · 10+2" : "—");
+
+      buildSpecReplay(g.pgn || "");
+      if (specReplayPly === null) {
+        const fen = g.fen || "start";
+        const orient = uc === "w" ? "white" : "black";
+        if (!specBoard) {
+          const e = el("spec-board");
+          if (e) e.style.width = "100%";
+          specBoard = ChessBoard("spec-board", {
+            position: fen, draggable:false, pieceTheme: pieceTheme,
+            orientation: orient, appearSpeed: 0
+          });
+        } else {
+          try { specBoard.orientation(orient); specBoard.position(fen, false); } catch (e) {}
+        }
+        el("spec-replay-label").textContent = "Live position · use ◀ ▶ to replay";
+      }
+    });
+  }, 80);
 }
 function backFromSpecOne() {
   if (specUnsub) { try { specUnsub(); } catch(e){} specUnsub = null; }
@@ -1222,22 +1476,22 @@ function specReplayStep(dir) {
   const fen = specReplayFens[specReplayPly] || "start";
   if (specBoard) try { specBoard.position(fen, false); } catch(e){}
   const san = specReplayPly > 0 ? specReplaySans[specReplayPly-1] : "Start";
-  document.getElementById("spec-replay-label").textContent = "Move " + specReplayPly + "/" + max + (san ? " · " + san : "");
-  document.getElementById("spec-btn-live").textContent = "↩ Live";
+  el("spec-replay-label").textContent = "Move " + specReplayPly + "/" + max + (san ? " · " + san : "");
+  el("spec-btn-live").textContent = "↩ Live";
 }
 function specReplayLive() {
   specReplayPly = null;
-  document.getElementById("spec-btn-live").textContent = "● Live";
-  document.getElementById("spec-replay-label").textContent = "Live position";
+  el("spec-btn-live").textContent = "● Live";
+  el("spec-replay-label").textContent = "Live position";
 }
 
 /* ===== CHAT ===== */
 function attachLobbyChat() {
   if (chatUnsub) chatUnsub();
-  const roleEl = document.getElementById("chat-role-label");
+  const roleEl = el("chat-role-label");
   if (roleEl) roleEl.textContent = chatRole + (chatName ? " · " + chatName : "");
   chatUnsub = db.collection("bcn_chat").orderBy("ts","asc").limitToLast(80).onSnapshot(snap => {
-    const log = document.getElementById("chat-log");
+    const log = el("chat-log");
     if (!log) return;
     log.innerHTML = "";
     snap.forEach(d => {
@@ -1254,11 +1508,8 @@ function attachLobbyChat() {
   }, ()=>{});
 }
 function sendChat() {
-  if (gameLive && me) {
-    toast("Chat is available on the boards page after you finish");
-    return;
-  }
-  const input = document.getElementById("chat-input");
+  if (gameLive && me) { toast("Chat is available on the boards page after you finish"); return; }
+  const input = el("chat-input");
   let text = (input && input.value || "").trim();
   if (!text) return;
   if (/^\/coach\s+/i.test(text)) {
@@ -1266,7 +1517,7 @@ function sendChat() {
     if (pass === ADMIN_PASS || pass === ADMIN_PASS_ALT) {
       chatRole = "coach"; chatName = "Coach";
       toast("Coach mode unlocked");
-      const roleEl = document.getElementById("chat-role-label");
+      const roleEl = el("chat-role-label");
       if (roleEl) roleEl.textContent = "coach";
       if (input) input.value = "";
       return;
@@ -1284,12 +1535,14 @@ function sendChat() {
 }
 
 /* ===== BOOT ===== */
-initSchoolTable();
+simulateField();
 ROSTER.forEach(p => individualScores[p.id] = 0);
+
 try {
   const n = Number(localStorage.getItem("bcn_start") || 0);
   if (n > 0) scheduledStartMs = n;
 } catch(e){}
+
 db.collection("bcn_meta").doc("schedule").onSnapshot(doc => {
   if (doc.exists) {
     const d = doc.data() || {};
@@ -1300,6 +1553,14 @@ db.collection("bcn_meta").doc("schedule").onSnapshot(doc => {
   }
   updateScheduleBanner();
 }, () => updateScheduleBanner());
+
+db.collection("bcn_meta").doc("tourney").onSnapshot(doc => {
+  if (doc.exists) {
+    const d = doc.data() || {};
+    roundAnchors = d.roundAnchors || {};
+  }
+}, ()=>{});
+
 setInterval(updateScheduleBanner, 1000);
 showWelcome();
 </script>
