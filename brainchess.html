@@ -1,6 +1,5 @@
 
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE 
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -713,7 +712,7 @@ async function aggregateFromRounds(){
   const roundsOut=[];
   const roundsData = {};
 
-  /* Primary: tournament_games — already written by every player, never blocked */
+  /* Primary: tournament_games */
   try{
     const snap = await db.collection("tournament_games").get();
     const latest = {};
@@ -744,7 +743,7 @@ async function aggregateFromRounds(){
     });
   }catch(e){ console.warn("tournament_games read failed", e && e.message); }
 
-  /* Secondary: bcn_rounds — structured, used only if it wrote successfully */
+  /* Secondary: bcn_rounds */
   try{
     const snap = await db.collection("bcn_rounds").get();
     snap.forEach(d=>{
@@ -882,28 +881,43 @@ function adminForceNextRound(){
 }
 async function adminResetTournament(){
   if(!adminPassOK()) return toast("Wrong admin password");
-  if(!confirm("Reset ALL tournament data?")) return;
+  if(!confirm("Reset ALL tournament data? This wipes every board, score, and history.")) return;
+
+  /* Delete every doc in a collection, chunked to respect the 500-op batch limit */
+  const wipeCollection = async (name)=>{
+    try{
+      while(true){
+        const snap = await db.collection(name).limit(400).get();
+        if(snap.empty) return;
+        const b = db.batch();
+        snap.forEach(d=>b.delete(d.ref));
+        await b.commit();
+      }
+    }catch(e){ console.warn("wipe failed: "+name, e && e.message); }
+  };
+
+  await wipeCollection("bcn_live");
+  await wipeCollection("bcn_rounds");
+  await wipeCollection("tournament_games");
+  await wipeCollection("bcn_history");
+
   const now=Date.now();
   try{
-    const live=await db.collection("bcn_live").get();
-    const rounds=await db.collection("bcn_rounds").get();
-    const b=db.batch();
-    live.forEach(d=>b.delete(d.ref));
-    rounds.forEach(d=>b.delete(d.ref));
-    await b.commit();
     await db.collection("bcn_meta").doc("tourney").set({status:"lobby",round:1,resetAt:now,updated:now});
     await db.collection("bcn_meta").doc("schedule").set({startAt:0,updated:now});
     await db.collection("bcn_meta").doc("mcps").set({mp:0,gp:0,round:1,rc:0,updated:now});
-  }catch(e){}
+  }catch(e){ console.warn("reset meta failed", e && e.message); }
+
+  /* Reset in-memory + local storage on this device */
   currentRound=1;roundsCompleted=0;
   individualScores={};ROSTER.forEach(p=>individualScores[p.id]=0);
   teamMatchPoints=0;teamGamePoints=0;
   pendingCommit=null;roundResults=[];
-  localStorage.clear();
+  try{ localStorage.clear(); }catch(e){}
   me=null;gameLive=false;game=null;
   if(timer){clearInterval(timer);timer=null;}
   closeAdminModal();
-  toast("Tournament reset");
+  toast("Tournament reset — all boards cleared");
   showWelcome();
 }
 function updateScheduleBanner(){
@@ -1837,10 +1851,26 @@ db.collection("bcn_meta").doc("schedule").onSnapshot(d=>{
 db.collection("bcn_meta").doc("mcps").onSnapshot(d=>{
   if(d.exists){
     const x=d.data()||{};
-    if((x.rc||0)>(roundsCompleted||0)){
-      roundsCompleted=x.rc;
-      teamMatchPoints=x.mp||0;
-      teamGamePoints=x.gp||0;
+    const sRc = x.rc || 0;
+    const sMp = x.mp || 0;
+    const sGp = x.gp || 0;
+    const sRound = x.round || 1;
+    const serverReset = (sRc===0 && sMp===0 && sGp===0 && sRound===1);
+    const localAhead = (roundsCompleted>0 || teamMatchPoints>0 || teamGamePoints>0 || currentRound>1);
+    if(serverReset && localAhead){
+      currentRound=1; roundsCompleted=0;
+      individualScores={}; ROSTER.forEach(p=>individualScores[p.id]=0);
+      teamMatchPoints=0; teamGamePoints=0;
+      pendingCommit=null; roundResults=[];
+      try{ localStorage.clear(); }catch(e){}
+      toast("Tournament was reset by admin");
+      showWelcome();
+      return;
+    }
+    if(sRc > roundsCompleted){
+      roundsCompleted = sRc;
+      teamMatchPoints = sMp;
+      teamGamePoints = sGp;
       try{ localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound,rr:roundResults})); }catch(e){}
     }
   }
