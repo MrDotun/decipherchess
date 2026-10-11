@@ -507,7 +507,6 @@ async function maybeShowRoundSplash(round){
   if(!round) return;
   const key="bcn_splash_r"+round;
   try{ if(localStorage.getItem(key)==="1") return; }catch(e){}
-  /* Only show on result, wait, or hub screens */
   const onResult=!el("screen-result").classList.contains("hidden");
   const onWait=!el("screen-wait").classList.contains("hidden");
   const onHub=!el("screen-spec-hub").classList.contains("hidden");
@@ -556,16 +555,10 @@ function scheduleSplashCheck(round, tries){
   maybeShowRoundSplash(round);
   let shown=false;
   try{ shown=localStorage.getItem("bcn_splash_r"+round)==="1"; }catch(e){}
-  if(!shown){
-    setTimeout(()=>scheduleSplashCheck(round, tries-1), 3000);
-  }
+  if(!shown){ setTimeout(()=>scheduleSplashCheck(round, tries-1), 3000); }
 }
 
-/* ============ BREAK ENCROACHMENT FIX ============
-   After a player finishes, ensure the NEXT round still has a full
-   BREAK_SEC + PAIRING_SEC window before clocks start. If not, push
-   the whole schedule forward. The Firestore write syncs everyone.
-==================================================== */
+/* ============ BREAK ENCROACHMENT FIX ============ */
 function shiftScheduleForBreak(){
   const nextRound=currentRound+1;
   if(nextRound>TOTAL_ROUNDS) return;
@@ -718,32 +711,76 @@ async function aggregateFromRounds(){
   const perBoard={}; ROSTER.forEach(p=>perBoard[p.id]=0);
   let totalGP=0, totalMP=0;
   const roundsOut=[];
+  const roundsData = {};
+
+  /* Primary: tournament_games — already written by every player, never blocked */
   try{
-    const snap=await db.collection("bcn_rounds").get();
-    const byR={};
-    snap.forEach(d=>{const r=d.data()||{}; if(r.round) byR[r.round]=r;});
-    for(let r=1;r<=TOTAL_ROUNDS;r++){
-      const doc=byR[r]; if(!doc) continue;
-      const boards=doc.boards||{};
-      let gp=0;
-      const boardResults=ROSTER.map(p=>{
-        const v=boards["p"+p.board];
-        if(typeof v==="number"){ gp+=v; perBoard[p.id]+=v; }
-        return {board:p.board,id:p.id,name:p.name,res:(typeof v==="number"?v:null)};
+    const snap = await db.collection("tournament_games").get();
+    const latest = {};
+    snap.forEach(d=>{
+      const g = d.data() || {};
+      const r = g.round;
+      let board = null;
+      if(g.playerId && /^p[1-8]$/.test(g.playerId)) board = parseInt(g.playerId.slice(1));
+      else if(g.board) board = parseInt(g.board);
+      if(!r || !board) return;
+      let v = g.result;
+      if(typeof v === "string"){
+        v = v === "Win" ? 1 : (v === "Draw" ? 0.5 : (v === "Loss" ? 0 : null));
+      }
+      if(typeof v !== "number") return;
+      const ts = (g.timestamp && g.timestamp.toMillis) ? g.timestamp.toMillis() : (typeof g.timestamp === "number" ? g.timestamp : 0);
+      const key = r+"_p"+board;
+      if(!latest[key] || ts > latest[key].ts){
+        latest[key] = { ts, round:r, board, result:v, school:g.school||"—" };
+      }
+    });
+    Object.keys(latest).forEach(k=>{
+      const x = latest[k];
+      const entry = roundsData[x.round] || { boards:{}, oppSchool:x.school };
+      entry.boards["p"+x.board] = x.result;
+      if(x.school) entry.oppSchool = x.school;
+      roundsData[x.round] = entry;
+    });
+  }catch(e){ console.warn("tournament_games read failed", e && e.message); }
+
+  /* Secondary: bcn_rounds — structured, used only if it wrote successfully */
+  try{
+    const snap = await db.collection("bcn_rounds").get();
+    snap.forEach(d=>{
+      const r = d.data() || {};
+      if(!r.round) return;
+      const entry = roundsData[r.round] || { boards:{}, oppSchool:r.oppSchool||"—" };
+      const b = r.boards || {};
+      Object.keys(b).forEach(k=>{
+        if(typeof b[k] === "number" && entry.boards[k] === undefined) entry.boards[k] = b[k];
       });
-      const mp=gp>4?2:(gp===4?1:0);
-      totalGP+=gp; totalMP+=mp;
-      roundsOut.push({
-        round:r,
-        oppSchool:doc.oppSchool||"—",
-        myGP:gp,
-        oppGP:8-gp,
-        mp:mp,
-        result:mp===2?"Win":(mp===1?"Draw":"Loss"),
-        boardResults:boardResults
-      });
-    }
-  }catch(e){ console.warn("aggregate failed",e); }
+      if(r.oppSchool) entry.oppSchool = r.oppSchool;
+      roundsData[r.round] = entry;
+    });
+  }catch(e){ console.warn("bcn_rounds read failed", e && e.message); }
+
+  for(let r=1;r<=TOTAL_ROUNDS;r++){
+    const doc = roundsData[r]; if(!doc) continue;
+    const boards = doc.boards || {};
+    let gp = 0;
+    const boardResults = ROSTER.map(p=>{
+      const v = boards["p"+p.board];
+      if(typeof v === "number"){ gp += v; perBoard[p.id] += v; }
+      return {board:p.board,id:p.id,name:p.name,res:(typeof v==="number"?v:null)};
+    });
+    const mp = gp>4?2:(gp===4?1:0);
+    totalGP += gp; totalMP += mp;
+    roundsOut.push({
+      round:r,
+      oppSchool: doc.oppSchool || "—",
+      myGP: gp,
+      oppGP: 8-gp,
+      mp: mp,
+      result: mp===2?"Win":(mp===1?"Draw":"Loss"),
+      boardResults: boardResults
+    });
+  }
   return {perBoard,totalMP,totalGP,rounds:roundsOut};
 }
 async function refreshScoresFromCloud(){
@@ -1013,15 +1050,6 @@ function joinLateExpired(round,late){
     userColor:colorForBoard(round,me.board),
     fen:"start",pgn:"",updated:Date.now()
   },{merge:true}).catch(()=>{});
-  try{
-    const ref=db.collection("bcn_rounds").doc("r"+round);
-    const upd={};
-    upd["round"]=round;
-    upd["oppSchool"]=plan.school||"—";
-    upd["updated"]=Date.now();
-    upd["boards.p"+me.board]=0;
-    ref.set(upd,{merge:true}).catch(()=>{});
-  }catch(e){}
   saveGameToCloud("Loss");
   showResultScreen(0,"Lost on time — "+fmt(late)+" late");
 }
@@ -1336,9 +1364,7 @@ function endRound(points,reason){
     ref.set(upd,{merge:true}).catch(()=>{});
   }catch(e){}
 
-  /* Guarantee a full break for the next round */
   shiftScheduleForBreak();
-
   showResultScreen(points,reason);
 }
 function showResultScreen(points,reason){
@@ -1355,7 +1381,6 @@ function showResultScreen(points,reason){
     b.textContent="Continue";
     b.onclick=()=>enterWaitForTeam();
   }
-  /* Watch for the round completing, then show splash */
   scheduleSplashCheck(currentRound, 40);
 }
 function saveGameToCloud(r){
@@ -1826,4 +1851,3 @@ showWelcome();
 </script>
 </body>
 </html>
-
