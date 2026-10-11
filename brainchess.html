@@ -23,76 +23,104 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:#e2e8
 .btn-soft{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#e2e8f0;font-weight:800;border-radius:12px;padding:12px 16px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer}
 .btn-danger{background:rgba(244,63,94,.2);border:1px solid rgba(244,63,94,.45);color:#fda4af;font-weight:800;border-radius:12px;padding:12px 16px;font-size:12px;cursor:pointer}
 .btn-blue{background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;font-weight:900;border-radius:12px;padding:13px 18px;font-size:12px;text-transform:uppercase;border:0;cursor:pointer}
-/* Welcome-only palette (not trial gold) — teal / cyan / violet aurora */
+/* ===== WELCOME: bright national-championship poster (not trial dark-gold) ===== */
 #screen-welcome{
-  background:
-    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(34,211,238,.22), transparent 55%),
-    radial-gradient(ellipse 70% 40% at 100% 30%, rgba(167,139,250,.18), transparent 50%),
-    radial-gradient(ellipse 60% 45% at 0% 80%, rgba(16,185,129,.12), transparent 45%),
-    linear-gradient(180deg, #031016 0%, #061a22 40%, #040d12 100%);
-  position:relative; overflow:hidden;
+  background:#f4f7fb;
+  position:relative; overflow-x:hidden; min-height:100vh;
+  color:#0f172a;
 }
-#screen-welcome::before{
-  content:''; position:absolute; inset:0; pointer-events:none; opacity:.35;
-  background-image:radial-gradient(1.5px 1.5px at 20px 30px, rgba(165,243,252,.55), transparent),
-    radial-gradient(1px 1px at 80px 120px, rgba(196,181,253,.4), transparent),
-    radial-gradient(1.5px 1.5px at 160px 60px, rgba(94,234,212,.35), transparent);
-  background-size:220px 220px;
+#screen-welcome .wc-topbar{
+  background:linear-gradient(90deg,#008751 0%,#00a86b 40%,#fcd116 70%,#e11d48 100%);
+  height:6px; width:100%;
 }
-.welcome-hero{
-  position:relative; border-radius:1.5rem; overflow:hidden;
-  border:2px solid rgba(34,211,238,.35);
-  box-shadow:0 0 0 1px rgba(167,139,250,.2), 0 25px 60px rgba(0,0,0,.55), 0 0 80px rgba(34,211,238,.12);
+#screen-welcome .wc-header{
+  background:#fff;
+  border-bottom:1px solid #e2e8f0;
+  padding:14px 16px 12px;
+  text-align:center;
 }
-.welcome-hero img{display:block;width:100%;height:auto;max-height:380px;object-fit:cover;object-position:top center}
-.welcome-hero-shine{
-  position:absolute; inset:0; pointer-events:none;
-  background:linear-gradient(180deg, transparent 45%, rgba(4,13,18,.75) 85%, rgba(4,13,18,.95) 100%);
+#screen-welcome .wc-pill{
+  display:inline-block; background:#ecfdf5; color:#047857;
+  border:1px solid #a7f3d0; border-radius:999px;
+  font-size:10px; font-weight:900; letter-spacing:.12em; text-transform:uppercase;
+  padding:5px 12px; margin-bottom:8px;
 }
-.welcome-badge{
-  display:inline-flex; align-items:center; gap:8px;
-  background:rgba(15,118,110,.25); border:1px solid rgba(45,212,191,.4);
-  color:#99f6e4; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.14em;
-  padding:8px 14px; border-radius:999px;
+#screen-welcome .wc-h1{
+  margin:0; font-size:clamp(1.35rem,4.5vw,1.85rem); font-weight:900;
+  color:#0f172a; line-height:1.15; letter-spacing:-0.02em;
 }
-.welcome-title{
-  font-size:clamp(1.65rem,5vw,2.35rem); font-weight:900; font-style:italic; text-transform:uppercase;
-  line-height:1.1; letter-spacing:-0.02em;
-  background:linear-gradient(105deg,#ecfeff 10%, #5eead4 45%, #a5b4fc 90%);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
+#screen-welcome .wc-h1 span{color:#008751}
+#screen-welcome .wc-tagline{
+  margin:6px 0 0; font-size:12px; font-weight:700; color:#64748b;
 }
-.welcome-sub{color:#94a3b8; font-size:13px; font-weight:600}
-.welcome-panel{
-  background:linear-gradient(160deg, rgba(15,40,48,.9), rgba(8,20,28,.95));
-  border:1px solid rgba(45,212,191,.22); border-radius:1.25rem;
-  backdrop-filter:blur(12px);
+#screen-welcome .wc-photo-wrap{
+  position:relative; margin:0; background:#0f172a;
 }
-.btn-welcome-primary{
-  background:linear-gradient(135deg, #2dd4bf, #06b6d4 50%, #6366f1);
-  color:#042f2e; font-weight:900; border:0; border-radius:14px;
-  padding:15px 18px; font-size:13px; text-transform:uppercase; letter-spacing:.08em;
-  width:100%; cursor:pointer;
-  box-shadow:0 10px 30px rgba(45,212,191,.35), 0 0 0 1px rgba(255,255,255,.1) inset;
-  transition:transform .15s, box-shadow .15s;
+#screen-welcome .wc-photo-wrap img{
+  display:block; width:100%; max-height:min(52vh,420px);
+  object-fit:cover; object-position:top center;
 }
-.btn-welcome-primary:hover{transform:translateY(-2px); box-shadow:0 14px 36px rgba(45,212,191,.45)}
-.btn-welcome-ghost{
-  background:rgba(255,255,255,.04); border:1px solid rgba(165,243,252,.25);
-  color:#e0f2fe; font-weight:800; border-radius:14px; padding:14px 18px;
-  font-size:12px; text-transform:uppercase; letter-spacing:.06em; width:100%; cursor:pointer;
+#screen-welcome .wc-photo-caption{
+  position:absolute; left:12px; right:12px; bottom:12px;
+  background:rgba(255,255,255,.95); border-radius:14px;
+  padding:10px 14px; text-align:center;
+  box-shadow:0 8px 28px rgba(15,23,42,.25);
+  border:2px solid #fcd116;
 }
-.btn-welcome-admin{
-  background:transparent; border:1px dashed rgba(148,163,184,.35);
-  color:#94a3b8; font-weight:700; border-radius:12px; padding:11px; font-size:10px;
-  text-transform:uppercase; letter-spacing:.08em; width:100%; cursor:pointer;
+#screen-welcome .wc-photo-caption .k{
+  font-size:9px; font-weight:900; letter-spacing:.14em; text-transform:uppercase; color:#b45309;
 }
-.welcome-schedule{
-  background:linear-gradient(135deg, rgba(99,102,241,.15), rgba(45,212,191,.1));
-  border:1px solid rgba(129,140,248,.35); border-radius:1rem; padding:14px 16px; text-align:center;
+#screen-welcome .wc-photo-caption .v{
+  font-size:14px; font-weight:900; color:#0f172a; margin-top:2px;
 }
-.welcome-rules{
-  background:linear-gradient(160deg, rgba(127,29,29,.25), rgba(15,23,42,.4));
-  border:1px solid rgba(251,113,133,.35); border-radius:1.15rem; padding:1.1rem 1.15rem;
+#screen-welcome .wc-body{padding:16px 16px 28px; max-width:480px; margin:0 auto}
+#screen-welcome .wc-stats{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px;
+}
+#screen-welcome .wc-stat{
+  background:#fff; border-radius:14px; padding:12px 8px; text-align:center;
+  border:1px solid #e2e8f0; box-shadow:0 2px 8px rgba(15,23,42,.04);
+}
+#screen-welcome .wc-stat .n{font-size:1.35rem; font-weight:900; color:#008751; line-height:1}
+#screen-welcome .wc-stat .l{font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:#64748b; margin-top:4px}
+#screen-welcome .wc-card{
+  background:#fff; border-radius:16px; padding:14px 16px; margin-bottom:12px;
+  border:1px solid #e2e8f0; box-shadow:0 4px 16px rgba(15,23,42,.06);
+}
+#screen-welcome .wc-card.green{border-left:5px solid #008751}
+#screen-welcome .wc-card.yellow{border-left:5px solid #fcd116; background:linear-gradient(90deg,#fffbeb,#fff)}
+#screen-welcome .wc-card.red{border-left:5px solid #e11d48; background:linear-gradient(90deg,#fff1f2,#fff)}
+#screen-welcome .wc-card h3{
+  margin:0 0 8px; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.1em; color:#0f172a;
+}
+#screen-welcome .wc-card ul{margin:0; padding-left:1.1rem; font-size:13px; color:#334155; line-height:1.55; font-weight:600}
+#screen-welcome .wc-card.red ul{color:#9f1239}
+#screen-welcome .wc-time{
+  text-align:center; background:#ecfdf5; border:2px solid #6ee7b7; border-radius:16px;
+  padding:14px; margin-bottom:14px;
+}
+#screen-welcome .wc-time .lab{font-size:10px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; color:#047857}
+#screen-welcome .wc-time .val{font-size:1.2rem; font-weight:900; color:#065f46; margin-top:4px}
+#screen-welcome .wc-time .cd{font-size:12px; font-weight:700; color:#059669; margin-top:4px}
+#screen-welcome .wc-btn-main{
+  width:100%; border:0; border-radius:16px; padding:16px; cursor:pointer;
+  background:linear-gradient(135deg,#008751,#00c853); color:#fff;
+  font-weight:900; font-size:14px; text-transform:uppercase; letter-spacing:.06em;
+  box-shadow:0 8px 24px rgba(0,135,81,.35);
+}
+#screen-welcome .wc-btn-main:active{transform:scale(.98)}
+#screen-welcome .wc-btn-sec{
+  width:100%; margin-top:10px; border-radius:14px; padding:14px; cursor:pointer;
+  background:#fff; border:2px solid #0f172a; color:#0f172a;
+  font-weight:900; font-size:12px; text-transform:uppercase; letter-spacing:.05em;
+}
+#screen-welcome .wc-btn-admin{
+  width:100%; margin-top:10px; border:0; background:transparent; color:#94a3b8;
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+  padding:10px; cursor:pointer;
+}
+#screen-welcome .wc-footer{
+  text-align:center; font-size:10px; color:#94a3b8; font-weight:600; margin-top:8px;
 }
 input{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:12px 14px;width:100%;outline:none}
 .rep-btn{width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;margin-bottom:8px;transition:.2s}
@@ -137,55 +165,59 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 <div id="toast" class="toast"></div>
 
 <!-- WELCOME -->
-<div id="screen-welcome" class="min-h-screen px-4 py-7">
-  <div class="max-w-lg mx-auto fade-up relative z-10">
-    <div class="text-center mb-5">
-      <div class="welcome-badge mb-4">♟ Brain Chess National · 2026</div>
-      <h1 class="welcome-title" id="welcome-title">Maryland Convent<br>Private School</h1>
-      <p class="welcome-sub mt-3">7 boards · 7 rounds · 10+2 · 183 schools nationwide</p>
+<div id="screen-welcome">
+  <div class="wc-topbar"></div>
+  <div class="wc-header">
+    <div class="wc-pill">National School Championship 2026</div>
+    <h1 class="wc-h1" id="welcome-title">Maryland Convent<br><span>Private School</span></h1>
+    <p class="wc-tagline">Official team login · Brain Chess Nigeria</p>
+  </div>
+
+  <div class="wc-photo-wrap">
+    <img src="Screenshot_20260516-211346.jpg" alt="Maryland Convent Private School chess team">
+    <div class="wc-photo-caption">
+      <div class="k">Representing</div>
+      <div class="v">Maryland Convent Private School</div>
+    </div>
+  </div>
+
+  <div class="wc-body">
+    <div class="wc-stats">
+      <div class="wc-stat"><div class="n">7</div><div class="l">Boards</div></div>
+      <div class="wc-stat"><div class="n">7</div><div class="l">Rounds</div></div>
+      <div class="wc-stat"><div class="n">183</div><div class="l">Schools</div></div>
     </div>
 
-    <!-- Squad image only -->
-    <div class="welcome-hero mx-auto max-w-sm mb-2">
-      <img src="Screenshot_20260516-211346.jpg" alt="MCPS Chess Squad">
-      <div class="welcome-hero-shine"></div>
-      <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 16px;text-align:center;z-index:2">
-        <div style="font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#99f6e4">Login team</div>
-        <div style="font-size:14px;font-weight:900;color:#fff;margin-top:2px">Maryland Convent Private School</div>
-      </div>
+    <div class="wc-time" id="schedule-banner">
+      <div class="lab">Round 1 kick-off</div>
+      <div class="val" id="start-time-label">Waiting for admin unlock…</div>
+      <div class="cd" id="start-countdown"></div>
     </div>
 
-    <div class="welcome-schedule mb-4" id="schedule-banner">
-      <div style="font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#a5b4fc">Round 1 starts</div>
-      <div class="text-lg font-black mt-1" style="color:#5eead4" id="start-time-label">Waiting for admin unlock…</div>
-      <div class="text-xs mt-1" style="color:#94a3b8" id="start-countdown"></div>
-    </div>
-
-    <div class="welcome-panel p-4 mb-3">
-      <div style="font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#2dd4bf;margin-bottom:10px">Championship format</div>
-      <ul class="text-sm space-y-2" style="color:#cbd5e1">
-        <li>⏱️ <strong style="color:#fff">10+2 rapid</strong> on every board</li>
-        <li>🏫 <strong style="color:#fff">183 schools</strong> · Swiss-style team ranking</li>
-        <li>🥇 Board medals · Gold / Silver / Bronze race</li>
-        <li>👀 Live multi-board spectator mode</li>
+    <div class="wc-card green">
+      <h3>Event details</h3>
+      <ul>
+        <li><strong>Time control:</strong> 10 minutes + 2 seconds</li>
+        <li><strong>Format:</strong> Team Swiss · match points</li>
+        <li><strong>Awards:</strong> Board Gold / Silver / Bronze</li>
+        <li><strong>Spectators:</strong> All 7 boards live</li>
       </ul>
     </div>
 
-    <div class="welcome-rules mb-5">
-      <div class="font-black text-sm uppercase tracking-wide mb-2" style="color:#fda4af">🚫 Fair play · anti-cheat</div>
-      <ul class="text-sm space-y-1.5 text-left" style="color:#e2e8f0">
-        <li>Do <strong>not</strong> use chess engines, bots, or apps</li>
-        <li>Do <strong>not</strong> get move help from anyone</li>
+    <div class="wc-card red">
+      <h3>Fair play rules</h3>
+      <ul>
+        <li>No chess engines, bots, or apps</li>
+        <li>No help from anyone during games</li>
         <li>Play only with your own mind</li>
-        <li>Anyone caught cheating will be <strong style="text-decoration:underline">disqualified &amp; blacklisted</strong></li>
+        <li>Cheating = disqualification &amp; blacklist</li>
       </ul>
     </div>
 
-    <div class="space-y-3">
-      <button type="button" class="btn-welcome-primary" onclick="showPlayerLogin()">I am a player — enter</button>
-      <button type="button" class="btn-welcome-ghost" onclick="enterSpectator()">Watch live boards (visitor)</button>
-      <button type="button" class="btn-welcome-admin" onclick="openAdminModal()">🔐 Admin · set start time / unlock</button>
-    </div>
+    <button type="button" class="wc-btn-main" onclick="showPlayerLogin()">Enter as player</button>
+    <button type="button" class="wc-btn-sec" onclick="enterSpectator()">Watch live boards</button>
+    <button type="button" class="wc-btn-admin" onclick="openAdminModal()">Admin · set start time</button>
+    <p class="wc-footer">Nigeria Chess Federation style · School team event</p>
   </div>
 </div>
 
