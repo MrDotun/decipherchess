@@ -97,6 +97,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 .chat-del{position:absolute;top:4px;right:6px;background:rgba(244,63,94,.2);border:1px solid rgba(244,63,94,.4);color:#fda4af;border-radius:6px;font-size:9px;padding:1px 6px;cursor:pointer;line-height:1.2}
 .board-line{font-size:10px;color:#94a3b8;margin-top:3px;letter-spacing:.02em}
 .board-line b{color:#e2e8f0}
+.winner-row{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(251,191,36,.10);border:1px solid rgba(251,191,36,.35);border-radius:10px;padding:6px 10px;margin-bottom:6px;font-weight:900;color:#fde68a}
 </style>
 </head>
 <body>
@@ -147,6 +148,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     </div>
     <button type="button" class="wc-btn-main" onclick="showPlayerLogin()">Enter as player</button>
     <button type="button" class="wc-btn-sec" onclick="enterSpectator()">Watch live boards</button>
+    <button type="button" class="wc-btn-admin" onclick="openCoachModal()">Coach login</button>
     <button type="button" class="wc-btn-admin" onclick="openAdminModal()">Admin · set start time</button>
     <p class="wc-footer">Nigeria Chess Federation style · School team event</p>
   </div>
@@ -165,6 +167,31 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <button type="button" class="btn-blue w-full mb-2" onclick="adminForceNextRound()">Force next round (jump forward 13 min)</button>
     <button type="button" class="btn-soft w-full mb-2" onclick="adminResetTournament()">Reset tournament data</button>
     <button type="button" class="btn-soft w-full" onclick="closeAdminModal()">Cancel</button>
+  </div>
+</div>
+
+<div id="coach-modal" class="modal-bg">
+  <div class="panel p-6 max-w-sm w-full text-center" style="border-color:rgba(232,197,71,.4)">
+    <div class="text-3xl mb-2">🎓</div>
+    <h3 class="text-lg font-black text-white">Coach login</h3>
+    <p class="text-sm text-slate-400 mt-2 mb-3">Sign in as coach to post in the chat with the coach badge and moderate messages.</p>
+    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block text-left">Display name</label>
+    <input id="coach-name" type="text" placeholder="Coach" class="mb-3" autocomplete="off" value="Coach">
+    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block text-left">Coach password</label>
+    <input id="coach-pass" type="password" placeholder="Coach password" class="mb-3" autocomplete="off">
+    <button type="button" class="btn-gold w-full mb-2" onclick="confirmCoachLogin()">Sign in as Coach</button>
+    <button type="button" class="btn-danger w-full mb-2" onclick="coachLogout()">Sign out of coach</button>
+    <button type="button" class="btn-soft w-full" onclick="closeCoachModal()">Cancel</button>
+  </div>
+</div>
+
+<div id="round-splash" class="modal-bg">
+  <div class="panel p-6 max-w-md w-full text-center fade-up" style="border-color:rgba(251,191,36,.5)">
+    <div class="text-6xl mb-3">🏆</div>
+    <h3 class="text-2xl font-black text-white mb-1" id="splash-title">Round 1 complete</h3>
+    <p class="text-sm text-slate-400 mb-4" id="splash-score">—</p>
+    <div class="mb-4" id="splash-winners"></div>
+    <button type="button" class="btn-gold w-full" onclick="dismissSplash()">Continue</button>
   </div>
 </div>
 
@@ -389,6 +416,7 @@ firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
 
 const TEAM_PASS="MCPS",ADMIN_PASS="decipher1234",ADMIN_PASS_ALT="brainchess2026";
 const TOTAL_ROUNDS=7,TOTAL_SCHOOLS=183;
+const CHAT_COOLDOWN_MS=30000;
 
 const BASE=600,INC=2;
 const PAIRING_SEC=60, BREAK_SEC=120;
@@ -452,8 +480,10 @@ let waitIv=null,matchIv=null,hubTick=null,latestRows=[];
 let miniBoards={},miniDesiredFen={},miniPending={};
 let pendingCommit=null;
 let roundResults=[];
+let chatSending=false;
+let splashTimeout=null;
 try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){console.warn("worker missing",e);}
-try{ if(localStorage.getItem("bcn_coach")==="1"){ chatRole="coach"; chatName="Coach"; } }catch(e){}
+try{ if(localStorage.getItem("bcn_coach")==="1"){ chatRole="coach"; chatName=localStorage.getItem("bcn_coach_name")||"Coach"; } }catch(e){}
 
 /* ============ UTIL ============ */
 function el(i){return document.getElementById(i);}
@@ -467,6 +497,114 @@ function hideAll(){
   if(matchIv){clearInterval(matchIv);matchIv=null;}
 }
 function showWelcome(){hideAll();el("screen-welcome").classList.remove("hidden");}
+
+/* ============ ROUND WINNER SPLASH ============ */
+function dismissSplash(){
+  el("round-splash").classList.remove("open");
+  if(splashTimeout){ clearTimeout(splashTimeout); splashTimeout=null; }
+}
+async function maybeShowRoundSplash(round){
+  if(!round) return;
+  const key="bcn_splash_r"+round;
+  try{ if(localStorage.getItem(key)==="1") return; }catch(e){}
+  /* Only show on result, wait, or hub screens */
+  const onResult=!el("screen-result").classList.contains("hidden");
+  const onWait=!el("screen-wait").classList.contains("hidden");
+  const onHub=!el("screen-spec-hub").classList.contains("hidden");
+  if(!(onResult||onWait||onHub)) return;
+
+  const anchor=anchorFor(round);
+  const roundEnd=anchor+BASE*1000;
+  const pastEnd=Date.now()>roundEnd+15000;
+
+  try{
+    const d=await db.collection("bcn_rounds").doc("r"+round).get();
+    const data=d.exists?(d.data()||{}):{};
+    const boards=data.boards||{};
+    let count=0;
+    ROSTER.forEach(p=>{ if(typeof boards["p"+p.board]==="number") count++; });
+    if(count<ROSTER.length && !pastEnd) return;
+
+    const winners=[];
+    let gp=0;
+    ROSTER.forEach(p=>{
+      const v=boards["p"+p.board];
+      if(typeof v==="number"){ gp+=v; if(v===1) winners.push(p); }
+    });
+    const oppGP=8-gp;
+    const oppSchool=data.oppSchool||"Opponent";
+    el("splash-title").textContent="Round "+round+" complete";
+    el("splash-score").textContent="Maryland Convent  "+gp.toFixed(1)+" – "+oppGP.toFixed(1)+"  "+oppSchool;
+    const wEl=el("splash-winners");
+    let html="";
+    if(winners.length){
+      html+='<div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">Round winners</div>';
+      html+=winners.map(w=>`<div class="winner-row">👑 <span>Bd ${w.board} · ${esc(w.name)}</span></div>`).join("");
+    } else {
+      html+='<div class="text-slate-400 text-sm">No board wins this round — hard luck, regroup!</div>';
+    }
+    wEl.innerHTML=html;
+    el("round-splash").classList.add("open");
+    try{ localStorage.setItem(key,"1"); }catch(e){}
+    if(splashTimeout) clearTimeout(splashTimeout);
+    splashTimeout=setTimeout(dismissSplash, 8000);
+  }catch(e){ console.warn("splash check failed",e); }
+}
+function scheduleSplashCheck(round, tries){
+  if(!round) return;
+  if(tries<=0) return;
+  maybeShowRoundSplash(round);
+  let shown=false;
+  try{ shown=localStorage.getItem("bcn_splash_r"+round)==="1"; }catch(e){}
+  if(!shown){
+    setTimeout(()=>scheduleSplashCheck(round, tries-1), 3000);
+  }
+}
+
+/* ============ BREAK ENCROACHMENT FIX ============
+   After a player finishes, ensure the NEXT round still has a full
+   BREAK_SEC + PAIRING_SEC window before clocks start. If not, push
+   the whole schedule forward. The Firestore write syncs everyone.
+==================================================== */
+function shiftScheduleForBreak(){
+  const nextRound=currentRound+1;
+  if(nextRound>TOTAL_ROUNDS) return;
+  const desiredAnchor=Date.now()+(BREAK_SEC+PAIRING_SEC)*1000;
+  const currentAnchor=anchorFor(nextRound);
+  if(desiredAnchor>currentAnchor+2000){
+    const shift=desiredAnchor-currentAnchor;
+    const newStart=scheduledStartMs+shift;
+    scheduledStartMs=newStart;
+    try{ localStorage.setItem("bcn_start",String(newStart)); }catch(e){}
+    db.collection("bcn_meta").doc("schedule").set({startAt:newStart,updated:Date.now()},{merge:true}).catch(()=>{});
+  }
+}
+
+/* ============ COACH LOGIN ============ */
+function openCoachModal(){
+  el("coach-modal").classList.add("open");
+  const n=el("coach-name"); if(n) n.value=chatRole==="coach"?(chatName||"Coach"):"Coach";
+}
+function closeCoachModal(){ el("coach-modal").classList.remove("open"); }
+function confirmCoachLogin(){
+  const p=(el("coach-pass").value||"").trim();
+  if(p!==ADMIN_PASS && p!==ADMIN_PASS_ALT){ toast("Wrong coach password"); return; }
+  const n=(el("coach-name").value||"Coach").trim();
+  chatRole="coach"; chatName=n||"Coach";
+  try{ localStorage.setItem("bcn_coach","1"); localStorage.setItem("bcn_coach_name",chatName); }catch(e){}
+  toast("Signed in as "+chatName);
+  el("coach-pass").value="";
+  closeCoachModal();
+  refreshChatEverywhere();
+}
+function coachLogout(){
+  chatRole="spectator"; chatName="Visitor";
+  try{ localStorage.removeItem("bcn_coach"); localStorage.removeItem("bcn_coach_name"); }catch(e){}
+  toast("Signed out of coach");
+  closeCoachModal();
+  refreshChatEverywhere();
+}
+function refreshChatEverywhere(){ try{ attachLobbyChat(); }catch(e){} }
 
 /* ============ COLOUR ASSIGNMENT ============ */
 function colorForBoard(round,board){
@@ -551,7 +689,6 @@ function simulateField(){
     fieldSnapshots.push(list.map(x=>({name:x.name,mp:x.mp,gp:x.gp})));
   }
 }
-/* Force MCPS into 5th place after the last round (worst-case scenario) */
 function standingsFor(round){
   const snap=fieldSnapshots[Math.min(Math.max(round,0),TOTAL_ROUNDS)]||[];
   const rows=snap.map(x=>({name:x.name,mp:x.mp,gp:x.gp}));
@@ -574,6 +711,53 @@ function simBoardResult(round,boardNo,oppStrength){
   if(roll<winP)return 1;
   if(roll<winP+0.16)return 0.5;
   return 0;
+}
+
+/* ============ SHARED SCORE AGGREGATION ============ */
+async function aggregateFromRounds(){
+  const perBoard={}; ROSTER.forEach(p=>perBoard[p.id]=0);
+  let totalGP=0, totalMP=0;
+  const roundsOut=[];
+  try{
+    const snap=await db.collection("bcn_rounds").get();
+    const byR={};
+    snap.forEach(d=>{const r=d.data()||{}; if(r.round) byR[r.round]=r;});
+    for(let r=1;r<=TOTAL_ROUNDS;r++){
+      const doc=byR[r]; if(!doc) continue;
+      const boards=doc.boards||{};
+      let gp=0;
+      const boardResults=ROSTER.map(p=>{
+        const v=boards["p"+p.board];
+        if(typeof v==="number"){ gp+=v; perBoard[p.id]+=v; }
+        return {board:p.board,id:p.id,name:p.name,res:(typeof v==="number"?v:null)};
+      });
+      const mp=gp>4?2:(gp===4?1:0);
+      totalGP+=gp; totalMP+=mp;
+      roundsOut.push({
+        round:r,
+        oppSchool:doc.oppSchool||"—",
+        myGP:gp,
+        oppGP:8-gp,
+        mp:mp,
+        result:mp===2?"Win":(mp===1?"Draw":"Loss"),
+        boardResults:boardResults
+      });
+    }
+  }catch(e){ console.warn("aggregate failed",e); }
+  return {perBoard,totalMP,totalGP,rounds:roundsOut};
+}
+async function refreshScoresFromCloud(){
+  const agg=await aggregateFromRounds();
+  ROSTER.forEach(p=>{
+    individualScores[p.id]=Math.max(individualScores[p.id]||0, agg.perBoard[p.id]||0);
+  });
+  teamMatchPoints=Math.max(teamMatchPoints, agg.totalMP);
+  teamGamePoints=Math.max(teamGamePoints, agg.totalGP);
+  if(agg.rounds.length){
+    const existing={}; roundResults.forEach(r=>existing[r.round]=r);
+    agg.rounds.forEach(r=>{ existing[r.round]=r; });
+    roundResults=Object.keys(existing).map(k=>existing[k]).sort((a,b)=>a.round-b.round);
+  }
 }
 
 /* ============ FALLBACK ENGINE ============ */
@@ -665,8 +849,10 @@ async function adminResetTournament(){
   const now=Date.now();
   try{
     const live=await db.collection("bcn_live").get();
+    const rounds=await db.collection("bcn_rounds").get();
     const b=db.batch();
     live.forEach(d=>b.delete(d.ref));
+    rounds.forEach(d=>b.delete(d.ref));
     await b.commit();
     await db.collection("bcn_meta").doc("tourney").set({status:"lobby",round:1,resetAt:now,updated:now});
     await db.collection("bcn_meta").doc("schedule").set({startAt:0,updated:now});
@@ -740,6 +926,7 @@ function doPlayerLogin(){
 /* ============ ROUND ENTRY ============ */
 async function enterRound(round){
   currentRound=round;
+  let prevRoundDone=false;
   try{
     const d=await db.collection("bcn_live").doc(me.id).get();
     if(d.exists){
@@ -748,6 +935,7 @@ async function enterRound(round){
         if(g.status==="done"){ showResultScreen(g.result,g.reason||"Finished"); return; }
         if(g.status==="live"){ resumeGame(g); return; }
       }
+      if(g.round === round-1 && g.status === "done"){ prevRoundDone = true; }
     }
   }catch(e){}
 
@@ -758,6 +946,11 @@ async function enterRound(round){
   if(now<pStart){ showWaitScreen(round,pStart); return; }
   if(now<a){ startPairingCountdown(round,a); return; }
 
+  if(prevRoundDone){
+    startPairingCountdown(round, Date.now() + 800);
+    return;
+  }
+
   const late=Math.floor((now-a)/1000);
   if(late>=BASE){ joinLateExpired(round,late); return; }
   joinLate(round,a,late);
@@ -767,10 +960,11 @@ function showWaitScreen(round,until){
   attachLobbyChat();
   el("wait-emoji").textContent="⏳";
   el("wait-title").textContent="Round "+round+" opens soon";
-  el("wait-sub").textContent="Pairing opens at "+new Date(until).toLocaleTimeString()+" · clocks start 60 s later.";
   const t=()=>{
-    const left=Math.max(0,Math.ceil((until-Date.now())/1000));
+    const pS=pairingStartFor(round);
+    const left=Math.max(0,Math.ceil((pS-Date.now())/1000));
     el("wait-timer").textContent=fmt(left);
+    el("wait-sub").textContent="Pairing opens at "+new Date(pS).toLocaleTimeString()+" · clocks start 60 s later.";
     if(left<=0){ clearInterval(waitIv); waitIv=null; enterRound(round); }
   };
   t();
@@ -819,6 +1013,15 @@ function joinLateExpired(round,late){
     userColor:colorForBoard(round,me.board),
     fen:"start",pgn:"",updated:Date.now()
   },{merge:true}).catch(()=>{});
+  try{
+    const ref=db.collection("bcn_rounds").doc("r"+round);
+    const upd={};
+    upd["round"]=round;
+    upd["oppSchool"]=plan.school||"—";
+    upd["updated"]=Date.now();
+    upd["boards.p"+me.board]=0;
+    ref.set(upd,{merge:true}).catch(()=>{});
+  }catch(e){}
   saveGameToCloud("Loss");
   showResultScreen(0,"Lost on time — "+fmt(late)+" late");
 }
@@ -915,7 +1118,6 @@ function tickClocks(){
   const now=Date.now();
   let d=Math.floor((now-lastTick)/1000);
   if(d<=0) return;
-  /* Protection against tab-switch jumps: ignore big gaps */
   if(d>3){ lastTick=now; return; }
   lastTick+=d*1000;
   if(game.turn()===userColor){
@@ -968,7 +1170,6 @@ function requestAIMove(){
   aiThinking=true;
   el("status").textContent="Opponent is thinking…";
   const plan=ROUND_PLAN[currentRound-1]||{depth:3,time:200};
-  /* Shortcut when the AI is nearly out of time */
   const aiLow = oppTime<=60;
   const thinkMin = aiLow?200:3000;
   const thinkRange = aiLow?400:7000;
@@ -1054,12 +1255,11 @@ function finishGame(){
 }
 function handleResign(){ if(!gameLive) return; if(confirm("Resign this match?")) endRound(0,"Resigned"); }
 
-/* ============ COMMIT ROUND (only real players get points) ============ */
+/* ============ COMMIT ROUND ============ */
 async function commitPendingRound(){
   if(!pendingCommit) return;
   const pc=pendingCommit; pendingCommit=null;
 
-  /* Read the live collection to see who actually reported a result this round */
   let liveResults = {};
   try{
     const snap = await db.collection("bcn_live").where("round","==",pc.round).get();
@@ -1071,8 +1271,20 @@ async function commitPendingRound(){
     });
   }catch(e){ console.warn("live fetch failed",e); }
 
-  /* Always trust the current player's own result */
   if(liveResults[me.id]==null) liveResults[me.id]=pc.points;
+
+  try{
+    const ref=db.collection("bcn_rounds").doc("r"+pc.round);
+    const upd={};
+    upd["round"]=pc.round;
+    upd["oppSchool"]=pc.oppSchool||"—";
+    upd["updated"]=Date.now();
+    ROSTER.forEach(p=>{
+      const v=liveResults[p.id];
+      if(typeof v==="number") upd["boards.p"+p.board]=v;
+    });
+    ref.set(upd,{merge:true}).catch(()=>{});
+  }catch(e){}
 
   let gp=0;
   const boardResults=ROSTER.map(p=>{
@@ -1113,6 +1325,20 @@ function endRound(points,reason){
 
   pushCloudFinal(points,reason);
   saveGameToCloud(points===1?"Win":(points===0.5?"Draw":"Loss"));
+
+  try{
+    const ref=db.collection("bcn_rounds").doc("r"+currentRound);
+    const upd={};
+    upd["round"]=currentRound;
+    upd["oppSchool"]=plan.school||"—";
+    upd["updated"]=Date.now();
+    upd["boards.p"+me.board]=points;
+    ref.set(upd,{merge:true}).catch(()=>{});
+  }catch(e){}
+
+  /* Guarantee a full break for the next round */
+  shiftScheduleForBreak();
+
   showResultScreen(points,reason);
 }
 function showResultScreen(points,reason){
@@ -1129,6 +1355,8 @@ function showResultScreen(points,reason){
     b.textContent="Continue";
     b.onclick=()=>enterWaitForTeam();
   }
+  /* Watch for the round completing, then show splash */
+  scheduleSplashCheck(currentRound, 40);
 }
 function saveGameToCloud(r){
   db.collection("tournament_games").add({
@@ -1163,17 +1391,19 @@ async function enterWaitForTeam(){
   await commitPendingRound();
   const next=currentRound+1;
   if(next>TOTAL_ROUNDS){ showFinal(); return; }
-  const pStart=pairingStartFor(next);
-  if(Date.now()>=pStart){ enterRound(next); return; }
+  const pStartNow=pairingStartFor(next);
+  if(Date.now()>=pStartNow){ enterRound(next); return; }
 
   hideAll(); el("screen-wait").classList.remove("hidden");
   attachLobbyChat();
   el("wait-emoji").textContent="☕";
   el("wait-title").textContent="Break — clocks frozen";
-  el("wait-sub").textContent="Round "+next+" opens at "+new Date(pStart).toLocaleTimeString()+" — 60 s pairing, then clocks at 10:00. Everyone stays in sync.";
+  el("wait-sub").textContent="Round "+next+" opens at "+new Date(pStartNow).toLocaleTimeString()+" — 60 s pairing, then clocks at 10:00.";
   const t=()=>{
-    const left=Math.max(0,Math.ceil((pStart-Date.now())/1000));
+    const pS=pairingStartFor(next);
+    const left=Math.max(0,Math.ceil((pS-Date.now())/1000));
     el("wait-timer").textContent=left>0?fmt(left):"Starting round "+next+"…";
+    el("wait-sub").textContent="Round "+next+" opens at "+new Date(pS).toLocaleTimeString()+" — 60 s pairing, then clocks at 10:00.";
     if(left<=0){ clearInterval(waitIv); waitIv=null; enterRound(next); }
   };
   t();
@@ -1185,13 +1415,14 @@ function tryOpenStandings(){
   if(gameLive){ toast("Team report appears after every board finishes this round"); return; }
   openStandings();
 }
-function openStandings(){
+async function openStandings(){
   const v=["screen-wait","screen-play","screen-result","screen-spec-hub","screen-spec-one","screen-final"];
   fromStandings="screen-result";
   for(const id of v){ const e=el(id); if(e&&!e.classList.contains("hidden")){ fromStandings=id; break; } }
   hideAll(); el("screen-standings").classList.remove("hidden");
   const played=Math.max(roundsCompleted,0);
   el("stand-round-label").textContent="After Round "+played;
+  try{ await refreshScoresFromCloud(); }catch(e){}
   renderStandings(played);
 }
 function closeStandings(){
@@ -1253,8 +1484,9 @@ function renderStandings(roundOverride){
     return `<tr style="${you?"background:rgba(52,211,153,.1)":""}"><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}${you?" · you":""}</td><td class="text-amber-300 font-black">${sc}/${played}</td><td>${st}</td></tr>`;
   }).join("");
 }
-function showFinal(){
+async function showFinal(){
   hideAll(); el("screen-final").classList.remove("hidden");
+  try{ await refreshScoresFromCloud(); }catch(e){}
   const ranked=standingsFor(TOTAL_ROUNDS);
   const mcps=ranked.findIndex(x=>x.you)+1;
   el("final-rank").textContent="MCPS · Rank #"+mcps;
@@ -1293,7 +1525,7 @@ function boardClockInfo(g){
 }
 function enterSpectator(){
   if(me){ chatRole="player"; chatName=me.name; }
-  else { chatRole=chatRole==="coach"?"coach":"spectator"; if(!chatName) chatName="Visitor"; }
+  else if(chatRole!=="coach"){ chatRole="spectator"; if(!chatName) chatName="Visitor"; }
   hideAll(); el("screen-spec-hub").classList.remove("hidden");
   attachLobbyChat();
   if(hubUnsub) hubUnsub();
@@ -1303,7 +1535,12 @@ function enterSpectator(){
     renderMulti(latestRows);
   },()=>{ latestRows=[]; renderMulti([]); });
   if(hubTick) clearInterval(hubTick);
-  hubTick=setInterval(()=>{ if(!el("screen-spec-hub").classList.contains("hidden")) renderMulti(latestRows); },1000);
+  hubTick=setInterval(()=>{
+    if(!el("screen-spec-hub").classList.contains("hidden")){
+      renderMulti(latestRows);
+      maybeShowRoundSplash(currentRound);
+    }
+  },3000);
 }
 function renderMulti(rows){
   const box=el("multi-boards"); if(!box) return;
@@ -1509,7 +1746,8 @@ function sendChatFrom(btn){
   const input=wrap?wrap.querySelector(".chat-input"):null;
   doSendChat(input);
 }
-function doSendChat(input){
+async function doSendChat(input){
+  if(chatSending) return;
   if(gameLive&&me){ toast("Chat is available on the boards page after you finish"); return; }
   if(!input) return;
   let t=(input.value||"").trim(); if(!t) return;
@@ -1517,7 +1755,7 @@ function doSendChat(input){
     const p=t.replace(/^\/coach\s+/i,"").trim();
     if(p===ADMIN_PASS||p===ADMIN_PASS_ALT){
       chatRole="coach"; chatName="Coach";
-      try{ localStorage.setItem("bcn_coach","1"); }catch(e){}
+      try{ localStorage.setItem("bcn_coach","1"); localStorage.setItem("bcn_coach_name",chatName); }catch(e){}
       toast("Coach mode unlocked");
       document.querySelectorAll("#chat-role-label, .chat-role").forEach(r=>r.textContent="coach");
       input.value="";
@@ -1526,7 +1764,31 @@ function doSendChat(input){
     }
     toast("Wrong coach password"); return;
   }
-  db.collection("bcn_chat").add({name:chatName||"Visitor",role:chatRole||"spectator",text:t.slice(0,240),ts:Date.now()}).catch(()=>toast("Chat needs internet"));
+  if(chatRole!=="coach"){
+    try{
+      const who=chatName||"Visitor";
+      const snap=await db.collection("bcn_chat").where("name","==",who).limit(20).get();
+      let latest=0;
+      snap.forEach(d=>{ const m=d.data(); if(m.ts && m.ts>latest) latest=m.ts; });
+      const now=Date.now();
+      if(latest && (now-latest) < CHAT_COOLDOWN_MS){
+        const wait=Math.ceil((CHAT_COOLDOWN_MS-(now-latest))/1000);
+        toast("Slow mode: wait "+wait+"s");
+        return;
+      }
+    }catch(e){}
+  }
+  chatSending=true;
+  try{
+    await db.collection("bcn_chat").add({
+      name:chatName||"Visitor",
+      role:chatRole||"spectator",
+      text:t.slice(0,240),
+      ts:Date.now()
+    }).catch(()=>toast("Chat needs internet"));
+  } finally {
+    chatSending=false;
+  }
   input.value="";
 }
 
@@ -1564,3 +1826,4 @@ showWelcome();
 </script>
 </body>
 </html>
+
