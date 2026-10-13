@@ -1,5 +1,6 @@
 
-<!DOCTYPE 
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -191,6 +192,18 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <p class="text-sm text-slate-400 mb-4" id="splash-score">—</p>
     <div class="mb-4" id="splash-winners"></div>
     <button type="button" class="btn-gold w-full" onclick="dismissSplash()">Continue</button>
+  </div>
+</div>
+
+<div id="slow-play-modal" class="modal-bg">
+  <div class="panel p-6 max-w-sm w-full text-center fade-up" style="border-color:rgba(251,191,36,.55)">
+    <div style="font-size:44px;line-height:1;margin-bottom:10px">⏱️</div>
+    <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">A word from Coach Dotun</div>
+    <h3 class="text-xl font-black text-white mb-3" id="slow-play-title">Take your time</h3>
+    <p class="text-sm text-slate-300 leading-relaxed mb-5" id="slow-play-msg">
+      Think before every move.
+    </p>
+    <button type="button" class="btn-gold w-full" onclick="dismissSlowPlay()">Got it — I'll take my time</button>
   </div>
 </div>
 
@@ -421,7 +434,7 @@ const BASE=600,INC=2;
 const PAIRING_SEC=60, BREAK_SEC=120;
 const ROUND_GAP_MS=(PAIRING_SEC+BASE+BREAK_SEC)*1000;
 
-const pieceTheme="https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png";
+const pieceTheme="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/website/img/chesspieces/wikipedia/{piece}.png";
 
 const ROSTER=[
   {id:"p1",board:1,name:"Obi Chukwuemeka"},
@@ -434,27 +447,79 @@ const ROSTER=[
   {id:"p8",board:8,name:"Kosi Elelugu"}
 ];
 
+/* Players who need the "don't rush" reminder */
+const SLOW_PLAY_IDS = new Set(["p3","p4"]); /* Semilore Beckley (Bd3) · Sage Osafile (Bd4) */
+
+const MID_SCHOOLS=[
+  "Grange School","Lekki British School","Corona Private School","Green Springs School",
+  "Atlantic Hall","British International School","Greensprings Ikoyi","Chrisland College",
+  "Dowen College","Whitesands School","Lagos Preparatory School","St. Saviour's School",
+  "Rainbow College","Meadow Hall","Avi-Cenna International","Babcock University High",
+  "Halifield Schools","Caleb British International","Topfield College","Nova International"
+];
+
 const ROUND_PLAN=[
   {school:"Grange School",
-   players:["Damilola Adeyinka","Chidera Okonkwo","Oluwaseun Fashola","Chukwuemeka Nnamdi","Ijeoma Eze","Babatunde Ogunleye","Adaeze Okafor","Toluwalase Adebayo"],
+   players:["Damilola Adeyinka","Chidera Okonkwo","Oluwaseun Fashola","Chukwuemeka Nnamdi",
+            "Ijeoma Eze","Babatunde Ogunleye","Adaeze Okafor","Toluwalase Adebayo",
+            "Ngozika Nnamdi","Temiloluwa Ajayi","Obinna Chukwu","Ogechi Chukwuma",
+            "Ifeoma Obi","Ayodeji Oladipo","Kanyinsola Ojo","Ndubuisi Eze",
+            "Amaka Obi","Gbenga Adeleke","Chinaza Uche","Oluwafunmilayo Adeyemi",
+            "Olumide Adekunle","Oluwadamilare Ogunbiyi","Akintunde Oyedeji","Nneka Nwosu"],
    strength:0.55, elo:1200, depth:3, time:200},
+
   {school:"Corona Private School",
-   players:["Adewale Ogundipe","Ngozika Nnamdi","Temiloluwa Ajayi","Obinna Chukwu","Ogechi Chukwuma","Oluwakemi Balogun","Ifeoma Obi","Oluwafunmilayo Adeyemi"],
+   players:["Adewale Ogundipe","Somtochukwu Uche","Ikechukwu Onyeka","Chinelo Obi",
+            "Chidubem Nwankwo","Chiamaka Ibe","Emeka Okafor","Ebube Nnaji",
+            "Onyinyechi Eze","Damilare Fasanya","Seyi Ogunbanjo","Amarachi Eze",
+            "Akinwale Adegoke","Ezinne Obiora","Oluwatobi Sanni","Chisom Anya",
+            "Wale Oladimeji","Kenechukwu Ezeani","Amarachi Ogbonna","Nkechi Umeh",
+            "Olumuyiwa Akinyele","Ayotunde Salami","Adebola Osunlana","Chinwe Okwu"],
    strength:0.62, elo:1400, depth:3, time:250},
+
   {school:"Atlantic Hall",
-   players:["Ayodeji Oladipo","Chidubem Nwankwo","Kanyinsola Ojo","Ndubuisi Eze","Amaka Obi","Gbenga Adeleke","Chinaza Uche","Chukwuemeka Ogbonna"],
+   players:["Ayomide Ogundiran","Chukwuemeka Ogbonna","Oluwafemi Adegbite","Temitope Alabi",
+            "Olusesan Adeoye","Chukwudi Obiora","Ikechukwu Madu","Ezinwanne Okafor",
+            "Adetokunbo Oyelaran","Oluwadamilola Bankole","Segun Agbeniyi","Fiyinfoluwa Adejumo",
+            "Obi Chukwuemeka","Onele Chierika","Semilore Beckley","Sage Osafile",
+            "Anwuli Okoye","Chukwuma Okafor","Nkem Eze","Adaobi Nwosu",
+            "Olamiposi Adeniyi","Kolawole Adegbenro","Titilayo Ajibade","Ifeanyi Ezeh"],
    strength:0.68, elo:1500, depth:3, time:300},
+
   {school:"Jareb Private School",
-   players:["Olumide Adekunle","Somtochukwu Uche","Oluwadamilare Ogunbiyi","Ikechukwu Onyeka","Chinelo Obi","Akintunde Oyedeji","Nneka Nwosu","Ayomide Ogundiran"],
+   players:["Olumide Adekunle","Somtochukwu Uche","Oluwadamilare Ogunbiyi","Ikechukwu Onyeka",
+            "Chinelo Obi","Akintunde Oyedeji","Nneka Nwosu","Ayomide Ogundiran",
+            "Ademola Olaniyan","Chidera Nwosu","Olamilekan Salami","Uchenna Eze",
+            "Ololade Akande","Nnamdi Okonkwo","Bolanle Ogunbanwo","Ifeanyi Aniekwe",
+            "Temitayo Adekunbi","Chinonso Umeh","Folasade Bello","Emeka Nweke",
+            "Adebayo Oyelowo","Ekene Nwafor","Yejide Sanni","Ikechukwu Obi"],
    strength:0.70, elo:1500, depth:4, time:300},
+
   {school:"Chess In Slums Academy",
-   players:["Tobi Akinyemi","Chiamaka Ibe","Damilare Fasanya","Emeka Okafor","Ebube Nnaji","Seyi Ogunbanjo","Amarachi Eze","Onyinyechi Eze"],
+   players:["Tobi Akinyemi","Chiamaka Ibe","Damilare Fasanya","Emeka Okafor",
+            "Ebube Nnaji","Seyi Ogunbanjo","Amarachi Eze","Onyinyechi Eze",
+            "Tayo Ogunmefun","Ogechi Nwankwo","Femi Adeosun","Chinelo Uzoma",
+            "Kunle Balogun","Adanna Okoli","Wale Okeowo","Chinedu Anya",
+            "Ifedayo Salami","Onyeka Nnamdi","Ayobami Ojo","Chioma Ezeani",
+            "Olatunji Adeleke","Kelechi Ugwu","Morayo Ogunjimi","Ugochi Nwaeze"],
    strength:0.78, elo:1600, depth:4, time:400},
+
   {school:"Indian Language School",
-   players:["Arjun Mehta","Priya Sharma","Rohan Patel","Ananya Reddy","Vikram Singh","Kavya Iyer","Aditya Nair","Sneha Kapoor"],
+   players:["Arjun Mehta","Priya Sharma","Rohan Patel","Ananya Reddy",
+            "Vikram Singh","Kavya Iyer","Aditya Nair","Sneha Kapoor",
+            "Rahul Verma","Divya Krishnan","Karan Malhotra","Neha Desai",
+            "Siddharth Rao","Pooja Joshi","Aryan Gupta","Meera Subramanian",
+            "Varun Chatterjee","Riya Banerjee","Naveen Kumar","Shruti Menon",
+            "Nikhil Bhatt","Tara Sinha","Rohit Saxena","Aisha Khan"],
    strength:0.85, elo:1700, depth:4, time:500},
+
   {school:"Skylink International School",
-   players:["Oluwafemi Adegbite","Kenechukwu Ezeani","Temitope Alabi","Chukwudi Obiora","Amarachi Ogbonna","Olusesan Adeoye","Nkechi Umeh","Adetokunbo Oyelaran"],
+   players:["Oluwafemi Adegbite","Kenechukwu Ezeani","Temitope Alabi","Chukwudi Obiora",
+            "Amarachi Ogbonna","Olusesan Adeoye","Nkechi Umeh","Adetokunbo Oyelaran",
+            "Olumide Fashola","Chinwe Okonkwo","Ayodeji Adebayo","Nnamdi Uche",
+            "Tokunbo Sanni","Ifeanyi Onyeka","Kemi Oladipo","Chidera Obi",
+            "Bimbo Adeleke","Obinna Nwosu","Tayo Oyedeji","Adaora Eze",
+            "Folarin Akinyemi","Chiamaka Ugo","Segun Bankole","Onyinye Nnamdi"],
    strength:0.92, elo:1800, depth:5, time:600}
 ];
 
@@ -481,6 +546,9 @@ let pendingCommit=null;
 let roundResults=[];
 let chatSending=false;
 let splashTimeout=null;
+let slowPlayStartShown=false;
+let slowPlayMove4Shown=false;
+let myMovesPlayed=0;
 try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){console.warn("worker missing",e);}
 try{ if(localStorage.getItem("bcn_coach")==="1"){ chatRole="coach"; chatName=localStorage.getItem("bcn_coach_name")||"Coach"; } }catch(e){}
 
@@ -488,6 +556,11 @@ try{ if(localStorage.getItem("bcn_coach")==="1"){ chatRole="coach"; chatName=loc
 function el(i){return document.getElementById(i);}
 function toast(m){const t=el("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+const BLOCKED_WORDS=["fuck","fuk","fck","fcku","fuq","fvck","fuxk","fucc","phuck","f4ck","fcku","f u c k"];
+function hasBadWord(s){
+  const norm=String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  return BLOCKED_WORDS.some(w=>norm.includes(w.replace(/[^a-z0-9]/g,"")));
+}
 function fmt(s){s=Math.max(0,Math.floor(s));const m=Math.floor(s/60),x=s%60;return(m<10?"0":"")+m+":"+(x<10?"0":"")+x;}
 function hideAll(){
   ["screen-welcome","screen-login","screen-match","screen-play","screen-result","screen-wait",
@@ -496,6 +569,35 @@ function hideAll(){
   if(matchIv){clearInterval(matchIv);matchIv=null;}
 }
 function showWelcome(){hideAll();el("screen-welcome").classList.remove("hidden");}
+
+/* ============ SLOW-PLAY REMINDER ============ */
+function dismissSlowPlay(){ el("slow-play-modal").classList.remove("open"); }
+function showSlowPlay(which){
+  if(!me) return;
+  if(!SLOW_PLAY_IDS.has(me.id)) return;
+  if(which==="start" && slowPlayStartShown) return;
+  if(which==="move4" && slowPlayMove4Shown) return;
+  const titleEl=el("slow-play-title");
+  const msgEl=el("slow-play-msg");
+  const firstName=(me.name||"").split(" ")[0]||"champ";
+  if(which==="start"){
+    titleEl.textContent="Take your time, "+firstName;
+    msgEl.innerHTML="Coach Dotun's reminder before you begin:<br><br>"+
+      "In a <strong class='text-amber-300'>10+2</strong> game, a rushed move costs more than a slow one. "+
+      "Look at the whole board, find your opponent's threat, <em>then</em> touch a piece.<br><br>"+
+      "You have plenty of time. Use it.";
+    slowPlayStartShown=true;
+  } else {
+    titleEl.textContent="Slow down — you're still in control";
+    msgEl.innerHTML="You've played your opening moves.<br><br>"+
+      "Now <strong class='text-amber-300'>pause</strong>, scan the whole board, and find your opponent's idea before you play. "+
+      "Rushing here is exactly when games are lost.<br><br>"+
+      "Breathe. Think. Then move.";
+    slowPlayMove4Shown=true;
+  }
+  el("slow-play-modal").classList.add("open");
+  setTimeout(()=>{ try{ el("slow-play-modal").classList.remove("open"); }catch(e){} }, 8000);
+}
 
 /* ============ ROUND WINNER SPLASH ============ */
 function dismissSplash(){
@@ -622,6 +724,14 @@ function loadState(){
 /* ============ RNG ============ */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function hashRand(s){let t=s+0x6D2B79F5;t=Math.imul(t^t>>>15,1|t);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
+function shuffleInPlace(arr, seed){
+  const r=mulberry32(seed|0);
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(r()*(i+1));
+    const t=arr[i];arr[i]=arr[j];arr[j]=t;
+  }
+  return arr;
+}
 
 /* ============ FIXED ROUND SCHEDULE ============ */
 function baseAnchor(r){ return scheduledStartMs + PAIRING_SEC*1000 + (r-1)*ROUND_GAP_MS; }
@@ -712,7 +822,6 @@ async function aggregateFromRounds(){
   const roundsOut=[];
   const roundsData = {};
 
-  /* Primary: tournament_games */
   try{
     const snap = await db.collection("tournament_games").get();
     const latest = {};
@@ -743,7 +852,6 @@ async function aggregateFromRounds(){
     });
   }catch(e){ console.warn("tournament_games read failed", e && e.message); }
 
-  /* Secondary: bcn_rounds */
   try{
     const snap = await db.collection("bcn_rounds").get();
     snap.forEach(d=>{
@@ -858,6 +966,15 @@ function confirmAdminStart(){
   toast("Schedule saved");
   closeAdminModal();
   updateScheduleBanner();
+  try{
+    const seed=ms>>>0;
+    const pool=MID_SCHOOLS.slice();
+    shuffleInPlace(pool, seed+101);
+    ROUND_PLAN[0].school=pool[0];
+    ROUND_PLAN[1].school=pool[1];
+    ROUND_PLAN[2].school=pool[2];
+    ROUND_PLAN.forEach((r,i)=>{ shuffleInPlace(r.players, seed+(i+1)*7919); });
+  }catch(e){}
 }
 function confirmAdminOpenNow(){
   if(!adminPassOK()) return toast("Wrong admin password");
@@ -867,6 +984,15 @@ function confirmAdminOpenNow(){
   toast("Doors open now — Round 1 pairing starts immediately");
   closeAdminModal();
   updateScheduleBanner();
+  try{
+    const seed=scheduledStartMs>>>0;
+    const pool=MID_SCHOOLS.slice();
+    shuffleInPlace(pool, seed+101);
+    ROUND_PLAN[0].school=pool[0];
+    ROUND_PLAN[1].school=pool[1];
+    ROUND_PLAN[2].school=pool[2];
+    ROUND_PLAN.forEach((r,i)=>{ shuffleInPlace(r.players, seed+(i+1)*7919); });
+  }catch(e){}
 }
 function adminForceNextRound(){
   if(!adminPassOK()) return toast("Wrong admin password");
@@ -883,7 +1009,6 @@ async function adminResetTournament(){
   if(!adminPassOK()) return toast("Wrong admin password");
   if(!confirm("Reset ALL tournament data? This wipes every board, score, and history.")) return;
 
-  /* Delete every doc in a collection, chunked to respect the 500-op batch limit */
   const wipeCollection = async (name)=>{
     try{
       while(true){
@@ -908,7 +1033,6 @@ async function adminResetTournament(){
     await db.collection("bcn_meta").doc("mcps").set({mp:0,gp:0,round:1,rc:0,updated:now});
   }catch(e){ console.warn("reset meta failed", e && e.message); }
 
-  /* Reset in-memory + local storage on this device */
   currentRound=1;roundsCompleted=0;
   individualScores={};ROSTER.forEach(p=>individualScores[p.id]=0);
   teamMatchPoints=0;teamGamePoints=0;
@@ -1080,6 +1204,11 @@ function setupMatch(round,anchor,late){
   if(late>0) userTime=Math.max(0,BASE-late);
   lastMoveAt=Date.now(); lastTick=Date.now();
 
+  /* Reset slow-play flags for this game */
+  slowPlayStartShown=false;
+  slowPlayMove4Shown=false;
+  myMovesPlayed=0;
+
   el("play-round").textContent="Round "+round+" / "+TOTAL_ROUNDS+" · 10+2";
   el("play-team-pts").textContent="Team: "+teamMatchPoints;
   el("me-name").textContent=me.name;
@@ -1092,6 +1221,11 @@ function setupMatch(round,anchor,late){
   el("status").textContent=userColor==="w"?"Your turn (White)":"Opponent is thinking…";
 
   hideAll(); el("screen-play").classList.remove("hidden");
+
+  /* Slow-play reminder for flagged players, right as the game begins */
+  if(SLOW_PLAY_IDS.has(me.id)){
+    setTimeout(()=>{ showSlowPlay("start"); }, 900);
+  }
 
   if(board){ try{board.destroy();}catch(e){} }
   setTimeout(()=>{
@@ -1118,6 +1252,10 @@ function resumeGame(g){
   oppMeta={name:g.oppName||fallbackName,school:g.oppSchool||plan.school||"—",strength:plan.strength};
   currentRound=g.round||currentRound;
   lastMoveAt=g.lastMoveAt||Date.now(); lastTick=Date.now();
+
+  slowPlayStartShown=false;
+  slowPlayMove4Shown=false;
+  myMovesPlayed=0;
 
   const el2=Math.floor((Date.now()-lastMoveAt)/1000);
   if(el2>0 && !game.game_over()){
@@ -1202,6 +1340,13 @@ function onSquareClick(sq){
   lastMoveAt=Date.now();
   pushCloud();
   el("status").textContent="Opponent is thinking…";
+
+  /* Increment own-move counter and trigger the post-opening reminder on move 4 */
+  myMovesPlayed++;
+  if(myMovesPlayed===4 && SLOW_PLAY_IDS.has(me.id)){
+    setTimeout(()=>{ showSlowPlay("move4"); }, 500);
+  }
+
   if(game.game_over()){ finishGame(); return; }
   requestAIMove();
 }
@@ -1790,6 +1935,7 @@ async function doSendChat(input){
   if(gameLive&&me){ toast("Chat is available on the boards page after you finish"); return; }
   if(!input) return;
   let t=(input.value||"").trim(); if(!t) return;
+  if(hasBadWord(t)){ toast("Message blocked — please mind your language"); return; }
   if(/^\/coach\s+/i.test(t)){
     const p=t.replace(/^\/coach\s+/i,"").trim();
     if(p===ADMIN_PASS||p===ADMIN_PASS_ALT){
@@ -1836,6 +1982,16 @@ simulateField();
 ROSTER.forEach(p=>individualScores[p.id]=0);
 loadState();
 try{ const n=Number(localStorage.getItem("bcn_start")||0); if(n>0) scheduledStartMs=n; }catch(e){}
+
+(function shuffleRoundPlanOnce(){
+  const seed=(scheduledStartMs||0)>>>0;
+  const pool=MID_SCHOOLS.slice();
+  shuffleInPlace(pool, seed+101);
+  ROUND_PLAN[0].school=pool[0];
+  ROUND_PLAN[1].school=pool[1];
+  ROUND_PLAN[2].school=pool[2];
+  ROUND_PLAN.forEach((r,i)=>{ shuffleInPlace(r.players, seed+(i+1)*7919); });
+})();
 
 db.collection("bcn_meta").doc("schedule").onSnapshot(d=>{
   if(d.exists){
