@@ -434,7 +434,7 @@ const BASE=600,INC=2;
 const PAIRING_SEC=60, BREAK_SEC=120;
 const ROUND_GAP_MS=(PAIRING_SEC+BASE+BREAK_SEC)*1000;
 
-const pieceTheme="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/website/img/chesspieces/wikipedia/{piece}.png";
+const pieceTheme="https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png";
 
 const ROSTER=[
   {id:"p1",board:1,name:"Obi Chukwuemeka"},
@@ -447,8 +447,7 @@ const ROSTER=[
   {id:"p8",board:8,name:"Kosi Elelugu"}
 ];
 
-/* Players who need the "don't rush" reminder */
-const SLOW_PLAY_IDS = new Set(["p3","p4"]); /* Semilore Beckley (Bd3) · Sage Osafile (Bd4) */
+const SLOW_PLAY_IDS = new Set(["p3","p4"]);
 
 const MID_SCHOOLS=[
   "Grange School","Lekki British School","Corona Private School","Green Springs School",
@@ -596,7 +595,6 @@ function showSlowPlay(which){
     slowPlayMove4Shown=true;
   }
   el("slow-play-modal").classList.add("open");
-  setTimeout(()=>{ try{ el("slow-play-modal").classList.remove("open"); }catch(e){} }, 8000);
 }
 
 /* ============ ROUND WINNER SPLASH ============ */
@@ -1204,7 +1202,6 @@ function setupMatch(round,anchor,late){
   if(late>0) userTime=Math.max(0,BASE-late);
   lastMoveAt=Date.now(); lastTick=Date.now();
 
-  /* Reset slow-play flags for this game */
   slowPlayStartShown=false;
   slowPlayMove4Shown=false;
   myMovesPlayed=0;
@@ -1222,7 +1219,6 @@ function setupMatch(round,anchor,late){
 
   hideAll(); el("screen-play").classList.remove("hidden");
 
-  /* Slow-play reminder for flagged players, right as the game begins */
   if(SLOW_PLAY_IDS.has(me.id)){
     setTimeout(()=>{ showSlowPlay("start"); }, 900);
   }
@@ -1341,7 +1337,6 @@ function onSquareClick(sq){
   pushCloud();
   el("status").textContent="Opponent is thinking…";
 
-  /* Increment own-move counter and trigger the post-opening reminder on move 4 */
   myMovesPlayed++;
   if(myMovesPlayed===4 && SLOW_PLAY_IDS.has(me.id)){
     setTimeout(()=>{ showSlowPlay("move4"); }, 500);
