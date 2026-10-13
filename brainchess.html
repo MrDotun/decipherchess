@@ -616,24 +616,33 @@ async function maybeShowRoundSplash(round){
   const pastEnd=Date.now()>roundEnd+15000;
 
   try{
-    const d=await db.collection("bcn_rounds").doc("r"+round).get();
-    const data=d.exists?(d.data()||{}):{};
-    const boards=data.boards||{};
-    let count=0;
-    ROSTER.forEach(p=>{ if(typeof boards["p"+p.board]==="number") count++; });
-    if(count<ROSTER.length && !pastEnd) return;
+    /* Use the same source as the Team Report — tournament_games — so wins register */
+    const agg = await aggregateFromRounds();
+    const rr  = (agg.rounds||[]).find(x=>x.round===round) || null;
+
+    const boards = {};
+    if(rr && Array.isArray(rr.boardResults)){
+      rr.boardResults.forEach(b=>{
+        if(typeof b.res === "number") boards["p"+b.board] = b.res;
+      });
+    }
+
+    let count = Object.keys(boards).length;
+    if(count < ROSTER.length && !pastEnd) return;
 
     const winners=[];
     let gp=0;
     ROSTER.forEach(p=>{
-      const v=boards["p"+p.board];
-      if(typeof v==="number"){ gp+=v; if(v===1) winners.push(p); }
+      const v = boards["p"+p.board];
+      if(typeof v==="number"){ gp += v; if(v===1) winners.push(p); }
     });
-    const oppGP=8-gp;
-    const oppSchool=data.oppSchool||"Opponent";
-    el("splash-title").textContent="Round "+round+" complete";
-    el("splash-score").textContent="Maryland Convent  "+gp.toFixed(1)+" – "+oppGP.toFixed(1)+"  "+oppSchool;
-    const wEl=el("splash-winners");
+    const oppGP = 8-gp;
+    const oppSchool = (rr && rr.oppSchool) || (ROUND_PLAN[Math.max(0,Math.min(TOTAL_ROUNDS-1,round-1))]||{}).school || "Opponent";
+
+    el("splash-title").textContent = "Round "+round+" complete";
+    el("splash-score").textContent = "Maryland Convent  "+gp.toFixed(1)+" – "+oppGP.toFixed(1)+"  "+oppSchool;
+
+    const wEl = el("splash-winners");
     let html="";
     if(winners.length){
       html+='<div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">Round winners</div>';
@@ -1635,23 +1644,12 @@ function renderStandings(roundOverride){
     }
   }
 
+  /* School standings hidden — only the team report is shown */
   const schoolWrap=el("school-standings-wrap");
-  if(played>=TOTAL_ROUNDS){
-    schoolWrap.classList.remove("hidden");
-    const ranked=standingsFor(played);
-    const mcps=ranked.findIndex(x=>x.you)+1;
-    const mc=ranked.find(x=>x.you)||{mp:0,gp:0};
-    el("mcps-rank-line").textContent="Rank #"+mcps+" of "+TOTAL_SCHOOLS;
-    el("mcps-pts-line").textContent="Match pts "+mc.mp.toFixed(0)+" (2=win · 1=draw) · Game pts "+mc.gp.toFixed(1);
-    el("team-body").innerHTML=ranked.slice(0,16).map((r,i)=>{
-      const c=i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"";
-      return `<tr style="${r.you?"background:rgba(251,191,36,.12)":""}"><td class="${c}">${i+1}</td><td class="font-bold ${r.you?"text-amber-300":"text-white"}">${esc(r.name)}${r.you?" · YOU":""}</td><td>${r.mp.toFixed(0)}</td><td>${r.gp.toFixed(1)}</td></tr>`;
-    }).join("");
-  } else {
-    schoolWrap.classList.add("hidden");
-    el("mcps-rank-line").textContent="MCPS team report";
-    el("mcps-pts-line").textContent="Match pts "+teamMatchPoints.toFixed(0)+" · Game pts "+teamGamePoints.toFixed(1);
-  }
+  if(schoolWrap) schoolWrap.classList.add("hidden");
+  const tb=el("team-body"); if(tb) tb.innerHTML="";
+  el("mcps-rank-line").textContent="MCPS team report";
+  el("mcps-pts-line").textContent="Match pts "+teamMatchPoints.toFixed(0)+" · Game pts "+teamGamePoints.toFixed(1);
 
   el("ind-body").innerHTML=ROSTER.map(p=>{
     const sc=(individualScores[p.id]||0);
