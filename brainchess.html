@@ -66,6 +66,9 @@ input{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-ra
 .highlight-select{box-shadow:inset 0 0 0 4px rgba(255,255,0,.9)!important}
 .highlight-legal{position:relative}
 .highlight-legal::after{content:'';position:absolute;left:50%;top:50%;width:18%;height:18%;min-width:9px;min-height:9px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(0,0,0,.28);pointer-events:none}
+.highlight-last{box-shadow:inset 0 0 0 3px rgba(250,204,21,.65)!important}
+.board-b72b1 .white-1e1d7.highlight-last{background-color:#f6f669!important}
+.board-b72b1 .black-3c85d.highlight-last{background-color:#baca2b!important}
 .clock{font-variant-numeric:tabular-nums;font-weight:900;font-size:1.45rem;min-width:4.2rem;text-align:right}
 .clock.active{color:#fbbf24;text-shadow:0 0 12px rgba(251,191,36,.35)}
 .clock.low{color:#f87171;animation:pulse 1s infinite}
@@ -73,6 +76,8 @@ input{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-ra
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .45s ease both}
+@keyframes checkPulse{0%,100%{color:#fbbf24}50%{color:#ef4444;text-shadow:0 0 12px rgba(239,68,68,.6)}}
+#status.check{animation:checkPulse 1s infinite;font-weight:900}
 .spinner{width:64px;height:64px;border:4px solid rgba(251,191,36,.15);border-top-color:#fbbf24;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.96);border:1px solid rgba(232,197,71,.4);color:#fde68a;padding:10px 18px;border-radius:999px;font-size:12px;font-weight:800;z-index:400;opacity:0;transition:opacity .25s;pointer-events:none}
 .toast.show{opacity:1}
@@ -102,6 +107,35 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 #toast-broadcast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #toast-broadcast .from{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#93c5fd;margin-bottom:4px;font-weight:900}
 #toast-broadcast .msg{font-size:14px;line-height:1.4}
+.sound-toggle{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#e2e8f0;border-radius:8px;padding:4px 8px;font-size:14px;cursor:pointer;line-height:1}
+.sound-toggle.off{opacity:.4}
+.move-list-wrap{margin-top:8px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 10px}
+.move-list-wrap .mv-head{font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;margin-bottom:4px}
+.move-list{max-height:110px;overflow-y:auto;font-size:12px;line-height:1.7}
+.move-list .mv{display:inline-block;min-width:44px;padding:2px 6px;border-radius:5px;font-weight:700;color:#e2e8f0}
+.move-list .mn{color:#64748b;font-size:11px;font-weight:700;padding:2px 4px;display:inline-block;min-width:22px}
+.live-team-line{background:linear-gradient(135deg,#065f46,#064e3b);border:1px solid rgba(52,211,153,.35);border-radius:12px;padding:8px 12px;text-align:center;margin-bottom:12px}
+.live-team-line .score{font-size:18px;font-weight:900;color:#fff;letter-spacing:.02em}
+.live-team-line .sub{font-size:10px;color:#a7f3d0;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+#coach-dash{display:none;margin-top:14px;text-align:left}
+#coach-dash.on{display:block}
+#coach-dash .dh{font-size:10px;font-weight:900;color:#fbbf24;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;text-align:left}
+#coach-dash table{font-size:11px}
+#coach-dash td{padding:5px 4px}
+.beaten-wrap{margin-top:14px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);border-radius:12px;padding:10px 12px;text-align:left}
+.beaten-wrap .h{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#a7f3d0;margin-bottom:6px}
+.beaten-wrap ul{margin:0;padding-left:1.1rem;font-size:12px;color:#e2e8f0;line-height:1.6}
+.stats-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
+.stats-row:last-child{border-bottom:0}
+.stats-label{color:#94a3b8}
+.stats-val{font-weight:900;color:#fff}
+.stats-val.good{color:#34d399}
+.stats-val.warn{color:#fbbf24}
+.stats-val.bad{color:#f87171}
+.trend-bar{height:22px;background:linear-gradient(90deg,#ef4444,#fbbf24,#34d399);border-radius:4px;position:relative;margin:8px 0 14px}
+.trend-marker{position:absolute;top:-4px;width:6px;height:30px;background:#fff;border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,.5)}
+.weakness-item{background:rgba(244,63,94,.08);border-left:3px solid #f87171;padding:6px 10px;border-radius:6px;margin-bottom:6px;font-size:12px;color:#fecaca;line-height:1.4}
+.strength-item{background:rgba(52,211,153,.08);border-left:3px solid #34d399;padding:6px 10px;border-radius:6px;margin-bottom:6px;font-size:12px;color:#a7f3d0;line-height:1.4}
 </style>
 </head>
 <body>
@@ -193,6 +227,15 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
       </div>
       <p class="text-[10px] text-slate-500 mt-1">Appears as a banner on every live board.</p>
     </div>
+    <div id="coach-dash">
+      <div class="dh">Live board dashboard</div>
+      <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>Bd</th><th>Player</th><th>Opp</th><th>Clock</th><th>St</th></tr></thead>
+          <tbody id="coach-dash-body"></tbody>
+        </table>
+      </div>
+    </div>
     <button type="button" class="btn-danger w-full mb-2" onclick="coachLogout()">Sign out of coach</button>
     <button type="button" class="btn-soft w-full" onclick="closeCoachModal()">Cancel</button>
   </div>
@@ -246,6 +289,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#070b14]/95 backdrop-blur px-4 py-3 flex items-center justify-between gap-2">
     <div class="text-[10px] font-black uppercase tracking-widest text-amber-400" id="play-round">Round 1 / 7 · 10+2</div>
     <div class="text-[11px] font-bold text-slate-400" id="play-team-pts">Team: 0</div>
+    <button type="button" class="sound-toggle" id="sound-toggle" onclick="toggleSound()">🔊</button>
     <button type="button" class="text-xs font-bold text-slate-500 opacity-60" onclick="tryOpenStandings()">Team Report</button>
   </nav>
   <div class="max-w-xl mx-auto px-3 py-3">
@@ -267,7 +311,11 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
       <div class="clock" id="clock-me">10:00</div>
     </div>
     <div class="text-center text-amber-300 font-bold text-sm mb-3" id="status">Your turn</div>
-    <div class="flex gap-2">
+    <div class="move-list-wrap">
+      <div class="mv-head">Moves</div>
+      <div class="move-list" id="play-move-list"><span class="text-slate-500 text-xs">No moves yet</span></div>
+    </div>
+    <div class="flex gap-2 mt-3">
       <button type="button" class="btn-danger flex-1" onclick="handleResign()">Resign</button>
       <button type="button" class="btn-soft flex-1" onclick="enterSpectator()">Watch boards</button>
     </div>
@@ -279,7 +327,14 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="text-5xl mb-3" id="result-emoji">🏆</div>
     <h2 class="text-2xl font-black text-white mb-1" id="result-title">You won!</h2>
     <p class="text-slate-400 text-sm mb-4" id="result-sub">Great game</p>
-    <div class="text-amber-300 font-black text-lg mb-6" id="result-pts">+1.0 board points</div>
+    <div class="text-amber-300 font-black text-lg mb-4" id="result-pts">+1.0 board points</div>
+    <div class="panel p-3 mb-3 text-left border border-amber-400/20" id="result-stats" style="display:none">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-[10px] font-black uppercase tracking-widest text-amber-400">Your game stats</div>
+        <span class="text-[10px] text-slate-500">instant analysis</span>
+      </div>
+      <div id="result-stats-body"></div>
+    </div>
     <button type="button" class="btn-gold w-full mb-2" id="result-next-btn" onclick="enterWaitForTeam()">Continue</button>
     <p class="text-[10px] text-slate-500 mt-2">Team results update after every board finishes this round</p>
   </div>
@@ -291,6 +346,16 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <p class="text-slate-400 text-sm mb-4" id="wait-sub">All boards finished. Next round starts together after the break.</p>
   <div class="text-3xl font-black text-amber-300 mb-6" id="wait-timer">2:00</div>
   <button type="button" class="btn-soft" onclick="enterSpectator()">Watch live boards &amp; chat</button>
+
+  <div class="beaten-wrap" id="beaten-wrap" style="display:none">
+    <div class="h">You've beaten so far</div>
+    <ul id="beaten-list"></ul>
+  </div>
+
+  <div class="beaten-wrap" id="progress-wrap" style="display:none">
+    <div class="h">Your progress</div>
+    <div id="progress-body" class="text-sm text-slate-300"></div>
+  </div>
 
   <div class="w-full max-w-md mt-6 panel p-3 chat-wrap">
     <div class="flex items-center justify-between mb-2">
@@ -354,6 +419,10 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
         <tbody id="final-ind"></tbody>
       </table>
     </div>
+    <div class="panel p-3 mb-4 text-left border border-amber-400/20" id="tournament-stats" style="display:none">
+      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">Tournament statistics</div>
+      <div id="tournament-stats-body"></div>
+    </div>
     <button type="button" class="btn-gold w-full" onclick="openStandings()">Full standings</button>
   </div>
 </div>
@@ -365,6 +434,10 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <button type="button" class="text-xs font-bold text-slate-400" onclick="openStandings()">Team Report</button>
   </nav>
   <div class="max-w-3xl mx-auto px-3 py-3">
+    <div class="live-team-line" id="live-team-line">
+      <div class="score" id="live-team-score">Maryland Convent · —</div>
+      <div class="sub" id="live-team-sub">Round — · loading</div>
+    </div>
     <div id="multi-boards" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6"></div>
     <div class="panel p-3 chat-wrap">
       <div class="flex items-center justify-between mb-2">
@@ -448,6 +521,8 @@ const ROUND_GAP_MS=(PAIRING_SEC+BASE+BREAK_SEC)*1000;
 const pieceTheme="https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png";
 
 /* ===== Sound effects ===== */
+let soundOn = true;
+try{ soundOn = localStorage.getItem("bcn_sound")!=="0"; }catch(e){}
 const SFX = {
   move:     new Audio("https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3"),
   opponent: new Audio("https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-opponent.mp3"),
@@ -456,9 +531,22 @@ const SFX = {
 };
 Object.values(SFX).forEach(a=>{ a.preload="auto"; a.volume=0.6; });
 function playSfx(name){
+  if(!soundOn) return;
   const a = SFX[name];
   if(!a) return;
   try{ a.currentTime = 0; a.play().catch(()=>{}); }catch(e){}
+}
+function haptic(pattern){
+  try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){}
+}
+function toggleSound(){
+  soundOn = !soundOn;
+  try{ localStorage.setItem("bcn_sound", soundOn?"1":"0"); }catch(e){}
+  const btn = el("sound-toggle");
+  if(btn){
+    btn.textContent = soundOn ? "🔊" : "🔇";
+    btn.classList.toggle("off", !soundOn);
+  }
 }
 
 const ROSTER=[
@@ -574,6 +662,16 @@ let slowPlayStartShown=false;
 let slowPlayMove4Shown=false;
 let myMovesPlayed=0;
 
+/* ===== Enhancement state ===== */
+let lastMoveFrom=null, lastMoveTo=null;
+let gameStatsByRound = {};
+let hiddenSince=0;
+let lastUserMoveAt=0;
+let idleNudgeFired=false;
+const offlineQueue = [];
+let offlineFlusher=null;
+let coachDashIv=null;
+
 try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){console.warn("worker missing",e);}
 try{
   if(localStorage.getItem("bcn_coach")==="1"){
@@ -598,6 +696,199 @@ function hideAll(){
   if(matchIv){clearInterval(matchIv);matchIv=null;}
 }
 function showWelcome(){hideAll();el("screen-welcome").classList.remove("hidden");}
+
+/* ============ LAST-MOVE HIGHLIGHT ============ */
+function setLastHighlight(from,to){
+  $(".highlight-last").removeClass("highlight-last");
+  lastMoveFrom=from||null; lastMoveTo=to||null;
+  if(from) $(".square-"+from).addClass("highlight-last");
+  if(to)   $(".square-"+to).addClass("highlight-last");
+}
+function clearLastHighlight(){
+  $(".highlight-last").removeClass("highlight-last");
+  lastMoveFrom=null; lastMoveTo=null;
+}
+
+/* ============ CHECK INDICATOR ============ */
+function updateCheckIndicator(){
+  const s=el("status"); if(!s||!game) return;
+  if(game.in_check()){
+    s.classList.add("check");
+    s.textContent = game.turn()===userColor ? "⚠ CHECK — find the safe move!" : "You've given check — opponent thinking…";
+  } else {
+    s.classList.remove("check");
+  }
+}
+
+/* ============ TAB SWITCH WARNING ============ */
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden){ hiddenSince = Date.now(); return; }
+  if(hiddenSince && gameLive && game){
+    const away = Math.floor((Date.now()-hiddenSince)/1000);
+    hiddenSince = 0;
+    if(away >= 3) toast("You were away "+away+"s — your clock kept running");
+  } else {
+    hiddenSince = 0;
+  }
+});
+
+/* ============ LEAVE-PAGE WARNING ============ */
+window.addEventListener("beforeunload", (e)=>{
+  if(gameLive && game && !game.game_over()){
+    e.preventDefault();
+    e.returnValue = "You have a game in progress. Leave anyway?";
+    return e.returnValue;
+  }
+});
+
+/* ============ MOVE LIST ============ */
+function renderPlayMoveList(){
+  const list = el("play-move-list"); if(!list) return;
+  if(!game || !game.history().length){ list.innerHTML = '<span class="text-slate-500 text-xs">No moves yet</span>'; return; }
+  const hist = game.history({verbose:true});
+  let html = "";
+  for(let i=0;i<hist.length;i+=2){
+    const n = Math.floor(i/2)+1;
+    const wSan = hist[i]?hist[i].san:"";
+    const bSan = hist[i+1]?hist[i+1].san:"";
+    html += `<span class="mn">${n}.</span><span class="mv">${esc(wSan)}</span>`;
+    if(bSan) html += `<span class="mv">${esc(bSan)}</span>`;
+  }
+  list.innerHTML = html;
+  list.scrollTop = list.scrollHeight;
+}
+
+/* ============ LIVE TEAM SCORE (SPECTATOR HUB) ============ */
+function updateLiveTeamLine(rows){
+  const scoreEl = el("live-team-score");
+  const subEl   = el("live-team-sub");
+  if(!scoreEl || !subEl) return;
+  const liveRound = currentRoundFromClock(Date.now());
+  const byBoard = {};
+  rows.forEach(r=>{ if(r.board) byBoard[r.board]=r; });
+  let gp=0, played=0, liveCount=0;
+  ROSTER.forEach(p=>{
+    const g = byBoard[p.board];
+    if(!g) return;
+    if(g.status==="done" && typeof g.result==="number"){ gp += g.result; played++; }
+    else if(g.status==="live") liveCount++;
+  });
+  const oppSchool = (ROUND_PLAN[Math.max(0,liveRound-1)]||{}).school || "Opponent";
+  const oppGP = Math.max(0, 8-gp);
+  scoreEl.textContent = "Maryland Convent  "+gp.toFixed(1)+" – "+oppGP.toFixed(1)+"  "+oppSchool;
+  const parts = [];
+  parts.push("Round "+liveRound);
+  if(played) parts.push(played+" finished");
+  if(liveCount) parts.push(liveCount+" live");
+  if(played+liveCount<8) parts.push((8-played-liveCount)+" waiting");
+  subEl.textContent = parts.join(" · ");
+}
+
+/* ============ COACH DASHBOARD ============ */
+function renderCoachDash(rows){
+  const tb = el("coach-dash-body"); if(!tb) return;
+  const byBoard = {};
+  rows.forEach(r=>{ if(r.board) byBoard[r.board]=r; });
+  tb.innerHTML = ROSTER.map(p=>{
+    const g = byBoard[p.board] || {};
+    const ut = g.userTime!=null ? fmt(g.userTime) : "—";
+    const ot = g.oppTime!=null ? fmt(g.oppTime) : "—";
+    const st = g.status==="done" ? (g.result===1?"🟢":(g.result===0.5?"🟡":"🔴"))
+             : g.status==="live" ? "● live" : "—";
+    const opp = (g.oppName||"—").split(" ")[0];
+    return '<tr><td>'+p.board+'</td><td class="font-bold text-white">'+esc(p.name.split(" ")[0])+'</td><td>'+esc(opp)+'</td><td>'+ut+' / '+ot+'</td><td>'+st+'</td></tr>';
+  }).join("");
+}
+function startCoachDash(){
+  const wrap = el("coach-dash");
+  if(wrap) wrap.classList.add("on");
+  if(coachDashIv){ clearInterval(coachDashIv); coachDashIv=null; }
+  const tick = ()=>{
+    db.collection("bcn_live").get().then(snap=>{
+      const rows = [];
+      snap.forEach(d=>rows.push(Object.assign({id:d.id},d.data())));
+      renderCoachDash(rows);
+    }).catch(()=>{});
+  };
+  tick();
+  coachDashIv = setInterval(tick, 3000);
+}
+function stopCoachDash(){
+  const wrap = el("coach-dash");
+  if(wrap) wrap.classList.remove("on");
+  if(coachDashIv){ clearInterval(coachDashIv); coachDashIv=null; }
+}
+
+/* ============ OFFLINE QUEUE ============ */
+function queueCloud(kind, ref, payload){
+  offlineQueue.push({kind:kind, ref:ref, payload:payload, ts:Date.now()});
+}
+function startOfflineFlusher(){
+  if(offlineFlusher) return;
+  offlineFlusher = setInterval(()=>{
+    if(!offlineQueue.length) return;
+    const item = offlineQueue[0];
+    item.ref.set(item.payload,{merge:true}).then(()=>{
+      offlineQueue.shift();
+    }).catch(()=>{});
+  }, 10000);
+}
+
+/* ============ BEATEN LIST ============ */
+function renderBeatenList(){
+  const wrap = el("beaten-wrap"); const list = el("beaten-list");
+  if(!wrap || !list) return;
+  const wins = [];
+  roundResults.forEach(rr=>{
+    if(!Array.isArray(rr.boardResults)) return;
+    rr.boardResults.forEach(b=>{
+      if(b.id===me.id && b.res===1){
+        wins.push("Round "+rr.round+" — "+rr.oppSchool);
+      }
+    });
+  });
+  if(!wins.length){ wrap.style.display="none"; return; }
+  wrap.style.display="block";
+  list.innerHTML = wins.map(w=>"<li>"+esc(w)+"</li>").join("");
+}
+
+/* ============ PROGRESS LINE ============ */
+function renderProgressLine(){
+  const wrap = el("progress-wrap");
+  const body = el("progress-body");
+  if(!wrap || !body) return;
+  const rounds = Object.keys(gameStatsByRound).map(Number).sort((a,b)=>a-b);
+  if(rounds.length < 2){ wrap.style.display = "none"; return; }
+  wrap.style.display = "block";
+  const latest = gameStatsByRound[rounds[rounds.length-1]];
+  const previous = gameStatsByRound[rounds[rounds.length-2]];
+  const delta = latest.accuracy - previous.accuracy;
+  const arrow = delta > 2 ? "▲" : delta < -2 ? "▼" : "▬";
+  const color = delta > 2 ? "text-emerald-400" : delta < -2 ? "text-rose-400" : "text-amber-400";
+  let html = "";
+  html += '<div class="stats-row"><span class="stats-label">Last round accuracy</span><span class="stats-val '+color+'">'+latest.accuracy.toFixed(0)+'% '+arrow+'</span></div>';
+  html += '<div class="stats-row"><span class="stats-label">Team match points</span><span class="stats-val">'+teamMatchPoints+'</span></div>';
+  html += '<div class="stats-row"><span class="stats-label">Individual points</span><span class="stats-val">'+(individualScores[me.id]||0)+' / '+roundsCompleted+'</span></div>';
+  if(latest.blunders === 0){
+    html += '<div class="stats-row"><span class="stats-label">Last game</span><span class="stats-val good">Clean — no blunders</span></div>';
+  } else {
+    html += '<div class="stats-row"><span class="stats-label">Last game blunders</span><span class="stats-val '+(latest.blunders>=2?'bad':'warn')+'">'+latest.blunders+'</span></div>';
+  }
+  body.innerHTML = html;
+}
+
+/* ============ IDLE NUDGE ============ */
+function checkIdleNudge(){
+  if(!gameLive || !game) return;
+  if(game.turn()!==userColor) return;
+  if(idleNudgeFired) return;
+  const idle = Date.now()-lastUserMoveAt;
+  if(idle > 180000){
+    idleNudgeFired = true;
+    playSfx("opponent");
+    toast("Your move — you've been thinking for 3 minutes");
+  }
+}
 
 /* ============ SLOW-PLAY REMINDER ============ */
 function dismissSlowPlay(){ el("slow-play-modal").classList.remove("open"); }
@@ -714,6 +1005,7 @@ function shiftScheduleForBreak(){
 function openCoachModal(){
   el("coach-modal").classList.add("open");
   const n=el("coach-name"); if(n) n.value=chatRole==="coach"?(chatName||"Coach"):"Coach";
+  if(chatRole==="coach") startCoachDash();
 }
 function closeCoachModal(){ el("coach-modal").classList.remove("open"); }
 function confirmCoachLogin(){
@@ -726,6 +1018,7 @@ function confirmCoachLogin(){
   el("coach-pass").value="";
   closeCoachModal();
   refreshChatEverywhere();
+  startCoachDash();
 }
 function coachLogout(){
   chatRole="spectator"; chatName="Visitor";
@@ -733,6 +1026,7 @@ function coachLogout(){
   toast("Signed out of coach");
   closeCoachModal();
   refreshChatEverywhere();
+  stopCoachDash();
 }
 function refreshChatEverywhere(){ try{ attachLobbyChat(); }catch(e){} }
 
@@ -794,7 +1088,7 @@ function colorForBoard(round,board){
 
 /* ============ PERSISTENCE ============ */
 function saveState(){
-  try{localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound,rr:roundResults}));}catch(e){}
+  try{localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound,rr:roundResults,st:gameStatsByRound}));}catch(e){}
   db.collection("bcn_meta").doc("mcps").set({mp:teamMatchPoints,gp:teamGamePoints,round:currentRound,rc:roundsCompleted,updated:Date.now()},{merge:true}).catch(()=>{});
 }
 function loadState(){
@@ -805,6 +1099,7 @@ function loadState(){
     if(typeof d.rc==="number")roundsCompleted=d.rc;
     if(typeof d.round==="number")currentRound=d.round;
     if(Array.isArray(d.rr))roundResults=d.rr;
+    if(d.st && typeof d.st==="object")gameStatsByRound=d.st;
   }catch(e){}
 }
 
@@ -1037,6 +1332,239 @@ function pickEngineMove(c,depth){
 }
 function eloBlunder(elo){ return Math.max(0.005, 0.05 - (elo-1200)*0.000075); }
 
+/* ============ STATISTICS MODULE ============ */
+function quickEval(c){
+  if(c.in_checkmate()) return c.turn()==="w" ? -99000 : 99000;
+  if(c.in_draw()||c.in_stalemate()||c.in_threefold_repetition()) return 0;
+  const VAL={p:100,n:320,b:330,r:500,q:900,k:0};
+  const board=c.board();
+  const movesPlayed=c.history().length;
+  let s=0;
+  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
+    const p=board[r][f]; if(!p) continue;
+    let v=VAL[p.type]||0;
+    if(p.type==="p"||p.type==="n"){
+      const dist=Math.abs(r-3.5)+Math.abs(f-3.5);
+      v += Math.max(0, Math.round((7-dist)*3));
+    }
+    if(movesPlayed<20 && (p.type==="n"||p.type==="b")){
+      const homeRank = p.color==="w" ? 0 : 7;
+      if(r !== homeRank) v += 12;
+    }
+    s += p.color==="w" ? v : -v;
+  }
+  return s;
+}
+
+function analyzeGameStats(){
+  if(!game) return null;
+  let pgn = "";
+  try{ pgn = game.pgn(); }catch(e){ return null; }
+  if(!pgn) return null;
+
+  const full = new Chess();
+  try{ full.load_pgn(pgn); }catch(e){ return null; }
+  const moves = full.history({verbose:true});
+  if(moves.length < 4) return null;
+
+  const stats = {
+    moves: moves.length, myMoves: 0, captures: 0, piecesLost: 0,
+    checksGiven: 0, checksReceived: 0,
+    castled: false, castledEarly: false, opening: "",
+    blunders: 0, mistakes: 0, inaccuracies: 0, goodMoves: 0,
+    worstMoveSan: "", worstMoveNum: 0, worstMoveLoss: 0, accuracy: 0
+  };
+
+  const replay = new Chess();
+  let totalLoss = 0;
+
+  for(let i=0;i<moves.length;i++){
+    const m = moves[i];
+    const isMyMove = m.color === userColor;
+
+    if(!stats.opening && m.color === "w") stats.opening = m.san;
+
+    if(isMyMove){
+      stats.myMoves++;
+      if(m.captured) stats.captures++;
+      if(m.san === "O-O" || m.san === "O-O-O"){
+        stats.castled = true;
+        if(i < 16) stats.castledEarly = true;
+      }
+
+      const fenBefore = replay.fen();
+      const cBefore = new Chess(fenBefore);
+      const evalBefore = quickEval(cBefore);
+
+      let bestEval = evalBefore;
+      const bestM = pickEngineMove(cBefore, 2);
+      if(bestM){
+        const c2 = new Chess(fenBefore);
+        const applied = c2.move({from: bestM.from, to: bestM.to, promotion: bestM.promotion || "q"});
+        if(applied) bestEval = quickEval(c2);
+      }
+
+      const c3 = new Chess(fenBefore);
+      const played = c3.move({from: m.from, to: m.to, promotion: m.promotion || "q"});
+      const evalAfter = played ? quickEval(c3) : evalBefore;
+
+      const sign = userColor === "w" ? 1 : -1;
+      let loss = Math.max(0, (bestEval - evalAfter) * sign);
+      if(loss > 900) loss = 900;
+
+      totalLoss += loss;
+
+      if(loss >= 300)      stats.blunders++;
+      else if(loss >= 150) stats.mistakes++;
+      else if(loss >= 60)  stats.inaccuracies++;
+      else                 stats.goodMoves++;
+
+      if(loss > stats.worstMoveLoss){
+        stats.worstMoveLoss = loss;
+        stats.worstMoveSan = m.san;
+        stats.worstMoveNum = Math.floor(i/2)+1;
+      }
+    } else {
+      if(m.captured) stats.piecesLost++;
+    }
+
+    replay.move(m);
+    if(replay.in_check()){
+      if(isMyMove) stats.checksGiven++;
+      else stats.checksReceived++;
+    }
+  }
+
+  const avgLoss = stats.myMoves ? (totalLoss / stats.myMoves) : 0;
+  stats.accuracy = Math.max(10, Math.min(98, 100 - avgLoss / 4));
+  return stats;
+}
+
+function renderGameStats(stats){
+  const wrap = el("result-stats");
+  const body = el("result-stats-body");
+  if(!wrap || !body) return;
+  if(!stats){ wrap.style.display = "none"; return; }
+  wrap.style.display = "block";
+
+  const accClass = stats.accuracy>=85 ? "text-emerald-400"
+                 : stats.accuracy>=70 ? "text-amber-400"
+                 : "text-rose-400";
+  const blunderClass = stats.blunders===0 ? "good"
+                     : stats.blunders>=3 ? "bad"
+                     : "warn";
+
+  let html = "";
+  html += '<div class="grid grid-cols-3 gap-2 mb-3">';
+  html += '<div class="text-center"><div class="text-[9px] uppercase tracking-widest text-slate-500">Accuracy</div><div class="text-xl font-black '+accClass+'">'+stats.accuracy.toFixed(0)+'%</div></div>';
+  html += '<div class="text-center"><div class="text-[9px] uppercase tracking-widest text-slate-500">Your moves</div><div class="text-xl font-black text-white">'+stats.myMoves+'</div></div>';
+  html += '<div class="text-center"><div class="text-[9px] uppercase tracking-widest text-slate-500">Captures</div><div class="text-xl font-black text-white">'+stats.captures+'</div></div>';
+  html += '</div>';
+
+  html += '<div class="stats-row"><span class="stats-label">Blunders</span><span class="stats-val '+blunderClass+'">'+stats.blunders+'</span></div>';
+  html += '<div class="stats-row"><span class="stats-label">Mistakes</span><span class="stats-val '+(stats.mistakes>=2?'warn':'')+'">'+stats.mistakes+'</span></div>';
+  html += '<div class="stats-row"><span class="stats-label">Inaccuracies</span><span class="stats-val">'+stats.inaccuracies+'</span></div>';
+  html += '<div class="stats-row"><span class="stats-label">Good moves</span><span class="stats-val good">'+stats.goodMoves+'</span></div>';
+  html += '<div class="stats-row"><span class="stats-label">Pieces you lost</span><span class="stats-val '+(stats.piecesLost>stats.captures?'bad':'')+'">'+stats.piecesLost+'</span></div>';
+  html += '<div class="stats-row"><span class="stats-label">Castled</span><span class="stats-val '+(stats.castled?'good':'warn')+'">'+(stats.castled?(stats.castledEarly?'Yes · early':'Yes'):'No')+'</span></div>';
+  html += '<div class="stats-row"><span class="stats-label">Checks given / received</span><span class="stats-val">'+stats.checksGiven+' / '+stats.checksReceived+'</span></div>';
+  if(stats.opening) html += '<div class="stats-row"><span class="stats-label">Opening move</span><span class="stats-val">'+esc(stats.opening)+'</span></div>';
+
+  if(stats.worstMoveLoss >= 200 && stats.worstMoveSan){
+    html += '<div class="mt-3 pt-3 border-t border-white/10 text-xs text-rose-300">⚠ Move '+stats.worstMoveNum+' ('+esc(stats.worstMoveSan)+') — cost '+(stats.worstMoveLoss/100).toFixed(1)+' pawns</div>';
+  }
+  if(stats.castledEarly && stats.blunders === 0){
+    html += '<div class="mt-2 text-xs text-emerald-300">★ Clean game — no blunders. Strong performance!</div>';
+  }
+
+  body.innerHTML = html;
+}
+
+function renderTournamentStats(){
+  const wrap = el("tournament-stats");
+  const body = el("tournament-stats-body");
+  if(!wrap || !body) return;
+
+  const rounds = Object.keys(gameStatsByRound).map(Number).sort((a,b)=>a-b).filter(r=>gameStatsByRound[r]);
+  if(!rounds.length){ wrap.style.display = "none"; return; }
+  wrap.style.display = "block";
+
+  let totalAcc = 0, totalBlunders = 0, totalMistakes = 0, totalMoves = 0;
+  let castledCount = 0;
+  const openingCounts = {};
+  let bestRound = rounds[0], worstRound = rounds[0];
+
+  rounds.forEach(r=>{
+    const s = gameStatsByRound[r];
+    totalAcc += s.accuracy;
+    totalBlunders += s.blunders;
+    totalMistakes += s.mistakes;
+    totalMoves += s.myMoves;
+    if(s.castled) castledCount++;
+    if(s.opening) openingCounts[s.opening] = (openingCounts[s.opening]||0) + 1;
+    if(s.accuracy > gameStatsByRound[bestRound].accuracy) bestRound = r;
+    if(s.accuracy < gameStatsByRound[worstRound].accuracy) worstRound = r;
+  });
+
+  const validRounds = rounds.length || 1;
+  const avgAcc = totalAcc / validRounds;
+  const castleRate = Math.round(castledCount / validRounds * 100);
+
+  let topOpening = ""; let topOpenCount = 0;
+  Object.keys(openingCounts).forEach(o=>{
+    if(openingCounts[o] > topOpenCount){ topOpenCount = openingCounts[o]; topOpening = o; }
+  });
+
+  let html = "";
+  html += '<div class="grid grid-cols-3 gap-2 mb-3">';
+  html += '<div class="text-center"><div class="text-[9px] uppercase tracking-widest text-slate-500">Avg accuracy</div><div class="text-xl font-black '+(avgAcc>=80?'text-emerald-400':avgAcc>=70?'text-amber-400':'text-rose-400')+'">'+avgAcc.toFixed(0)+'%</div></div>';
+  html += '<div class="text-center"><div class="text-[9px] uppercase tracking-widest text-slate-500">Blunders</div><div class="text-xl font-black '+(totalBlunders>10?'text-rose-400':'text-amber-400')+'">'+totalBlunders+'</div></div>';
+  html += '<div class="text-center"><div class="text-[9px] uppercase tracking-widest text-slate-500">Mistakes</div><div class="text-xl font-black text-white">'+totalMistakes+'</div></div>';
+  html += '</div>';
+
+  html += '<div class="text-[9px] uppercase tracking-widest text-slate-500 mb-1">Accuracy per round</div>';
+  html += '<div class="trend-bar">';
+  rounds.forEach(r=>{
+    const s = gameStatsByRound[r];
+    const pos = Math.max(0, Math.min(100, s.accuracy));
+    html += '<div class="trend-marker" style="left:calc('+pos+'% - 3px)" title="R'+r+': '+s.accuracy.toFixed(0)+'%"></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="stats-row"><span class="stats-label">Best game</span><span class="stats-val good">Round '+bestRound+' · '+gameStatsByRound[bestRound].accuracy.toFixed(0)+'%</span></div>';
+  html += '<div class="stats-row"><span class="stats-label">Toughest game</span><span class="stats-val warn">Round '+worstRound+' · '+gameStatsByRound[worstRound].accuracy.toFixed(0)+'%</span></div>';
+  html += '<div class="stats-row"><span class="stats-label">Castled in</span><span class="stats-val '+(castleRate>=70?'good':castleRate>=40?'warn':'bad')+'">'+castledCount+' of '+validRounds+' games</span></div>';
+  if(topOpening) html += '<div class="stats-row"><span class="stats-label">Favourite first move</span><span class="stats-val">'+esc(topOpening)+' ('+topOpenCount+'×)</span></div>';
+  html += '<div class="stats-row"><span class="stats-label">Total moves played</span><span class="stats-val">'+totalMoves+'</span></div>';
+
+  const weaknesses = [];
+  if(castleRate < 50) weaknesses.push("You didn't castle in "+(validRounds-castledCount)+" of "+validRounds+" games. Early king safety wins games.");
+  if(totalBlunders >= validRounds) weaknesses.push("You averaged at least 1 blunder per game. Pause 3 seconds before every capture.");
+  if(totalMistakes >= validRounds*2) weaknesses.push("Several moves cost over 1½ pawns. Scan the whole board before you commit.");
+  if(avgAcc < 70) weaknesses.push("Overall accuracy is below 70%. Slow down on quiet moves — that's where most material is lost.");
+
+  if(weaknesses.length){
+    html += '<div class="mt-3 pt-3 border-t border-white/10">';
+    html += '<div class="text-[10px] uppercase tracking-widest text-rose-400 font-black mb-2">What to work on</div>';
+    html += weaknesses.map(w=>'<div class="weakness-item">'+esc(w)+'</div>').join("");
+    html += '</div>';
+  }
+
+  const strengths = [];
+  if(avgAcc >= 80) strengths.push("Strong average accuracy — you're improving steadily.");
+  if(castleRate >= 70) strengths.push("You castle in most games — excellent king safety habit.");
+  if(totalBlunders <= validRounds) strengths.push("Very few blunders across the tournament — you're playing cleanly.");
+
+  if(strengths.length){
+    html += '<div class="mt-3 pt-3 border-t border-white/10">';
+    html += '<div class="text-[10px] uppercase tracking-widest text-emerald-400 font-black mb-2">Your strengths</div>';
+    html += strengths.map(s=>'<div class="strength-item">'+esc(s)+'</div>').join("");
+    html += '</div>';
+  }
+
+  body.innerHTML = html;
+}
+
 /* ============ ADMIN ============ */
 function openAdminModal(){ el("admin-modal").classList.add("open"); }
 function closeAdminModal(){ el("admin-modal").classList.remove("open"); }
@@ -1127,6 +1655,8 @@ async function adminResetTournament(){
   individualScores={};ROSTER.forEach(p=>individualScores[p.id]=0);
   teamMatchPoints=0;teamGamePoints=0;
   pendingCommit=null;roundResults=[];
+  offlineQueue.length=0;
+  gameStatsByRound={};
   try{ localStorage.clear(); }catch(e){}
   me=null;gameLive=false;game=null;
   if(timer){clearInterval(timer);timer=null;}
@@ -1223,6 +1753,8 @@ async function enterRound(round){
 function showWaitScreen(round,until){
   hideAll(); el("screen-wait").classList.remove("hidden");
   attachLobbyChat();
+  renderBeatenList();
+  renderProgressLine();
   el("wait-emoji").textContent="⏳";
   el("wait-title").textContent="Round "+round+" opens soon";
   const t=()=>{
@@ -1293,6 +1825,9 @@ function setupMatch(round,anchor,late){
   userTime=BASE; oppTime=BASE;
   if(late>0) userTime=Math.max(0,BASE-late);
   lastMoveAt=Date.now(); lastTick=Date.now();
+  lastUserMoveAt=Date.now();
+  idleNudgeFired=false;
+  clearLastHighlight();
 
   slowPlayStartShown=false;
   slowPlayMove4Shown=false;
@@ -1308,8 +1843,12 @@ function setupMatch(round,anchor,late){
   el("clock-me").textContent=fmt(userTime);
   el("clock-opp").textContent=fmt(oppTime);
   el("status").textContent=userColor==="w"?"Your turn (White)":"Opponent is thinking…";
+  el("status").classList.remove("check");
+  el("sound-toggle").textContent = soundOn ? "🔊" : "🔇";
+  el("sound-toggle").classList.toggle("off", !soundOn);
 
   hideAll(); el("screen-play").classList.remove("hidden");
+  renderPlayMoveList();
 
   if(SLOW_PLAY_IDS.has(me.id)){
     setTimeout(()=>{ showSlowPlay("start"); }, 900);
@@ -1340,6 +1879,9 @@ function resumeGame(g){
   oppMeta={name:g.oppName||fallbackName,school:g.oppSchool||plan.school||"—",strength:plan.strength};
   currentRound=g.round||currentRound;
   lastMoveAt=g.lastMoveAt||Date.now(); lastTick=Date.now();
+  lastUserMoveAt=Date.now();
+  idleNudgeFired=false;
+  clearLastHighlight();
 
   slowPlayStartShown=false;
   slowPlayMove4Shown=false;
@@ -1362,8 +1904,12 @@ function resumeGame(g){
   el("clock-me").textContent=fmt(userTime);
   el("clock-opp").textContent=fmt(oppTime);
   el("status").textContent=game.turn()===userColor?"Your turn":"Opponent is thinking…";
+  el("status").classList.remove("check");
+  el("sound-toggle").textContent = soundOn ? "🔊" : "🔇";
+  el("sound-toggle").classList.toggle("off", !soundOn);
 
   hideAll(); el("screen-play").classList.remove("hidden");
+  renderPlayMoveList();
 
   if(board){ try{board.destroy();}catch(e){} }
   setTimeout(()=>{
@@ -1395,6 +1941,7 @@ function tickClocks(){
     el("clock-me").classList.add("active");
     el("clock-opp").classList.remove("active");
     if(userTime<=0){ endRound(0,"Lost on time"); return; }
+    checkIdleNudge();
   } else {
     oppTime-=d;
     el("clock-opp").textContent=fmt(oppTime);
@@ -1403,6 +1950,7 @@ function tickClocks(){
     el("clock-me").classList.remove("active");
     if(oppTime<=0){ endRound(1,"Opponent lost on time"); return; }
   }
+  updateCheckIndicator();
   if(!tickClocks._p || Date.now()-tickClocks._p>5000){ tickClocks._p=Date.now(); pushCloud(); }
 }
 
@@ -1426,9 +1974,14 @@ function onSquareClick(sq){
   el("clock-me").textContent=fmt(userTime);
   board.position(game.fen());
   lastMoveAt=Date.now();
+  lastUserMoveAt=Date.now();
+  idleNudgeFired=false;
   pushCloud();
   el("status").textContent="Opponent is thinking…";
+  setLastHighlight(mv.from, mv.to);
   playSfx(mv.captured ? "capture" : "move");
+  haptic(mv.captured ? [10,30,10] : 8);
+  renderPlayMoveList();
 
   myMovesPlayed++;
   if(myMovesPlayed===4 && SLOW_PLAY_IDS.has(me.id)){
@@ -1492,8 +2045,12 @@ function applyAIMove(uci){
     lastMoveAt=Date.now();
     pushCloud();
     el("status").textContent="Your turn";
+    setLastHighlight(played.from, played.to);
     playSfx(played.captured ? "capture" : "opponent");
+    haptic(played.captured ? [10,30,10] : 6);
+    renderPlayMoveList();
   }
+  updateCheckIndicator();
   if(game.game_over()) finishGame();
 }
 function doFallbackAI(){
@@ -1517,8 +2074,12 @@ function doFallbackAI(){
     lastMoveAt=Date.now();
     pushCloud();
     el("status").textContent="Your turn";
+    setLastHighlight(played.from, played.to);
     playSfx(played.captured ? "capture" : "opponent");
+    haptic(played.captured ? [10,30,10] : 6);
+    renderPlayMoveList();
   }
+  updateCheckIndicator();
   if(game.game_over()) finishGame();
 }
 
@@ -1597,6 +2158,7 @@ function endRound(points,reason){
   gameLive=false;
   if(timer){ clearInterval(timer); timer=null; }
   playSfx("end");
+  haptic([30,50,30]);
 
   const plan=ROUND_PLAN[currentRound-1]||{school:oppMeta.school,strength:0.5};
   pendingCommit={points:points,oppSchool:plan.school,oppStrength:plan.strength,round:currentRound};
@@ -1615,11 +2177,25 @@ function endRound(points,reason){
   }catch(e){}
 
   shiftScheduleForBreak();
+
+  try{
+    const s = analyzeGameStats();
+    if(s){
+      gameStatsByRound[currentRound] = s;
+      saveState();
+    }
+    renderGameStats(s);
+  }catch(e){ console.warn("stats failed", e); }
+
   showResultScreen(points,reason);
 }
 function showResultScreen(points,reason){
   hideAll(); el("screen-result").classList.remove("hidden");
   el("result-emoji").textContent=points===1?"🏆":(points===0.5?"🤝":"😔");
+  try{
+    const rw = el("result-stats"); if(rw) rw.style.display = "none";
+    const rb = el("result-stats-body"); if(rb) rb.innerHTML = "";
+  }catch(e){}
   el("result-title").textContent=points===1?"You won!":(points===0.5?"Draw":"Defeat");
   el("result-sub").textContent=reason||"";
   el("result-pts").textContent=(points>0?"+":"")+points.toFixed(1)+" board points";
@@ -1643,22 +2219,30 @@ function saveGameToCloud(r){
 }
 function pushCloud(){
   if(!me||!game) return;
-  db.collection("bcn_live").doc(me.id).set({
+  const ref = db.collection("bcn_live").doc(me.id);
+  const payload = {
     board:me.board,playerId:me.id,playerName:me.name,
     oppName:oppMeta.name,oppSchool:oppMeta.school,
     userColor,fen:game.fen(),pgn:game.pgn(),
     userTime,oppTime,lastMoveAt,turn:game.turn(),
     round:currentRound,status:gameLive?"live":"done",
     updated:Date.now()
-  },{merge:true}).catch(()=>{});
+  };
+  ref.set(payload,{merge:true}).catch(()=>{
+    queueCloud("live", ref, payload);
+  });
 }
 function pushCloudFinal(p,r){
   if(!me) return;
-  db.collection("bcn_live").doc(me.id).set({
+  const ref = db.collection("bcn_live").doc(me.id);
+  const payload = {
     status:"done",result:p,reason:r,round:currentRound,
     fen:game?game.fen():null,pgn:game?game.pgn():"",
     userTime,oppTime,updated:Date.now()
-  },{merge:true}).catch(()=>{});
+  };
+  ref.set(payload,{merge:true}).catch(()=>{
+    queueCloud("final", ref, payload);
+  });
 }
 
 /* ============ BREAK & NEXT ROUND ============ */
@@ -1671,6 +2255,8 @@ async function enterWaitForTeam(){
 
   hideAll(); el("screen-wait").classList.remove("hidden");
   attachLobbyChat();
+  renderBeatenList();
+  renderProgressLine();
   el("wait-emoji").textContent="☕";
   el("wait-title").textContent="Break — clocks frozen";
   el("wait-sub").textContent="Round "+next+" opens at "+new Date(pStartNow).toLocaleTimeString()+" — 60 s pairing, then clocks at 10:00.";
@@ -1762,6 +2348,7 @@ async function showFinal(){
     else if(sc>=4.5) m="🥉 Bronze";
     return `<tr><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}</td><td class="text-amber-300 font-black">${sc}</td><td>${m}</td></tr>`;
   }).join("");
+  renderTournamentStats();
 }
 
 /* ============ SPECTATOR ============ */
@@ -1796,11 +2383,13 @@ function enterSpectator(){
     latestRows=[];
     s.forEach(d=>latestRows.push(Object.assign({id:d.id},d.data())));
     renderMulti(latestRows);
-  },()=>{ latestRows=[]; renderMulti([]); });
+    updateLiveTeamLine(latestRows);
+  },()=>{ latestRows=[]; renderMulti([]); updateLiveTeamLine([]); });
   if(hubTick) clearInterval(hubTick);
   hubTick=setInterval(()=>{
     if(!el("screen-spec-hub").classList.contains("hidden")){
       renderMulti(latestRows);
+      updateLiveTeamLine(latestRows);
       maybeShowRoundSplash(currentRound);
     }
   },3000);
@@ -2097,6 +2686,7 @@ db.collection("bcn_meta").doc("mcps").onSnapshot(d=>{
       individualScores={}; ROSTER.forEach(p=>individualScores[p.id]=0);
       teamMatchPoints=0; teamGamePoints=0;
       pendingCommit=null; roundResults=[];
+      gameStatsByRound={};
       try{ localStorage.clear(); }catch(e){}
       toast("Tournament was reset by admin");
       showWelcome();
@@ -2106,13 +2696,15 @@ db.collection("bcn_meta").doc("mcps").onSnapshot(d=>{
       roundsCompleted = sRc;
       teamMatchPoints = sMp;
       teamGamePoints = sGp;
-      try{ localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound,rr:roundResults})); }catch(e){}
+      try{ localStorage.setItem("bcn_state",JSON.stringify({ind:individualScores,mp:teamMatchPoints,gp:teamGamePoints,rc:roundsCompleted,round:currentRound,rr:roundResults,st:gameStatsByRound})); }catch(e){}
     }
   }
 },()=>{});
 
 try{ const vn=localStorage.getItem("bcn_visitor_name"); if(vn) chatName=vn; }catch(e){}
 startBroadcastListener();
+startOfflineFlusher();
+try{ const st=el("sound-toggle"); if(st){ st.textContent = soundOn ? "🔊" : "🔇"; st.classList.toggle("off", !soundOn); } }catch(e){}
 setInterval(updateScheduleBanner,1000);
 showWelcome();
 </script>
