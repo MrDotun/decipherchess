@@ -671,6 +671,7 @@ let idleNudgeFired=false;
 const offlineQueue = [];
 let offlineFlusher=null;
 let coachDashIv=null;
+let statsAnalysisToken = 0;
 
 try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){console.warn("worker missing",e);}
 try{
@@ -758,7 +759,7 @@ function renderPlayMoveList(){
   list.scrollTop = list.scrollHeight;
 }
 
-/* ============ LIVE TEAM SCORE (SPECTATOR HUB) ============ */
+/* ============ LIVE TEAM SCORE ============ */
 function updateLiveTeamLine(rows){
   const scoreEl = el("live-team-score");
   const subEl   = el("live-team-sub");
@@ -1356,7 +1357,8 @@ function quickEval(c){
   return s;
 }
 
-function analyzeGameStats(){
+/* Async, chunked — yields to the browser every few moves so the UI never freezes. */
+async function analyzeGameStats(){
   if(!game) return null;
   let pgn = "";
   try{ pgn = game.pgn(); }catch(e){ return null; }
@@ -1433,6 +1435,11 @@ function analyzeGameStats(){
       if(isMyMove) stats.checksGiven++;
       else stats.checksReceived++;
     }
+
+    /* Yield to the browser every 4 moves so the UI never freezes. */
+    if(i % 4 === 3){
+      await new Promise(r=>setTimeout(r, 0));
+    }
   }
 
   const avgLoss = stats.myMoves ? (totalLoss / stats.myMoves) : 0;
@@ -1478,6 +1485,29 @@ function renderGameStats(stats){
   }
 
   body.innerHTML = html;
+}
+
+/* Deferred, non-blocking stats computation for the current round. */
+async function runStatsAnalysis(myRound){
+  const wrap = el("result-stats");
+  const body = el("result-stats-body");
+  if(!wrap || !body) return;
+  wrap.style.display = "block";
+  body.innerHTML = '<div class="text-center text-slate-400 text-xs py-3">Analysing your game…</div>';
+  try{
+    const s = await analyzeGameStats();
+    if(myRound !== currentRound){ /* user moved on — drop result silently */ return; }
+    if(s){
+      gameStatsByRound[myRound] = s;
+      saveState();
+      renderGameStats(s);
+    } else {
+      wrap.style.display = "none";
+    }
+  }catch(e){
+    console.warn("stats failed", e);
+    wrap.style.display = "none";
+  }
 }
 
 function renderTournamentStats(){
@@ -1581,15 +1611,6 @@ function confirmAdminStart(){
   toast("Schedule saved");
   closeAdminModal();
   updateScheduleBanner();
-  try{
-    const seed=ms>>>0;
-    const pool=MID_SCHOOLS.slice();
-    shuffleInPlace(pool, seed+101);
-    ROUND_PLAN[0].school=pool[0];
-    ROUND_PLAN[1].school=pool[1];
-    ROUND_PLAN[2].school=pool[2];
-    ROUND_PLAN.forEach((r,i)=>{ shuffleInPlace(r.players, seed+(i+1)*7919); });
-  }catch(e){}
 }
 function confirmAdminOpenNow(){
   if(!adminPassOK()) return toast("Wrong admin password");
@@ -1599,15 +1620,6 @@ function confirmAdminOpenNow(){
   toast("Doors open now — Round 1 pairing starts immediately");
   closeAdminModal();
   updateScheduleBanner();
-  try{
-    const seed=scheduledStartMs>>>0;
-    const pool=MID_SCHOOLS.slice();
-    shuffleInPlace(pool, seed+101);
-    ROUND_PLAN[0].school=pool[0];
-    ROUND_PLAN[1].school=pool[1];
-    ROUND_PLAN[2].school=pool[2];
-    ROUND_PLAN.forEach((r,i)=>{ shuffleInPlace(r.players, seed+(i+1)*7919); });
-  }catch(e){}
 }
 function adminForceNextRound(){
   if(!adminPassOK()) return toast("Wrong admin password");
@@ -1657,6 +1669,7 @@ async function adminResetTournament(){
   pendingCommit=null;roundResults=[];
   offlineQueue.length=0;
   gameStatsByRound={};
+  statsAnalysisToken++;
   try{ localStorage.clear(); }catch(e){}
   me=null;gameLive=false;game=null;
   if(timer){clearInterval(timer);timer=null;}
@@ -2178,24 +2191,28 @@ function endRound(points,reason){
 
   shiftScheduleForBreak();
 
+  /* Reset the stats panel to hidden state before showing the result screen */
   try{
-    const s = analyzeGameStats();
-    if(s){
-      gameStatsByRound[currentRound] = s;
-      saveState();
-    }
-    renderGameStats(s);
-  }catch(e){ console.warn("stats failed", e); }
+    const rw = el("result-stats");
+    if(rw) rw.style.display = "none";
+    const rb = el("result-stats-body");
+    if(rb) rb.innerHTML = "";
+  }catch(e){}
 
+  /* Show the result screen IMMEDIATELY — no blocking */
   showResultScreen(points,reason);
+
+  /* Defer stats computation so the result screen paints first, then analysis runs. */
+  const myRound = currentRound;
+  const myToken = ++statsAnalysisToken;
+  setTimeout(()=>{
+    if(myToken !== statsAnalysisToken){ /* superseded by a newer game */ return; }
+    runStatsAnalysis(myRound);
+  }, 80);
 }
 function showResultScreen(points,reason){
   hideAll(); el("screen-result").classList.remove("hidden");
   el("result-emoji").textContent=points===1?"🏆":(points===0.5?"🤝":"😔");
-  try{
-    const rw = el("result-stats"); if(rw) rw.style.display = "none";
-    const rb = el("result-stats-body"); if(rb) rb.innerHTML = "";
-  }catch(e){}
   el("result-title").textContent=points===1?"You won!":(points===0.5?"Draw":"Defeat");
   el("result-sub").textContent=reason||"";
   el("result-pts").textContent=(points>0?"+":"")+points.toFixed(1)+" board points";
@@ -2652,7 +2669,8 @@ loadState();
 try{ const n=Number(localStorage.getItem("bcn_start")||0); if(n>0) scheduledStartMs=n; }catch(e){}
 
 (function shuffleRoundPlanOnce(){
-  const seed=(scheduledStartMs||0)>>>0;
+  /* Fixed seed — same on every device, at every load, forever. */
+  const seed=20260516;
   const pool=MID_SCHOOLS.slice();
   shuffleInPlace(pool, seed+101);
   ROUND_PLAN[0].school=pool[0];
@@ -2687,6 +2705,7 @@ db.collection("bcn_meta").doc("mcps").onSnapshot(d=>{
       teamMatchPoints=0; teamGamePoints=0;
       pendingCommit=null; roundResults=[];
       gameStatsByRound={};
+      statsAnalysisToken++;
       try{ localStorage.clear(); }catch(e){}
       toast("Tournament was reset by admin");
       showWelcome();
