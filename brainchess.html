@@ -98,10 +98,15 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 .board-line{font-size:10px;color:#94a3b8;margin-top:3px;letter-spacing:.02em}
 .board-line b{color:#e2e8f0}
 .winner-row{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(251,191,36,.10);border:1px solid rgba(251,191,36,.35);border-radius:10px;padding:6px 10px;margin-bottom:6px;font-weight:900;color:#fde68a}
+#toast-broadcast{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-8px);max-width:92%;background:linear-gradient(135deg,#1e3a8a,#1e40af);border:2px solid #60a5fa;color:#fff;padding:12px 18px;border-radius:14px;font-size:13px;font-weight:800;z-index:420;opacity:0;pointer-events:none;text-align:center;box-shadow:0 12px 40px rgba(30,64,175,.5);transition:opacity .3s,transform .3s}
+#toast-broadcast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast-broadcast .from{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#93c5fd;margin-bottom:4px;font-weight:900}
+#toast-broadcast .msg{font-size:14px;line-height:1.4}
 </style>
 </head>
 <body>
 <div id="toast" class="toast"></div>
+<div id="toast-broadcast"><div class="from" id="toast-broadcast-from">Coach</div><div class="msg" id="toast-broadcast-msg"></div></div>
 
 <div id="screen-welcome">
   <div class="wc-topbar"></div>
@@ -180,6 +185,14 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block text-left">Coach password</label>
     <input id="coach-pass" type="password" placeholder="Coach password" class="mb-3" autocomplete="off">
     <button type="button" class="btn-gold w-full mb-2" onclick="confirmCoachLogin()">Sign in as Coach</button>
+    <div class="text-left mb-3">
+      <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">Broadcast to all boards</label>
+      <div class="flex gap-2">
+        <input id="coach-broadcast-input" type="text" placeholder="e.g. 2 minutes left" maxlength="140" style="flex:1;padding:10px" onkeydown="if(event.key==='Enter'){event.preventDefault();sendCoachBroadcast();}">
+        <button type="button" class="btn-gold px-3" onclick="sendCoachBroadcast()">Send</button>
+      </div>
+      <p class="text-[10px] text-slate-500 mt-1">Appears as a banner on every live board.</p>
+    </div>
     <button type="button" class="btn-danger w-full mb-2" onclick="coachLogout()">Sign out of coach</button>
     <button type="button" class="btn-soft w-full" onclick="closeCoachModal()">Cancel</button>
   </div>
@@ -200,9 +213,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div style="font-size:44px;line-height:1;margin-bottom:10px">⏱️</div>
     <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">A word from Coach Dotun</div>
     <h3 class="text-xl font-black text-white mb-3" id="slow-play-title">Take your time</h3>
-    <p class="text-sm text-slate-300 leading-relaxed mb-5" id="slow-play-msg">
-      Think before every move.
-    </p>
+    <p class="text-sm text-slate-300 leading-relaxed mb-5" id="slow-play-msg">Think before every move.</p>
     <button type="button" class="btn-gold w-full" onclick="dismissSlowPlay()">Got it — I'll take my time</button>
   </div>
 </div>
@@ -436,6 +447,20 @@ const ROUND_GAP_MS=(PAIRING_SEC+BASE+BREAK_SEC)*1000;
 
 const pieceTheme="https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png";
 
+/* ===== Sound effects ===== */
+const SFX = {
+  move:     new Audio("https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3"),
+  opponent: new Audio("https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-opponent.mp3"),
+  capture:  new Audio("https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/capture.mp3"),
+  end:      new Audio("https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/game-end.mp3")
+};
+Object.values(SFX).forEach(a=>{ a.preload="auto"; a.volume=0.6; });
+function playSfx(name){
+  const a = SFX[name];
+  if(!a) return;
+  try{ a.currentTime = 0; a.play().catch(()=>{}); }catch(e){}
+}
+
 const ROSTER=[
   {id:"p1",board:1,name:"Obi Chukwuemeka"},
   {id:"p2",board:2,name:"Onele Chierika"},
@@ -548,8 +573,13 @@ let splashTimeout=null;
 let slowPlayStartShown=false;
 let slowPlayMove4Shown=false;
 let myMovesPlayed=0;
+
 try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){console.warn("worker missing",e);}
-try{ if(localStorage.getItem("bcn_coach")==="1"){ chatRole="coach"; chatName=localStorage.getItem("bcn_coach_name")||"Coach"; } }catch(e){}
+try{
+  if(localStorage.getItem("bcn_coach")==="1"){
+    chatRole="coach"; chatName=localStorage.getItem("bcn_coach_name")||"Coach";
+  }
+}catch(e){}
 
 /* ============ UTIL ============ */
 function el(i){return document.getElementById(i);}
@@ -616,7 +646,6 @@ async function maybeShowRoundSplash(round){
   const pastEnd=Date.now()>roundEnd+15000;
 
   try{
-    /* Use the same source as the Team Report — tournament_games — so wins register */
     const agg = await aggregateFromRounds();
     const rr  = (agg.rounds||[]).find(x=>x.round===round) || null;
 
@@ -706,6 +735,57 @@ function coachLogout(){
   refreshChatEverywhere();
 }
 function refreshChatEverywhere(){ try{ attachLobbyChat(); }catch(e){} }
+
+async function sendCoachBroadcast(){
+  if(chatRole!=="coach"){ toast("Sign in as coach first"); return; }
+  const inp = el("coach-broadcast-input");
+  const text = (inp && inp.value || "").trim();
+  if(!text){ toast("Type a message first"); return; }
+  if(text.length > 140){ toast("Keep it under 140 characters"); return; }
+  try{
+    await db.collection("bcn_broadcast").add({
+      name: chatName || "Coach",
+      role: "coach",
+      text: text.slice(0,140),
+      ts: Date.now()
+    });
+    inp.value = "";
+    toast("Broadcast sent to all boards");
+  }catch(e){
+    toast("Send failed — check network");
+  }
+}
+
+let lastBroadcastTs = 0;
+let broadcastUnsub = null;
+
+function showBroadcastBanner(from, text){
+  const b = el("toast-broadcast");
+  if(!b) return;
+  el("toast-broadcast-from").textContent = from || "Coach";
+  el("toast-broadcast-msg").textContent = text || "";
+  b.classList.add("show");
+  clearTimeout(showBroadcastBanner._t);
+  showBroadcastBanner._t = setTimeout(()=>b.classList.remove("show"), 6000);
+}
+
+function startBroadcastListener(){
+  if(broadcastUnsub) return;
+  broadcastUnsub = db.collection("bcn_broadcast")
+    .orderBy("ts","desc")
+    .limit(1)
+    .onSnapshot(snap=>{
+      snap.forEach(d=>{
+        const m = d.data() || {};
+        if(m.ts && m.ts > lastBroadcastTs){
+          lastBroadcastTs = m.ts;
+          if(!el("screen-play").classList.contains("hidden")){
+            showBroadcastBanner(m.name || "Coach", m.text || "");
+          }
+        }
+      });
+    }, ()=>{});
+}
 
 /* ============ COLOUR ASSIGNMENT ============ */
 function colorForBoard(round,board){
@@ -835,19 +915,19 @@ async function aggregateFromRounds(){
     snap.forEach(d=>{
       const g = d.data() || {};
       const r = g.round;
-      let board = null;
-      if(g.playerId && /^p[1-8]$/.test(g.playerId)) board = parseInt(g.playerId.slice(1));
-      else if(g.board) board = parseInt(g.board);
-      if(!r || !board) return;
+      let bd = null;
+      if(g.playerId && /^p[1-8]$/.test(g.playerId)) bd = parseInt(g.playerId.slice(1));
+      else if(g.board) bd = parseInt(g.board);
+      if(!r || !bd) return;
       let v = g.result;
       if(typeof v === "string"){
         v = v === "Win" ? 1 : (v === "Draw" ? 0.5 : (v === "Loss" ? 0 : null));
       }
       if(typeof v !== "number") return;
       const ts = (g.timestamp && g.timestamp.toMillis) ? g.timestamp.toMillis() : (typeof g.timestamp === "number" ? g.timestamp : 0);
-      const key = r+"_p"+board;
+      const key = r+"_p"+bd;
       if(!latest[key] || ts > latest[key].ts){
-        latest[key] = { ts, round:r, board, result:v, school:g.school||"—" };
+        latest[key] = { ts, round:r, board:bd, result:v, school:g.school||"—" };
       }
     });
     Object.keys(latest).forEach(k=>{
@@ -1032,6 +1112,9 @@ async function adminResetTournament(){
   await wipeCollection("bcn_rounds");
   await wipeCollection("tournament_games");
   await wipeCollection("bcn_history");
+  await wipeCollection("bcn_chat");
+  await wipeCollection("bcn_presence");
+  await wipeCollection("bcn_broadcast");
 
   const now=Date.now();
   try{
@@ -1345,6 +1428,7 @@ function onSquareClick(sq){
   lastMoveAt=Date.now();
   pushCloud();
   el("status").textContent="Opponent is thinking…";
+  playSfx(mv.captured ? "capture" : "move");
 
   myMovesPlayed++;
   if(myMovesPlayed===4 && SLOW_PLAY_IDS.has(me.id)){
@@ -1408,6 +1492,7 @@ function applyAIMove(uci){
     lastMoveAt=Date.now();
     pushCloud();
     el("status").textContent="Your turn";
+    playSfx(played.captured ? "capture" : "opponent");
   }
   if(game.game_over()) finishGame();
 }
@@ -1432,6 +1517,7 @@ function doFallbackAI(){
     lastMoveAt=Date.now();
     pushCloud();
     el("status").textContent="Your turn";
+    playSfx(played.captured ? "capture" : "opponent");
   }
   if(game.game_over()) finishGame();
 }
@@ -1510,6 +1596,7 @@ function endRound(points,reason){
   if(!gameLive) return;
   gameLive=false;
   if(timer){ clearInterval(timer); timer=null; }
+  playSfx("end");
 
   const plan=ROUND_PLAN[currentRound-1]||{school:oppMeta.school,strength:0.5};
   pendingCommit={points:points,oppSchool:plan.school,oppStrength:plan.strength,round:currentRound};
@@ -1644,7 +1731,6 @@ function renderStandings(roundOverride){
     }
   }
 
-  /* School standings hidden — only the team report is shown */
   const schoolWrap=el("school-standings-wrap");
   if(schoolWrap) schoolWrap.classList.add("hidden");
   const tb=el("team-body"); if(tb) tb.innerHTML="";
@@ -2025,6 +2111,8 @@ db.collection("bcn_meta").doc("mcps").onSnapshot(d=>{
   }
 },()=>{});
 
+try{ const vn=localStorage.getItem("bcn_visitor_name"); if(vn) chatName=vn; }catch(e){}
+startBroadcastListener();
 setInterval(updateScheduleBanner,1000);
 showWelcome();
 </script>
