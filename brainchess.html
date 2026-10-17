@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,6 +55,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:#e2e8
 #screen-welcome .wc-btn-sec{width:100%;margin-top:10px;border-radius:14px;padding:14px;cursor:pointer;background:#fff;border:2px solid #0f172a;color:#0f172a;font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
 #screen-welcome .wc-btn-admin{width:100%;margin-top:10px;border:0;background:transparent;color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:10px;cursor:pointer}
 #screen-welcome .wc-footer{text-align:center;font-size:10px;color:#94a3b8;font-weight:600;margin-top:8px}
+.all-time-medal-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #e2e8f0;font-size:13px}
+.all-time-medal-row:last-child{border-bottom:0}
+.all-time-name{font-weight:800;color:#0f172a}
+.all-time-score{font-weight:900}
+.all-time-score.gold{color:#b45309}
+.all-time-score.silver{color:#64748b}
+.all-time-score.bronze{color:#c2410c}
 input{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:12px 14px;width:100%;outline:none}
 .rep-btn{width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;margin-bottom:8px;transition:.2s}
 .rep-btn:hover{border-color:rgba(232,197,71,.4)}
@@ -184,6 +190,12 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
         <li>Play only with your own mind</li>
         <li>Cheating = disqualification &amp; blacklist</li>
       </ul>
+    </div>
+    <div class="wc-card" style="border-left:5px solid #fbbf24;background:linear-gradient(90deg,#fffbeb,#fff)">
+      <h3>🏆 All-time MCPS medals</h3>
+      <div id="all-time-medals-body" class="text-sm text-slate-600">
+        <div class="text-center text-slate-500 text-xs py-2">No medals recorded yet.</div>
+      </div>
     </div>
     <button type="button" class="wc-btn-main" onclick="showPlayerLogin()">Enter as player</button>
     <button type="button" class="wc-btn-sec" onclick="enterSpectator()">Watch live boards</button>
@@ -352,6 +364,11 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <ul id="beaten-list"></ul>
   </div>
 
+  <div class="beaten-wrap" id="wait-medal-wrap" style="display:none">
+    <div class="h">🏆 Medal table · MCPS</div>
+    <div id="wait-medal-body" class="text-sm text-slate-300"></div>
+  </div>
+
   <div class="beaten-wrap" id="progress-wrap" style="display:none">
     <div class="h">Your progress</div>
     <div id="progress-body" class="text-sm text-slate-300"></div>
@@ -379,6 +396,11 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <p class="text-xs text-slate-500 mb-1" id="stand-round-label">After Round 1</p>
     <p class="text-amber-300 font-black text-sm mb-1" id="mcps-rank-line">MCPS team report</p>
     <p class="text-slate-400 text-xs mb-4" id="mcps-pts-line">Match pts 0 · Game pts 0.0</p>
+
+    <div class="panel p-3 mb-4">
+      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">🏆 Medal table · MCPS</div>
+      <div id="medal-summary"></div>
+    </div>
 
     <h3 class="text-sm font-black text-white uppercase mb-2">Our round results</h3>
     <div class="panel p-3 mb-4 overflow-x-auto">
@@ -413,6 +435,12 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="text-5xl mb-3">🏆</div>
     <h2 class="text-2xl font-black text-white mb-1" id="final-rank">MCPS · Rank #—</h2>
     <p class="text-slate-400 text-sm mb-6" id="final-sub">7 rounds complete</p>
+    
+    <div class="panel p-3 mb-4">
+      <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">🏆 Final medal table · MCPS</div>
+      <div id="final-medal-summary"></div>
+    </div>
+
     <div class="panel p-3 mb-4 overflow-x-auto text-left">
       <table>
         <thead><tr><th>Bd</th><th>Player</th><th>Pts</th><th>Medal</th></tr></thead>
@@ -672,6 +700,7 @@ const offlineQueue = [];
 let offlineFlusher=null;
 let coachDashIv=null;
 let statsAnalysisToken = 0;
+let allTimeMedals = {};
 
 try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){console.warn("worker missing",e);}
 try{
@@ -1102,6 +1131,62 @@ function loadState(){
     if(Array.isArray(d.rr))roundResults=d.rr;
     if(d.st && typeof d.st==="object")gameStatsByRound=d.st;
   }catch(e){}
+}
+
+/* ============ ALL-TIME MEDALS ============ */
+function loadAllTimeMedals(){
+  try{
+    const raw = localStorage.getItem("bcn_all_time_medals");
+    if(raw){
+      allTimeMedals = JSON.parse(raw) || {};
+    } else {
+      allTimeMedals = {
+        "Ajayi Oluwaseun": { score: 5, rounds: 7, medal: "Bronze" }
+      };
+      saveAllTimeMedals();
+    }
+  }catch(e){ allTimeMedals = {}; }
+}
+function saveAllTimeMedals(){
+  try{ localStorage.setItem("bcn_all_time_medals", JSON.stringify(allTimeMedals)); }catch(e){}
+}
+function renderAllTimeMedals(){
+  const elx = el("all-time-medals-body");
+  if(!elx) return;
+  const entries = Object.entries(allTimeMedals);
+  if(!entries.length){
+    elx.innerHTML = '<div class="text-center text-slate-500 text-xs py-2">No medals recorded yet.</div>';
+    return;
+  }
+  entries.sort((a,b)=> b[1].score - a[1].score || a[0].localeCompare(b[0]));
+  elx.innerHTML = entries.map(([name, data])=>{
+    const cls = data.medal === "Gold" ? "gold" : (data.medal === "Silver" ? "silver" : "bronze");
+    const emoji = data.medal === "Gold" ? "🥇" : (data.medal === "Silver" ? "🥈" : "🥉");
+    return '<div class="all-time-medal-row">'+
+      '<span class="all-time-name">'+esc(name)+'</span>'+
+      '<span class="all-time-score '+cls+'">'+data.score+'/'+data.rounds+' '+emoji+' '+data.medal+'</span>'+
+    '</div>';
+  }).join("");
+}
+function recordAllTimeMedals(){
+  let changed = false;
+  ROSTER.forEach(p=>{
+    const sc = individualScores[p.id] || 0;
+    let medal = null;
+    if(sc >= 7) medal = "Gold";
+    else if(sc >= 6) medal = "Silver";
+    else if(sc >= 5) medal = "Bronze";
+    if(!medal) return;
+    const prev = allTimeMedals[p.name];
+    if(!prev || sc > prev.score){
+      allTimeMedals[p.name] = { score: sc, rounds: TOTAL_ROUNDS, medal: medal };
+      changed = true;
+    }
+  });
+  if(changed){
+    saveAllTimeMedals();
+    renderAllTimeMedals();
+  }
 }
 
 /* ============ RNG ============ */
@@ -1595,6 +1680,77 @@ function renderTournamentStats(){
   body.innerHTML = html;
 }
 
+/* ============ MEDAL LOGIC ============ */
+function computeMedalStatus(score, played){
+  if(played <= 0) return { label: "—", kind: "none", medal: null };
+
+  if(score >= 7) return { label: "🥇 Gold",   kind: "gold",   medal: "gold"   };
+  if(score >= 6) return { label: "🥈 Silver", kind: "silver", medal: "silver" };
+  if(score >= 5) return { label: "🥉 Bronze", kind: "bronze", medal: "bronze" };
+
+  const remaining = 7 - played;
+  const maxPossible = score + remaining;
+  if(maxPossible < 5) return { label: "Out of medal race", kind: "out", medal: null };
+
+  const proj = score * (7 / Math.max(1, played));
+  if(proj >= 6.5) return { label: "🥇 Gold pace",   kind: "gold",   medal: null };
+  if(proj >= 5.5) return { label: "🥈 Silver pace", kind: "silver", medal: null };
+  if(proj >= 4.5) return { label: "🥉 Bronze pace", kind: "bronze", medal: null };
+  return { label: "In the hunt", kind: "hunt", medal: null };
+}
+
+function renderMedalTable(targetId){
+  const elx = document.getElementById(targetId);
+  if(!elx) return;
+  const played = Math.max(roundsCompleted, 0);
+
+  if(played === 0){
+    elx.innerHTML = '<div class="text-slate-500 text-xs text-center py-2">Medals update after each round.</div>';
+    return;
+  }
+
+  const counts = { gold:0, silver:0, bronze:0, goldLocked:0, silverLocked:0, bronzeLocked:0, out:0, hunt:0 };
+  ROSTER.forEach(p => {
+    const sc = individualScores[p.id] || 0;
+    const s = computeMedalStatus(sc, played);
+    if(s.medal === "gold"){ counts.goldLocked++; counts.gold++; }
+    else if(s.medal === "silver"){ counts.silverLocked++; counts.silver++; }
+    else if(s.medal === "bronze"){ counts.bronzeLocked++; counts.bronze++; }
+    else if(s.kind === "gold"){ counts.gold++; }
+    else if(s.kind === "silver"){ counts.silver++; }
+    else if(s.kind === "bronze"){ counts.bronze++; }
+    else if(s.kind === "out"){ counts.out++; }
+    else if(s.kind === "hunt"){ counts.hunt++; }
+  });
+
+  const isFinal = played >= TOTAL_ROUNDS;
+
+  if(isFinal){
+    elx.innerHTML =
+      '<div class="grid grid-cols-3 gap-2 text-center">'+
+        '<div class="py-2 rounded-lg" style="background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3)">'+
+          '<div class="text-2xl">🥇</div><div class="text-lg font-black text-amber-300">'+counts.goldLocked+'</div>'+
+          '<div class="text-[10px] text-amber-200 uppercase tracking-wider">Gold</div></div>'+
+        '<div class="py-2 rounded-lg" style="background:rgba(226,232,240,.1);border:1px solid rgba(226,232,240,.3)">'+
+          '<div class="text-2xl">🥈</div><div class="text-lg font-black text-slate-200">'+counts.silverLocked+'</div>'+
+          '<div class="text-[10px] text-slate-300 uppercase tracking-wider">Silver</div></div>'+
+        '<div class="py-2 rounded-lg" style="background:rgba(253,186,116,.12);border:1px solid rgba(253,186,116,.3)">'+
+          '<div class="text-2xl">🥉</div><div class="text-lg font-black text-orange-300">'+counts.bronzeLocked+'</div>'+
+          '<div class="text-[10px] text-orange-200 uppercase tracking-wider">Bronze</div></div>'+
+      '</div>';
+    return;
+  }
+
+  let html = '<div class="space-y-1 text-sm">';
+  html += '<div class="flex justify-between"><span class="text-amber-300">🥇 Gold</span><span class="font-black text-amber-300">'+counts.gold+(counts.goldLocked?' <span class="text-[10px] text-slate-500 font-normal">('+counts.goldLocked+' locked)</span>':'')+'</span></div>';
+  html += '<div class="flex justify-between"><span class="text-slate-200">🥈 Silver</span><span class="font-black text-slate-200">'+counts.silver+(counts.silverLocked?' <span class="text-[10px] text-slate-500 font-normal">('+counts.silverLocked+' locked)</span>':'')+'</span></div>';
+  html += '<div class="flex justify-between"><span class="text-orange-300">🥉 Bronze</span><span class="font-black text-orange-300">'+counts.bronze+(counts.bronzeLocked?' <span class="text-[10px] text-slate-500 font-normal">('+counts.bronzeLocked+' locked)</span>':'')+'</span></div>';
+  if(counts.hunt) html += '<div class="flex justify-between"><span class="text-slate-400">In the hunt</span><span class="font-black text-slate-400">'+counts.hunt+'</span></div>';
+  if(counts.out)  html += '<div class="flex justify-between"><span class="text-slate-500 text-xs">Out of race</span><span class="font-black text-slate-500 text-xs">'+counts.out+'</span></div>';
+  html += '</div>';
+  elx.innerHTML = html;
+}
+
 /* ============ ADMIN ============ */
 function openAdminModal(){ el("admin-modal").classList.add("open"); }
 function closeAdminModal(){ el("admin-modal").classList.remove("open"); }
@@ -1670,7 +1826,11 @@ async function adminResetTournament(){
   offlineQueue.length=0;
   gameStatsByRound={};
   statsAnalysisToken++;
-  try{ localStorage.clear(); }catch(e){}
+  try{
+    const at = localStorage.getItem("bcn_all_time_medals");
+    localStorage.clear();
+    if(at) localStorage.setItem("bcn_all_time_medals", at);
+  }catch(e){}
   me=null;gameLive=false;game=null;
   if(timer){clearInterval(timer);timer=null;}
   closeAdminModal();
@@ -1768,6 +1928,11 @@ function showWaitScreen(round,until){
   attachLobbyChat();
   renderBeatenList();
   renderProgressLine();
+  try{
+    const wmWrap = el("wait-medal-wrap");
+    if(wmWrap) wmWrap.style.display = "block";
+    renderMedalTable("wait-medal-body");
+  }catch(e){}
   el("wait-emoji").textContent="⏳";
   el("wait-title").textContent="Round "+round+" opens soon";
   const t=()=>{
@@ -2191,7 +2356,6 @@ function endRound(points,reason){
 
   shiftScheduleForBreak();
 
-  /* Reset the stats panel to hidden state before showing the result screen */
   try{
     const rw = el("result-stats");
     if(rw) rw.style.display = "none";
@@ -2199,14 +2363,12 @@ function endRound(points,reason){
     if(rb) rb.innerHTML = "";
   }catch(e){}
 
-  /* Show the result screen IMMEDIATELY — no blocking */
   showResultScreen(points,reason);
 
-  /* Defer stats computation so the result screen paints first, then analysis runs. */
   const myRound = currentRound;
   const myToken = ++statsAnalysisToken;
   setTimeout(()=>{
-    if(myToken !== statsAnalysisToken){ /* superseded by a newer game */ return; }
+    if(myToken !== statsAnalysisToken){ return; }
     runStatsAnalysis(myRound);
   }, 80);
 }
@@ -2274,6 +2436,11 @@ async function enterWaitForTeam(){
   attachLobbyChat();
   renderBeatenList();
   renderProgressLine();
+  try{
+    const wmWrap = el("wait-medal-wrap");
+    if(wmWrap) wmWrap.style.display = "block";
+    renderMedalTable("wait-medal-body");
+  }catch(e){}
   el("wait-emoji").textContent="☕";
   el("wait-title").textContent="Break — clocks frozen";
   el("wait-sub").textContent="Round "+next+" opens at "+new Date(pStartNow).toLocaleTimeString()+" — 60 s pairing, then clocks at 10:00.";
@@ -2342,13 +2509,12 @@ function renderStandings(roundOverride){
 
   el("ind-body").innerHTML=ROSTER.map(p=>{
     const sc=(individualScores[p.id]||0);
-    let st="—";
-    if(played>0&&sc>=played-0.001) st="🥇 Gold pace";
-    else if(played>0&&sc>=played-0.5) st="🥈 Silver pace";
-    else if(played>0&&sc>=played*0.6) st="🥉 Bronze pace";
+    const mstatus = computeMedalStatus(sc, played);
     const you=me&&me.id===p.id;
-    return `<tr style="${you?"background:rgba(52,211,153,.1)":""}"><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}${you?" · you":""}</td><td class="text-amber-300 font-black">${sc}/${played}</td><td>${st}</td></tr>`;
+    return `<tr style="${you?"background:rgba(52,211,153,.1)":""}"><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}${you?" · you":""}</td><td class="text-amber-300 font-black">${sc}/${played}</td><td>${mstatus.label}</td></tr>`;
   }).join("");
+
+  renderMedalTable("medal-summary");
 }
 async function showFinal(){
   hideAll(); el("screen-final").classList.remove("hidden");
@@ -2360,12 +2526,14 @@ async function showFinal(){
   el("final-ind").innerHTML=ROSTER.map(p=>{
     const sc=individualScores[p.id]||0;
     let m="—";
-    if(sc>=6.5) m="🥇 Gold";
-    else if(sc>=5.5) m="🥈 Silver";
-    else if(sc>=4.5) m="🥉 Bronze";
+    if(sc>=7) m="🥇 Gold";
+    else if(sc>=6) m="🥈 Silver";
+    else if(sc>=5) m="🥉 Bronze";
     return `<tr><td>${p.board}</td><td class="font-bold text-white">${esc(p.name)}</td><td class="text-amber-300 font-black">${sc}</td><td>${m}</td></tr>`;
   }).join("");
   renderTournamentStats();
+  renderMedalTable("final-medal-summary");
+  try{ recordAllTimeMedals(); }catch(e){}
 }
 
 /* ============ SPECTATOR ============ */
@@ -2669,7 +2837,6 @@ loadState();
 try{ const n=Number(localStorage.getItem("bcn_start")||0); if(n>0) scheduledStartMs=n; }catch(e){}
 
 (function shuffleRoundPlanOnce(){
-  /* Fixed seed — same on every device, at every load, forever. */
   const seed=20260516;
   const pool=MID_SCHOOLS.slice();
   shuffleInPlace(pool, seed+101);
@@ -2706,7 +2873,11 @@ db.collection("bcn_meta").doc("mcps").onSnapshot(d=>{
       pendingCommit=null; roundResults=[];
       gameStatsByRound={};
       statsAnalysisToken++;
-      try{ localStorage.clear(); }catch(e){}
+      try{
+        const at = localStorage.getItem("bcn_all_time_medals");
+        localStorage.clear();
+        if(at) localStorage.setItem("bcn_all_time_medals", at);
+      }catch(e){}
       toast("Tournament was reset by admin");
       showWelcome();
       return;
@@ -2721,6 +2892,8 @@ db.collection("bcn_meta").doc("mcps").onSnapshot(d=>{
 },()=>{});
 
 try{ const vn=localStorage.getItem("bcn_visitor_name"); if(vn) chatName=vn; }catch(e){}
+loadAllTimeMedals();
+renderAllTimeMedals();
 startBroadcastListener();
 startOfflineFlusher();
 try{ const st=el("sound-toggle"); if(st){ st.textContent = soundOn ? "🔊" : "🔇"; st.classList.toggle("off", !soundOn); } }catch(e){}
