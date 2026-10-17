@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1123,14 +1124,11 @@ function saveState(){
 }
 function loadState(){
   try{const d=JSON.parse(localStorage.getItem("bcn_state")||"{}");
-    if(d.ind&&typeof d.ind==="object")individualScores=Object.assign({},individualScores,d.ind);
-    if(typeof d.mp==="number")teamMatchPoints=d.mp;
-    if(typeof d.gp==="number")teamGamePoints=d.gp;
-    if(typeof d.rc==="number")roundsCompleted=d.rc;
     if(typeof d.round==="number")currentRound=d.round;
     if(Array.isArray(d.rr))roundResults=d.rr;
     if(d.st && typeof d.st==="object")gameStatsByRound=d.st;
   }catch(e){}
+  recalculateAllTeamScores();
 }
 
 /* ============ ALL-TIME MEDALS ============ */
@@ -1360,16 +1358,12 @@ async function aggregateFromRounds(){
 }
 async function refreshScoresFromCloud(){
   const agg=await aggregateFromRounds();
-  ROSTER.forEach(p=>{
-    individualScores[p.id]=Math.max(individualScores[p.id]||0, agg.perBoard[p.id]||0);
-  });
-  teamMatchPoints=Math.max(teamMatchPoints, agg.totalMP);
-  teamGamePoints=Math.max(teamGamePoints, agg.totalGP);
   if(agg.rounds.length){
     const existing={}; roundResults.forEach(r=>existing[r.round]=r);
     agg.rounds.forEach(r=>{ existing[r.round]=r; });
     roundResults=Object.keys(existing).map(k=>existing[k]).sort((a,b)=>a.round-b.round);
   }
+  recalculateAllTeamScores();
 }
 
 /* ============ FALLBACK ENGINE ============ */
@@ -1442,7 +1436,6 @@ function quickEval(c){
   return s;
 }
 
-/* Async, chunked — yields to the browser every few moves so the UI never freezes. */
 async function analyzeGameStats(){
   if(!game) return null;
   let pgn = "";
@@ -1521,7 +1514,6 @@ async function analyzeGameStats(){
       else stats.checksReceived++;
     }
 
-    /* Yield to the browser every 4 moves so the UI never freezes. */
     if(i % 4 === 3){
       await new Promise(r=>setTimeout(r, 0));
     }
@@ -1572,7 +1564,6 @@ function renderGameStats(stats){
   body.innerHTML = html;
 }
 
-/* Deferred, non-blocking stats computation for the current round. */
 async function runStatsAnalysis(myRound){
   const wrap = el("result-stats");
   const body = el("result-stats-body");
@@ -1581,7 +1572,7 @@ async function runStatsAnalysis(myRound){
   body.innerHTML = '<div class="text-center text-slate-400 text-xs py-3">Analysing your game…</div>';
   try{
     const s = await analyzeGameStats();
-    if(myRound !== currentRound){ /* user moved on — drop result silently */ return; }
+    if(myRound !== currentRound){ return; }
     if(s){
       gameStatsByRound[myRound] = s;
       saveState();
@@ -1751,6 +1742,38 @@ function renderMedalTable(targetId){
   elx.innerHTML = html;
 }
 
+/* ============ SCORE RECALCULATION ============ */
+function recalculateAllTeamScores() {
+  const newScores = {};
+  ROSTER.forEach(p => newScores[p.id] = 0);
+  let mp = 0;
+  let gp = 0;
+  
+  const unique = {};
+  roundResults.forEach(r => { unique[r.round] = r; });
+  roundResults = Object.keys(unique).map(k => unique[k]).sort((a,b) => a.round - b.round);
+  roundsCompleted = roundResults.length;
+  
+  roundResults.forEach(r => {
+    gp += r.myGP;
+    mp += r.mp;
+    if (Array.isArray(r.boardResults)) {
+      r.boardResults.forEach(b => {
+        if (typeof b.res === 'number') {
+          newScores[b.id] = (newScores[b.id] || 0) + b.res;
+        }
+      });
+    }
+  });
+  
+  ROSTER.forEach(p => {
+    individualScores[p.id] = newScores[p.id] || 0;
+  });
+  
+  teamGamePoints = gp;
+  teamMatchPoints = mp;
+}
+
 /* ============ ADMIN ============ */
 function openAdminModal(){ el("admin-modal").classList.add("open"); }
 function closeAdminModal(){ el("admin-modal").classList.remove("open"); }
@@ -1910,16 +1933,17 @@ async function enterRound(round){
   const now=Date.now();
   const a=anchorFor(round);
   const pStart=a-PAIRING_SEC*1000;
+  const late=Math.max(0, Math.floor((now-a)/1000));
 
   if(now<pStart){ showWaitScreen(round,pStart); return; }
-  if(now<a){ startPairingCountdown(round,a); return; }
-
+  
   if(prevRoundDone){
-    startPairingCountdown(round, Date.now() + 800);
+    if(late >= BASE){ joinLateExpired(round,late); return; }
+    startPairingCountdown(round, Date.now() + 800, late);
     return;
   }
 
-  const late=Math.floor((now-a)/1000);
+  if(now<a){ startPairingCountdown(round,a,0); return; }
   if(late>=BASE){ joinLateExpired(round,late); return; }
   joinLate(round,a,late);
 }
@@ -1945,7 +1969,7 @@ function showWaitScreen(round,until){
   t();
   waitIv=setInterval(t,500);
 }
-function startPairingCountdown(round,anchor){
+function startPairingCountdown(round,anchor,lateTime){
   hideAll(); el("screen-match").classList.remove("hidden");
   el("match-title").textContent="Pairing Round "+round;
   const plan=ROUND_PLAN[round-1]||{strength:0.5};
@@ -1966,7 +1990,7 @@ function startPairingCountdown(round,anchor){
     const left=Math.max(0,anchor-Date.now());
     const i=Math.min(msgs.length-1,Math.floor((1-left/total)*msgs.length));
     el("match-msg").textContent=msgs[Math.max(0,i)];
-    if(left<=0){ clearInterval(matchIv); matchIv=null; setupMatch(round,anchor,0); }
+    if(left<=0){ clearInterval(matchIv); matchIv=null; setupMatch(round,anchor,lateTime||0); }
   };
   t();
   matchIv=setInterval(t,250);
@@ -2110,10 +2134,9 @@ function tickClocks(){
   const now=Date.now();
   let d=Math.floor((now-lastTick)/1000);
   if(d<=0) return;
-  if(d>3){ lastTick=now; return; }
   lastTick+=d*1000;
   if(game.turn()===userColor){
-    userTime-=d;
+    userTime=Math.max(0, userTime-d);
     el("clock-me").textContent=fmt(userTime);
     el("clock-me").classList.toggle("low",userTime<=30);
     el("clock-me").classList.add("active");
@@ -2121,7 +2144,7 @@ function tickClocks(){
     if(userTime<=0){ endRound(0,"Lost on time"); return; }
     checkIdleNudge();
   } else {
-    oppTime-=d;
+    oppTime=Math.max(0, oppTime-d);
     el("clock-opp").textContent=fmt(oppTime);
     el("clock-opp").classList.toggle("low",oppTime<=30);
     el("clock-opp").classList.add("active");
@@ -2306,19 +2329,15 @@ async function commitPendingRound(){
   const boardResults=ROSTER.map(p=>{
     const res = liveResults[p.id];
     if(res==null) return {board:p.board,id:p.id,name:p.name,res:null};
-    individualScores[p.id]=(individualScores[p.id]||0)+res;
     gp+=res;
     return {board:p.board,id:p.id,name:p.name,res:res};
   });
 
   const mp=gp>4?2:(gp===4?1:0);
-  teamMatchPoints+=mp;
-  teamGamePoints+=gp;
-  roundsCompleted=Math.max(roundsCompleted,pc.round);
-
   const oppGP=8-gp;
   const resultLabel=mp===2?"Win":(mp===1?"Draw":"Loss");
-  roundResults.push({
+  
+  const entry = {
     round:pc.round,
     oppSchool:pc.oppSchool,
     myGP:gp,
@@ -2326,8 +2345,14 @@ async function commitPendingRound(){
     mp:mp,
     result:resultLabel,
     boardResults:boardResults
-  });
+  };
 
+  const existingIdx = roundResults.findIndex(r => r.round === pc.round);
+  if(existingIdx >= 0) roundResults[existingIdx] = entry;
+  else roundResults.push(entry);
+  
+  recalculateAllTeamScores();
+  
   el("play-team-pts").textContent="Team: "+teamMatchPoints;
   saveState();
 }
