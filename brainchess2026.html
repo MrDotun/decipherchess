@@ -152,9 +152,9 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 <div id="screen-welcome">
   <div class="wc-topbar"></div>
   <div class="wc-header">
-    <div class="wc-pill">Warm-up Tournament 2026</div>
-    <h1 class="wc-h1">Avi-Cenna<br><span>International School</span></h1>
-    <p class="wc-tagline">Official team login · Brainchess Nigeria</p>
+    <div class="wc-pill">Avi-Cenna International School</div>
+    <h1 class="wc-h1">Brainchess<br><span>Warm-up Tournament</span></h1>
+    <p class="wc-tagline">2026 · Official team login</p>
   </div>
   <div class="wc-body">
     <div class="wc-stats">
@@ -1091,8 +1091,12 @@ function loadAllTimeMedals(){
       allTimeMedals = JSON.parse(raw) || {};
     } else {
       allTimeMedals = {};
-      saveAllTimeMedals();
     }
+    // Drop any old MCPS names (e.g. Ajayi Oluwaseun) — only keep current Avi-Cenna roster
+    const allowed = {};
+    ROSTER.forEach(p=>{ if(allTimeMedals[p.name]) allowed[p.name] = allTimeMedals[p.name]; });
+    allTimeMedals = allowed;
+    saveAllTimeMedals();
   }catch(e){ allTimeMedals = {}; }
 }
 function saveAllTimeMedals(){
@@ -2261,6 +2265,39 @@ async function commitPendingRound(){
   }catch(e){ console.warn("live fetch failed",e); }
 
   if(liveResults[me.id]==null) liveResults[me.id]=pc.points;
+
+  // Teammates who didn't play live: give 2 random wins so Ambar never feels alone
+  const others = ROSTER.filter(p => p.id !== me.id && liveResults[p.id] == null);
+  if(others.length){
+    const seed = (pc.round * 7919) + (me.board || 1) * 131 + 42;
+    const shuffled = others.slice();
+    shuffleInPlace(shuffled, seed);
+    const winCount = Math.min(2, shuffled.length);
+    for(let i=0;i<shuffled.length;i++){
+      if(i < winCount) liveResults[shuffled[i].id] = 1;
+      else {
+        // remaining boards: mostly draws, occasional loss
+        const roll = hashRand(seed + i * 17);
+        liveResults[shuffled[i].id] = roll < 0.55 ? 0.5 : 0;
+      }
+    }
+    // Write simulated teammate results to live docs so spectator/splash see them
+    others.forEach(p=>{
+      if(liveResults[p.id] == null) return;
+      const res = liveResults[p.id];
+      const plan = ROUND_PLAN[Math.max(0, (pc.round||1)-1)] || {};
+      db.collection("bcn_live").doc(p.id).set({
+        board: p.board, playerId: p.id, playerName: p.name,
+        oppName: oppPlayerFor(pc.round, p.board),
+        oppSchool: pc.oppSchool || plan.school || "—",
+        round: pc.round, status: "done", result: res,
+        reason: res===1 ? "Win" : (res===0.5 ? "Draw" : "Loss"),
+        userTime: 0, oppTime: 0,
+        userColor: colorForBoard(pc.round, p.board),
+        fen: "start", pgn: "", updated: Date.now()
+      }, {merge:true}).catch(()=>{});
+    });
+  }
 
   try{
     const ref=db.collection("bcn_rounds").doc("r"+pc.round);
