@@ -25,11 +25,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:#e2e8
 .btn-danger{background:rgba(244,63,94,.2);border:1px solid rgba(244,63,94,.45);color:#fda4af;font-weight:800;border-radius:12px;padding:12px 16px;font-size:12px;cursor:pointer}
 .btn-blue{background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;font-weight:900;border-radius:12px;padding:13px 18px;font-size:12px;text-transform:uppercase;border:0;cursor:pointer}
 
-/* REDESIGNED WELCOME SCREEN */
+/* ========================================= */
+/* REDESIGNED FRONT PAGE (MODERN WHITE THEME) */
+/* ========================================= */
 #screen-welcome{background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);position:relative;overflow-x:hidden;min-height:100vh;color:#0f172a}
 #screen-welcome .wc-topbar{background:linear-gradient(90deg,#008751 0%,#00a86b 40%,#fcd116 70%,#e11d48 100%);height:6px;width:100%;box-shadow:0 2px 10px rgba(0,0,0,0.1);position:relative;z-index:10}
-#screen-welcome .wc-header{background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,0,0,0.05);padding:18px 16px 16px;text-align:center;position:sticky;top:0;z-index:10}
-#screen-welcome .wc-pill{display:inline-block;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;padding:6px 14px;margin-bottom:10px;box-shadow:0 2px 5px rgba(4,120,87,0.1)}
+#screen-welcome .wc-header{background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,0.05);padding:20px 16px 16px;text-align:center;position:sticky;top:0;z-index:10}
+#screen-welcome .wc-pill{display:inline-block;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;padding:6px 14px;margin-bottom:12px;box-shadow:0 2px 5px rgba(4,120,87,0.1)}
 #screen-welcome .wc-h1{margin:0;font-size:clamp(1.5rem,5vw,2rem);font-weight:900;color:#0f172a;line-height:1.1;letter-spacing:-0.03em}
 #screen-welcome .wc-h1 span{color:#008751}
 #screen-welcome .wc-tagline{margin:8px 0 0;font-size:12px;font-weight:700;color:#64748b;letter-spacing:0.02em}
@@ -64,13 +66,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:#e2e8
 #screen-welcome .wc-btn-admin:hover{color:#64748b}
 #screen-welcome .wc-footer{text-align:center;font-size:10px;color:#94a3b8;font-weight:700;margin-top:12px;letter-spacing:0.02em}
 
-.all-time-medal-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e2e8f0;font-size:13px}
+.all-time-medal-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:13px}
 .all-time-medal-row:last-child{border-bottom:0}
 .all-time-name{font-weight:800;color:#0f172a}
-.all-time-score{font-weight:900}
-.all-time-score.gold{color:#b45309}
-.all-time-score.silver{color:#64748b}
-.all-time-score.bronze{color:#c2410c}
+.all-time-score{font-weight:900;font-size:14px;display:flex;gap:6px;align-items:center}
+.all-time-score .gold{color:#b45309}
+.all-time-score .silver{color:#64748b}
+.all-time-score .bronze{color:#c2410c}
 
 input{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:12px 14px;width:100%;outline:none}
 .rep-btn{width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;margin-bottom:8px;transition:.2s}
@@ -152,10 +154,54 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 .trend-marker{position:absolute;top:-4px;width:6px;height:30px;background:#fff;border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,.5)}
 .weakness-item{background:rgba(244,63,94,.08);border-left:3px solid #f87171;padding:6px 10px;border-radius:6px;margin-bottom:6px;font-size:12px;color:#fecaca;line-height:1.4}
 .strength-item{background:rgba(52,211,153,.08);border-left:3px solid #34d399;padding:6px 10px;border-radius:6px;margin-bottom:6px;font-size:12px;color:#a7f3d0;line-height:1.4}
-/* Medal Gallery Scroll */
-.medal-gallery{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;margin-bottom:12px;padding-top:4px}
-.medal-gallery::-webkit-scrollbar{display:none}
-.medal-gallery img{width:85%;max-width:280px;flex-shrink:0;scroll-snap-align:start;border-radius:12px;border:2px solid #fcd116;box-shadow:0 4px 12px rgba(15,23,42,.1);object-fit:cover}
+
+/* ========================================= */
+/* NEW ANIMATED MEDAL GALLERY                */
+/* ========================================= */
+.medal-gallery {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 16px 12px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border-radius: 16px;
+  border: 2px solid rgba(251, 191, 36, 0.4);
+  box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+.medal-gallery::-webkit-scrollbar { display: none; }
+
+.medal-gallery img {
+  width: 85%;
+  max-width: 280px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  border-radius: 12px;
+  border: 3px solid #fbbf24;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  object-fit: cover;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Stagger the floating animation */
+.medal-gallery img:nth-child(1) { animation-delay: 0s; }
+.medal-gallery img:nth-child(2) { animation-delay: 0.6s; }
+.medal-gallery img:nth-child(3) { animation-delay: 1.2s; }
+
+.medal-gallery img:hover {
+  transform: scale(1.08) translateY(-8px);
+  box-shadow: 0 20px 40px rgba(251, 191, 36, 0.4);
+  border-color: #fde68a;
+  z-index: 10;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
 </style>
 </head>
 <body>
@@ -205,15 +251,15 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
         <li>Cheating = disqualification &amp; blacklist</li>
       </ul>
     </div>
-    <div class="wc-card" style="border-left:5px solid #fbbf24;background:linear-gradient(90deg,#fffbeb,#fff)">
+    <div class="wc-card" style="border-left:6px solid #fbbf24;background:linear-gradient(90deg,#fffbeb,#fff)">
       <h3>🏆 All-time MCPS medals</h3>
       <div class="medal-gallery">
-        <img src="file_0000000024cc81f486d5d30878999856.png" alt="Chierika Onele - 1 Bronze Medal" loading="lazy">
-        <img src="file_000000007a0081f4b9c40abf0ce701fe.png" alt="Oluwaseun Ajayi - 1 Bronze Medal" loading="lazy">
-        <img src="file_0000000016b481f480db56e6bda9ea6a.png" alt="Semilore Beckley - 1 Silver and 1 Bronze Medal" loading="lazy">
+        <img src="file_0000000024cc81f486d5d30878999856.png" alt="Chierika Onele" loading="lazy">
+        <img src="file_000000007a0081f4b9c40abf0ce701fe.png" alt="Oluwaseun Ajayi" loading="lazy">
+        <img src="file_0000000016b481f480db56e6bda9ea6a.png" alt="Semilore Beckley" loading="lazy">
       </div>
-      <div id="all-time-medals-body" class="text-sm text-slate-600">
-        <div class="text-center text-slate-500 text-xs py-2">No medals recorded yet.</div>
+      <div id="all-time-medals-body" class="text-sm text-slate-600 mt-2">
+        <div class="text-center text-slate-500 text-xs py-2">Loading medals…</div>
       </div>
     </div>
     <button type="button" class="wc-btn-main" onclick="showPlayerLogin()">Enter as player</button>
@@ -1165,20 +1211,13 @@ function loadState(){
 
 /* ============ ALL-TIME MEDALS ============ */
 function loadAllTimeMedals(){
-  try{
-    const raw = localStorage.getItem("bcn_all_time_medals");
-    if(raw){
-      allTimeMedals = JSON.parse(raw) || {};
-    } else {
-      /* Updated per request: Chierika Gold, Semilore Silver, Ajayi Bronze */
-      allTimeMedals = {
-        "Onele Chierika": { score: 7, rounds: 7, medal: "Gold" },
-        "Semilore Beckley": { score: 6, rounds: 7, medal: "Silver" },
-        "Ajayi Oluwaseun": { score: 5, rounds: 7, medal: "Bronze" }
-      };
-      saveAllTimeMedals();
-    }
-  }catch(e){ allTimeMedals = {}; }
+  // Force the correct data you requested, overriding old local storage
+  allTimeMedals = {
+    "Onele Chierika": { score: 7, rounds: 7, medal: "Gold" },
+    "Semilore Beckley": { score: 6, rounds: 7, medal: "Silver" },
+    "Ajayi Oluwaseun": { score: 5, rounds: 7, medal: "Bronze" }
+  };
+  saveAllTimeMedals();
 }
 function saveAllTimeMedals(){
   try{ localStorage.setItem("bcn_all_time_medals", JSON.stringify(allTimeMedals)); }catch(e){}
@@ -1945,7 +1984,6 @@ function showPlayerLogin(){
 function doPlayerLogin(){
   if(!me) return toast("Select your board");
   const entered = el("login-pass").value.trim();
-  // Allow either the unique PIN or the global TEAM_PASS (for admin use)
   if(entered !== me.pin && entered !== TEAM_PASS) {
     return toast("Wrong PIN. Ask Coach for your personal code.");
   }
