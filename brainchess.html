@@ -143,6 +143,10 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 .trend-marker{position:absolute;top:-4px;width:6px;height:30px;background:#fff;border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,.5)}
 .weakness-item{background:rgba(244,63,94,.08);border-left:3px solid #f87171;padding:6px 10px;border-radius:6px;margin-bottom:6px;font-size:12px;color:#fecaca;line-height:1.4}
 .strength-item{background:rgba(52,211,153,.08);border-left:3px solid #34d399;padding:6px 10px;border-radius:6px;margin-bottom:6px;font-size:12px;color:#a7f3d0;line-height:1.4}
+/* Medal Gallery Scroll */
+.medal-gallery{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;margin-bottom:12px;padding-top:4px}
+.medal-gallery::-webkit-scrollbar{display:none}
+.medal-gallery img{width:85%;max-width:280px;flex-shrink:0;scroll-snap-align:start;border-radius:12px;border:2px solid #fcd116;box-shadow:0 4px 12px rgba(15,23,42,.1);object-fit:cover}
 </style>
 </head>
 <body>
@@ -194,6 +198,12 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     </div>
     <div class="wc-card" style="border-left:5px solid #fbbf24;background:linear-gradient(90deg,#fffbeb,#fff)">
       <h3>🏆 All-time MCPS medals</h3>
+      <!-- Added Medalist Images Gallery Here -->
+      <div class="medal-gallery">
+        <img src="file_0000000024cc81f486d5d30878999856.png" alt="Chierika Onele - 1 Bronze Medal" loading="lazy">
+        <img src="file_000000007a0081f4b9c40abf0ce701fe.png" alt="Oluwaseun Ajayi - 1 Bronze Medal" loading="lazy">
+        <img src="file_0000000016b481f480db56e6bda9ea6a.png" alt="Semilore Beckley - 1 Silver and 1 Bronze Medal" loading="lazy">
+      </div>
       <div id="all-time-medals-body" class="text-sm text-slate-600">
         <div class="text-center text-slate-500 text-xs py-2">No medals recorded yet.</div>
       </div>
@@ -1917,6 +1927,33 @@ function doPlayerLogin(){
 
 /* ============ ROUND ENTRY ============ */
 async function enterRound(round){
+  // --- FIX: ENFORCE SYNCHRONIZATION ACROSS ALL BOARDS ---
+  if (round > 1) {
+    try {
+      const snap = await db.collection("bcn_live").where("round", "==", round - 1).get();
+      let activeGames = 0;
+      snap.forEach(d => {
+        const g = d.data();
+        // If any game is still "live" or hasn't been set to "done", block the next round.
+        if (g.status === "live" || !g.status) activeGames++;
+      });
+      
+      if (activeGames > 0) {
+        // If we are on the wait screen, update the message so players know why they are waiting.
+        if (!el("screen-wait").classList.contains("hidden")) {
+          el("wait-title").textContent = "Waiting for other boards...";
+          el("wait-sub").textContent = "Round " + (round - 1) + " is still in progress on another board.";
+        }
+        // Check again in 5 seconds
+        setTimeout(() => enterRound(round), 5000);
+        return;
+      }
+    } catch (e) {
+      console.warn("Sync check failed, proceeding...", e);
+    }
+  }
+  // -----------------------------------------------------
+
   currentRound=round;
   let prevRoundDone=false;
   try{
