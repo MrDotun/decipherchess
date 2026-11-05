@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -367,11 +368,11 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <p class="text-slate-400 text-sm mb-4" id="wait-sub">All boards finished. Next round starts together after the break.</p>
   <div class="text-3xl font-black text-amber-300 mb-6" id="wait-timer">2:00</div>
   
-  <!-- Team Report Button added here -->
+  <!-- Team Report Button -->
   <button type="button" class="btn-blue w-full max-w-md mb-2 shadow-lg" style="font-size: 14px; padding: 14px;" onclick="openStandings()">📊 View Team Report</button>
   <button type="button" class="btn-soft w-full max-w-md mb-4" onclick="enterSpectator()">Watch live boards &amp; chat</button>
 
-  <!-- Medal Gallery added to Lobby -->
+  <!-- Medal Gallery in Lobby -->
   <div class="w-full max-w-md panel p-3 mb-4">
     <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2 text-left">🏆 All-time MCPS medalists</div>
     <div class="medal-gallery" style="margin-bottom:0; padding-bottom:0;">
@@ -621,7 +622,7 @@ const MID_SCHOOLS=[
   "Halifield Schools","Caleb British International","Topfield College","Nova International"
 ];
 
-/* ============ UPDATED ROUND PLAN ============ */
+/* ============ WEAKENED ROUND PLAN ============ */
 const ROUND_PLAN=[
   {school:"Grange School",
    players:["Damilola Adeyinka","Chidera Okonkwo","Oluwaseun Fashola","Chukwuemeka Nnamdi",
@@ -630,7 +631,7 @@ const ROUND_PLAN=[
             "Ifeoma Obi","Ayodeji Oladipo","Kanyinsola Ojo","Ndubuisi Eze",
             "Amaka Obi","Gbenga Adeleke","Chinaza Uche","Oluwafunmilayo Adeyemi",
             "Olumide Adekunle","Oluwadamilare Ogunbiyi","Akintunde Oyedeji","Nneka Nwosu"],
-   strength:0.65, elo:1350, depth:4, time:250},
+   strength:0.55, elo:1200, depth:3, time:200},
 
   {school:"Corona Private School",
    players:["Adewale Ogundipe","Somtochukwu Uche","Ikechukwu Onyeka","Chinelo Obi",
@@ -639,7 +640,7 @@ const ROUND_PLAN=[
             "Akinwale Adegoke","Ezinne Obiora","Oluwatobi Sanni","Chisom Anya",
             "Wale Oladimeji","Kenechukwu Ezeani","Amarachi Ogbonna","Nkechi Umeh",
             "Olumuyiwa Akinyele","Ayotunde Salami","Adebola Osunlana","Chinwe Okwu"],
-   strength:0.72, elo:1500, depth:4, time:300},
+   strength:0.62, elo:1350, depth:3, time:250},
 
   {school:"Atlantic Hall",
    players:["Ayomide Ogundiran","Chukwuemeka Ogbonna","Oluwafemi Adegbite","Temitope Alabi",
@@ -648,7 +649,7 @@ const ROUND_PLAN=[
             "Obi Chukwuemeka","Onele Chierika","Semilore Beckley","Sage Osafile",
             "Anwuli Okoye","Chukwuma Okafor","Nkem Eze","Adaobi Nwosu",
             "Olamiposi Adeniyi","Kolawole Adegbenro","Titilayo Ajibade","Ifeanyi Ezeh"],
-   strength:0.78, elo:1650, depth:4, time:350},
+   strength:0.68, elo:1450, depth:3, time:300},
 
   {school:"Skylink International School",
    players:["Oluwafemi Adegbite","Kenechukwu Ezeani","Temitope Alabi","Chukwudi Obiora",
@@ -657,7 +658,7 @@ const ROUND_PLAN=[
             "Tokunbo Sanni","Ifeanyi Onyeka","Kemi Oladipo","Chidera Obi",
             "Bimbo Adeleke","Obinna Nwosu","Tayo Oyedeji","Adaora Eze",
             "Folarin Akinyemi","Chiamaka Ugo","Segun Bankole","Onyinye Nnamdi"],
-   strength:0.88, elo:1850, depth:5, time:450},
+   strength:0.75, elo:1600, depth:4, time:350},
 
   {school:"Chess In Slums Academy",
    players:["Tobi Akinyemi","Chiamaka Ibe","Damilare Fasanya","Emeka Okafor",
@@ -666,7 +667,7 @@ const ROUND_PLAN=[
             "Kunle Balogun","Adanna Okoli","Wale Okeowo","Chinedu Anya",
             "Ifedayo Salami","Onyeka Nnamdi","Ayobami Ojo","Chioma Ezeani",
             "Olatunji Adeleke","Kelechi Ugwu","Morayo Ogunjimi","Ugochi Nwaeze"],
-   strength:0.82, elo:1750, depth:4, time:400},
+   strength:0.78, elo:1650, depth:4, time:400},
 
   {school:"Jareb Private School",
    players:["Olumide Adekunle","Somtochukwu Uche","Oluwadamilare Ogunbiyi","Ikechukwu Onyeka",
@@ -675,7 +676,7 @@ const ROUND_PLAN=[
             "Ololade Akande","Nnamdi Okonkwo","Bolanle Ogunbanwo","Ifeanyi Aniekwe",
             "Temitayo Adekunbi","Chinonso Umeh","Folasade Bello","Emeka Nweke",
             "Adebayo Oyelowo","Ekene Nwafor","Yejide Sanni","Ikechukwu Obi"],
-   strength:0.85, elo:1900, depth:5, time:500},
+   strength:0.80, elo:1700, depth:4, time:450},
 
   {school:"Indian Language School",
    players:["Arjun Mehta","Priya Sharma","Rohan Patel","Ananya Reddy",
@@ -684,7 +685,7 @@ const ROUND_PLAN=[
             "Siddharth Rao","Pooja Joshi","Aryan Gupta","Meera Subramanian",
             "Varun Chatterjee","Riya Banerjee","Naveen Kumar","Shruti Menon",
             "Nikhil Bhatt","Tara Sinha","Rohit Saxena","Aisha Khan"],
-   strength:0.92, elo:2000, depth:5, time:600}
+   strength:0.85, elo:1800, depth:5, time:500}
 ];
 
 function oppPlayerFor(round, board){
