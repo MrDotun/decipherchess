@@ -337,7 +337,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="text-[10px] font-black uppercase tracking-widest text-amber-400" id="play-round">Round 1 / 7 · 10+2</div>
     <div class="text-[11px] font-bold text-slate-400" id="play-team-pts">Team: 0</div>
     <button type="button" class="sound-toggle" id="sound-toggle" onclick="toggleSound()">🔊</button>
-    <button type="button" class="text-xs font-bold text-slate-500 opacity-60" onclick="tryOpenStandings()">Team Report</button>
+    <button type="button" class="text-xs font-bold text-amber-400" onclick="tryOpenStandings()">Team Report</button>
   </nav>
   <div class="max-w-xl mx-auto px-3 py-3">
     <div class="flex items-center justify-between gap-3 mb-2 panel px-3 py-2.5" style="border-left:4px solid #f87171">
@@ -392,43 +392,30 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <h2 class="text-xl font-black text-white uppercase italic mb-2" id="wait-title">Break — clocks frozen</h2>
   <p class="text-slate-400 text-sm mb-4" id="wait-sub">All boards finished. Next round starts together after the break.</p>
   <div class="text-3xl font-black text-amber-300 mb-6" id="wait-timer">2:00</div>
-  <button type="button" class="btn-soft" onclick="enterSpectator()">Watch live boards &amp; chat</button>
+  <div class="flex flex-col sm:flex-row gap-2 w-full max-w-xs mx-auto">
+    <button type="button" class="btn-soft flex-1" onclick="enterSpectator()">Watch live boards &amp; chat</button>
+    <button type="button" class="btn-soft flex-1" onclick="openStandings()">Team Report</button>
+  </div>
 
-  <!-- Team photos while waiting -->
-  <div class="w-full max-w-md mt-4 mb-2">
-    <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2 text-center">MCPS Team</div>
-    <div class="grid grid-cols-4 gap-2" id="lobby-photo-grid">
-      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
-        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
-        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Obi</div>
+  <!-- Medalists only – larger photos -->
+  <div class="w-full max-w-sm mt-5 mb-2">
+    <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-3 text-center">All-time Medalists</div>
+    <div class="grid grid-cols-2 gap-3" id="lobby-photo-grid">
+      <div class="rounded-xl overflow-hidden bg-slate-800 border-2 border-amber-500/40 flex flex-col items-center shadow-lg">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-sm text-slate-400">Photo</div>
+        <div class="text-[11px] font-bold text-amber-200 py-2 px-1 text-center leading-tight">Chierika Onele</div>
       </div>
-      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
-        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
-        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Chierika</div>
+      <div class="rounded-xl overflow-hidden bg-slate-800 border-2 border-amber-500/40 flex flex-col items-center shadow-lg">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-sm text-slate-400">Photo</div>
+        <div class="text-[11px] font-bold text-amber-200 py-2 px-1 text-center leading-tight">Semilore Beckley</div>
       </div>
-      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
-        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
-        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Beckley</div>
+      <div class="rounded-xl overflow-hidden bg-slate-800 border-2 border-amber-500/40 flex flex-col items-center shadow-lg">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-sm text-slate-400">Photo</div>
+        <div class="text-[11px] font-bold text-amber-200 py-2 px-1 text-center leading-tight">Oluwaseun Ajayi</div>
       </div>
-      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
-        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
-        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Ajayi</div>
-      </div>
-      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
-        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
-        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Sage</div>
-      </div>
-      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
-        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
-        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Isioma</div>
-      </div>
-      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
-        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
-        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Enemoh</div>
-      </div>
-      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
-        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
-        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Kosi</div>
+      <div class="rounded-xl overflow-hidden bg-slate-800 border-2 border-amber-500/40 flex flex-col items-center shadow-lg">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-sm text-slate-400">Photo</div>
+        <div class="text-[11px] font-bold text-amber-200 py-2 px-1 text-center leading-tight">Chukwuemeka Obi</div>
       </div>
     </div>
   </div>
@@ -1444,10 +1431,19 @@ async function aggregateFromRounds(){
 }
 async function refreshScoresFromCloud(){
   const agg=await aggregateFromRounds();
+  // Never keep ghost rounds higher than the current live / scheduled round
+  const maxAllowed = Math.max(currentRoundFromClock(Date.now()), roundsCompleted, 1);
   if(agg.rounds.length){
-    const existing={}; roundResults.forEach(r=>existing[r.round]=r);
-    agg.rounds.forEach(r=>{ existing[r.round]=r; });
+    const existing={};
+    // keep only legitimate local results
+    roundResults.forEach(r=>{ if(r.round <= maxAllowed) existing[r.round]=r; });
+    agg.rounds.forEach(r=>{
+      if(r.round <= maxAllowed) existing[r.round]=r;
+    });
     roundResults=Object.keys(existing).map(k=>existing[k]).sort((a,b)=>a.round-b.round);
+  } else {
+    // Cloud is empty after reset – clear local history too
+    roundResults = roundResults.filter(r => r.round <= maxAllowed);
   }
   recalculateAllTeamScores();
 }
@@ -1903,16 +1899,19 @@ async function adminResetTournament(){
 
   const wipeCollection = async (name)=>{
     try{
-      while(true){
+      let safety = 0;
+      while(safety < 20){
         const snap = await db.collection(name).limit(400).get();
         if(snap.empty) return;
         const b = db.batch();
         snap.forEach(d=>b.delete(d.ref));
         await b.commit();
+        safety++;
       }
     }catch(e){ console.warn("wipe failed: "+name, e && e.message); }
   };
 
+  toast("Resetting… please wait");
   await wipeCollection("bcn_live");
   await wipeCollection("bcn_rounds");
   await wipeCollection("tournament_games");
@@ -1928,6 +1927,7 @@ async function adminResetTournament(){
     await db.collection("bcn_meta").doc("mcps").set({mp:0,gp:0,round:1,rc:0,updated:now});
   }catch(e){ console.warn("reset meta failed", e && e.message); }
 
+  // Hard client-side wipe
   currentRound=1;roundsCompleted=0;
   individualScores={};ROSTER.forEach(p=>individualScores[p.id]=0);
   teamMatchPoints=0;teamGamePoints=0;
@@ -1935,6 +1935,7 @@ async function adminResetTournament(){
   offlineQueue.length=0;
   gameStatsByRound={};
   statsAnalysisToken++;
+  scheduledStartMs=0;
   try{
     const at = localStorage.getItem("bcn_all_time_medals");
     localStorage.clear();
@@ -1942,8 +1943,10 @@ async function adminResetTournament(){
   }catch(e){}
   me=null;gameLive=false;game=null;
   if(timer){clearInterval(timer);timer=null;}
+  if(waitIv){clearInterval(waitIv);waitIv=null;}
+  if(matchIv){clearInterval(matchIv);matchIv=null;}
   closeAdminModal();
-  toast("Tournament reset — all boards cleared");
+  toast("Tournament fully reset — all boards & history cleared");
   showWelcome();
 }
 function updateScheduleBanner(){
@@ -2636,8 +2639,10 @@ function renderStandings(roundOverride){
 
   const rrBody=el("rr-body");
   if(rrBody){
-    if(roundResults.length){
-      rrBody.innerHTML=roundResults.map(rr=>{
+    const maxAllowed = Math.max(currentRoundFromClock(Date.now()), roundsCompleted, 1);
+    const cleanResults = roundResults.filter(rr => rr.round <= maxAllowed);
+    if(cleanResults.length){
+      rrBody.innerHTML=cleanResults.map(rr=>{
         const color=rr.result==="Win"?"text-emerald-300":(rr.result==="Loss"?"text-rose-300":"text-amber-300");
         let boardLine="";
         if(Array.isArray(rr.boardResults)){
