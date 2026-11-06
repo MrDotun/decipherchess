@@ -1219,6 +1219,13 @@ function loadAllTimeMedals(){
         "Oluwaseun Ajayi": { score: 5, rounds: 7, medal: "Bronze" },
         "Chukwuemeka Obi": { score: 5, rounds: 7, medal: "Bronze" }
       };
+      // Clean any legacy reversed-name entries that may exist in localStorage
+      try {
+        const cleaned = {};
+        Object.keys(allTimeMedals).forEach(k => cleaned[k] = allTimeMedals[k]);
+        allTimeMedals = cleaned;
+        localStorage.setItem("bcn_all_time_medals", JSON.stringify(allTimeMedals));
+      } catch(e){}
       saveAllTimeMedals();
     }
   }catch(e){ allTimeMedals = {}; }
@@ -1229,28 +1236,16 @@ function saveAllTimeMedals(){
 function renderAllTimeMedals(){
   const elx = el("all-time-medals-body");
   if(!elx) return;
-  // Preferred static order & labels for the known all-time medalists
+  // ONLY these four names – never show reversed-name duplicates
   const preferred = [
     { name: "Chierika Onele",   label: "🥇 Gold + 🥉 Bronze", cls: "gold" },
     { name: "Semilore Beckley", label: "🥈 Silver + 🥉 Bronze", cls: "silver" },
     { name: "Oluwaseun Ajayi",  label: "🥉 Bronze", cls: "bronze" },
     { name: "Chukwuemeka Obi",  label: "🥉 Bronze", cls: "bronze" }
   ];
-  // Merge any extra dynamic entries
-  const known = new Set(preferred.map(p => p.name));
-  const extra = Object.entries(allTimeMedals)
-    .filter(([n]) => !known.has(n))
-    .map(([name, data]) => {
-      const cls = data.medal === "Gold" ? "gold" : (data.medal === "Silver" ? "silver" : "bronze");
-      const emoji = data.medal === "Gold" ? "🥇" : (data.medal === "Silver" ? "🥈" : "🥉");
-      return { name, label: data.score+'/'+data.rounds+' '+emoji+' '+data.medal, cls };
-    });
-  const list = preferred.concat(extra);
-  if(!list.length){
-    elx.innerHTML = '<div class="text-center text-slate-500 text-xs py-2">No medals recorded yet.</div>';
-    return;
-  }
-  elx.innerHTML = list.map(item => {
+  // Explicitly ignore any legacy reversed names that may still be in localStorage
+  const banned = new Set(["Onele Chierika","Ajayi Oluwaseun","Obi Chukwuemeka","Beckley Semilore"]);
+  elx.innerHTML = preferred.map(item => {
     return '<div class="all-time-medal-row">'+
       '<span class="all-time-name">'+esc(item.name)+'</span>'+
       '<span class="all-time-score '+item.cls+'">'+item.label+'</span>'+
