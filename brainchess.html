@@ -24,56 +24,45 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:#e2e8
 .btn-soft{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#e2e8f0;font-weight:800;border-radius:12px;padding:12px 16px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer}
 .btn-danger{background:rgba(244,63,94,.2);border:1px solid rgba(244,63,94,.45);color:#fda4af;font-weight:800;border-radius:12px;padding:12px 16px;font-size:12px;cursor:pointer}
 .btn-blue{background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;font-weight:900;border-radius:12px;padding:13px 18px;font-size:12px;text-transform:uppercase;border:0;cursor:pointer}
-
-/* ========================================= */
-/* REDESIGNED FRONT PAGE (MODERN WHITE THEME) */
-/* ========================================= */
-#screen-welcome{background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);position:relative;overflow-x:hidden;min-height:100vh;color:#0f172a}
-#screen-welcome .wc-topbar{background:linear-gradient(90deg,#008751 0%,#00a86b 40%,#fcd116 70%,#e11d48 100%);height:6px;width:100%;box-shadow:0 2px 10px rgba(0,0,0,0.1);position:relative;z-index:10}
-#screen-welcome .wc-header{background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,0.05);padding:20px 16px 16px;text-align:center;position:sticky;top:0;z-index:10}
-#screen-welcome .wc-pill{display:inline-block;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;padding:6px 14px;margin-bottom:12px;box-shadow:0 2px 5px rgba(4,120,87,0.1)}
-#screen-welcome .wc-h1{margin:0;font-size:clamp(1.5rem,5vw,2rem);font-weight:900;color:#0f172a;line-height:1.1;letter-spacing:-0.03em}
+#screen-welcome{background:#f4f7fb;position:relative;overflow-x:hidden;min-height:100vh;color:#0f172a}
+#screen-welcome .wc-topbar{background:linear-gradient(90deg,#008751 0%,#00a86b 40%,#fcd116 70%,#e11d48 100%);height:6px;width:100%}
+#screen-welcome .wc-header{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 16px 12px;text-align:center}
+#screen-welcome .wc-pill{display:inline-block;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;margin-bottom:8px}
+#screen-welcome .wc-h1{margin:0;font-size:clamp(1.35rem,4.5vw,1.85rem);font-weight:900;color:#0f172a;line-height:1.15;letter-spacing:-0.02em}
 #screen-welcome .wc-h1 span{color:#008751}
-#screen-welcome .wc-tagline{margin:8px 0 0;font-size:12px;font-weight:700;color:#64748b;letter-spacing:0.02em}
-#screen-welcome .wc-photo-wrap{position:relative;margin:0;background:#0f172a;box-shadow:0 10px 30px rgba(0,0,0,0.15)}
-#screen-welcome .wc-photo-wrap img{display:block;width:100%;max-height:min(45vh,360px);object-fit:cover;object-position:top center}
-#screen-welcome .wc-photo-caption{position:absolute;left:16px;right:16px;bottom:-16px;background:rgba(255,255,255,.98);border-radius:16px;padding:12px 16px;text-align:center;box-shadow:0 10px 30px rgba(15,23,42,.15);border:1px solid #fcd116}
-#screen-welcome .wc-photo-caption .k{font-size:9px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;color:#b45309}
-#screen-welcome .wc-photo-caption .v{font-size:15px;font-weight:900;color:#0f172a;margin-top:3px}
-#screen-welcome .wc-body{padding:32px 16px 28px;max-width:520px;margin:0 auto}
-#screen-welcome .wc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
-#screen-welcome .wc-stat{background:#fff;border-radius:16px;padding:14px 10px;text-align:center;border:1px solid rgba(0,0,0,0.04);box-shadow:0 4px 15px rgba(15,23,42,.03);transition:transform 0.2s}
-#screen-welcome .wc-stat:hover{transform:translateY(-2px)}
-#screen-welcome .wc-stat .n{font-size:1.5rem;font-weight:900;color:#008751;line-height:1}
-#screen-welcome .wc-stat .l{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-top:6px}
-#screen-welcome .wc-card{background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.04);box-shadow:0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01);transition:transform 0.2s}
-#screen-welcome .wc-card:hover{transform:translateY(-1px)}
-#screen-welcome .wc-card.green{border-left:6px solid #008751}
-#screen-welcome .wc-card.red{border-left:6px solid #e11d48;background:linear-gradient(90deg,#fff1f2,#fff)}
-#screen-welcome .wc-card h3{margin:0 0 12px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:#0f172a}
-#screen-welcome .wc-card ul{margin:0;padding-left:1.2rem;font-size:13px;color:#334155;line-height:1.6;font-weight:600}
+#screen-welcome .wc-tagline{margin:6px 0 0;font-size:12px;font-weight:700;color:#64748b}
+#screen-welcome .wc-photo-wrap{position:relative;margin:0;background:#0f172a}
+#screen-welcome .wc-photo-wrap img{display:block;width:100%;max-height:min(52vh,420px);object-fit:cover;object-position:top center}
+#screen-welcome .wc-photo-caption{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(255,255,255,.95);border-radius:14px;padding:10px 14px;text-align:center;box-shadow:0 8px 28px rgba(15,23,42,.25);border:2px solid #fcd116}
+#screen-welcome .wc-photo-caption .k{font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#b45309}
+#screen-welcome .wc-photo-caption .v{font-size:14px;font-weight:900;color:#0f172a;margin-top:2px}
+#screen-welcome .wc-body{padding:16px 16px 28px;max-width:480px;margin:0 auto}
+#screen-welcome .wc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+#screen-welcome .wc-stat{background:#fff;border-radius:14px;padding:12px 8px;text-align:center;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(15,23,42,.04)}
+#screen-welcome .wc-stat .n{font-size:1.35rem;font-weight:900;color:#008751;line-height:1}
+#screen-welcome .wc-stat .l{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-top:4px}
+#screen-welcome .wc-card{background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;border:1px solid #e2e8f0;box-shadow:0 4px 16px rgba(15,23,42,.06)}
+#screen-welcome .wc-card.green{border-left:5px solid #008751}
+#screen-welcome .wc-card.red{border-left:5px solid #e11d48;background:linear-gradient(90deg,#fff1f2,#fff)}
+#screen-welcome .wc-card h3{margin:0 0 8px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#0f172a}
+#screen-welcome .wc-card ul{margin:0;padding-left:1.1rem;font-size:13px;color:#334155;line-height:1.55;font-weight:600}
 #screen-welcome .wc-card.red ul{color:#9f1239}
-#screen-welcome .wc-time{text-align:center;background:linear-gradient(180deg,#f0fdf4,#ecfdf5);border:1px solid #6ee7b7;border-radius:20px;padding:18px;margin-bottom:20px;box-shadow:0 8px 20px rgba(16,185,129,0.1)}
-#screen-welcome .wc-time .lab{font-size:10px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;color:#047857}
-#screen-welcome .wc-time .val{font-size:1.3rem;font-weight:900;color:#065f46;margin-top:6px}
-#screen-welcome .wc-time .cd{font-size:13px;color:#059669;margin-top:6px;font-weight:700}
-#screen-welcome .wc-btn-main{width:100%;border:0;border-radius:16px;padding:18px;cursor:pointer;background:linear-gradient(135deg,#008751,#00c853);color:#fff;font-weight:900;font-size:15px;text-transform:uppercase;letter-spacing:.08em;box-shadow:0 10px 25px rgba(0,135,81,.3);transition:all 0.2s}
-#screen-welcome .wc-btn-main:hover{box-shadow:0 12px 30px rgba(0,135,81,.4);transform:translateY(-1px)}
+#screen-welcome .wc-time{text-align:center;background:#ecfdf5;border:2px solid #6ee7b7;border-radius:16px;padding:14px;margin-bottom:14px}
+#screen-welcome .wc-time .lab{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#047857}
+#screen-welcome .wc-time .val{font-size:1.2rem;font-weight:900;color:#065f46;margin-top:4px}
+#screen-welcome .wc-time .cd{font-size:12px;color:#059669;margin-top:4px}
+#screen-welcome .wc-btn-main{width:100%;border:0;border-radius:16px;padding:16px;cursor:pointer;background:linear-gradient(135deg,#008751,#00c853);color:#fff;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 8px 24px rgba(0,135,81,.35)}
 #screen-welcome .wc-btn-main:active{transform:scale(.98)}
-#screen-welcome .wc-btn-sec{width:100%;margin-top:12px;border-radius:16px;padding:16px;cursor:pointer;background:#fff;border:2px solid #0f172a;color:#0f172a;font-weight:900;font-size:13px;text-transform:uppercase;letter-spacing:.06em;transition:all 0.2s;box-shadow:0 4px 10px rgba(0,0,0,0.05)}
-#screen-welcome .wc-btn-sec:hover{background:#f8fafc;transform:translateY(-1px)}
-#screen-welcome .wc-btn-admin{width:100%;margin-top:14px;border:0;background:transparent;color:#94a3b8;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:12px;cursor:pointer;transition:color 0.2s}
-#screen-welcome .wc-btn-admin:hover{color:#64748b}
-#screen-welcome .wc-footer{text-align:center;font-size:10px;color:#94a3b8;font-weight:700;margin-top:12px;letter-spacing:0.02em}
-
-.all-time-medal-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:13px}
+#screen-welcome .wc-btn-sec{width:100%;margin-top:10px;border-radius:14px;padding:14px;cursor:pointer;background:#fff;border:2px solid #0f172a;color:#0f172a;font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+#screen-welcome .wc-btn-admin{width:100%;margin-top:10px;border:0;background:transparent;color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:10px;cursor:pointer}
+#screen-welcome .wc-footer{text-align:center;font-size:10px;color:#94a3b8;font-weight:600;margin-top:8px}
+.all-time-medal-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #e2e8f0;font-size:13px}
 .all-time-medal-row:last-child{border-bottom:0}
 .all-time-name{font-weight:800;color:#0f172a}
-.all-time-score{font-weight:900;font-size:14px;display:flex;gap:6px;align-items:center}
-.all-time-score .gold{color:#b45309}
-.all-time-score .silver{color:#64748b}
-.all-time-score .bronze{color:#c2410c}
-
+.all-time-score{font-weight:900}
+.all-time-score.gold{color:#b45309}
+.all-time-score.silver{color:#64748b}
+.all-time-score.bronze{color:#c2410c}
 input{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:12px 14px;width:100%;outline:none}
 .rep-btn{width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;margin-bottom:8px;transition:.2s}
 .rep-btn:hover{border-color:rgba(232,197,71,.4)}
@@ -154,54 +143,6 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 .trend-marker{position:absolute;top:-4px;width:6px;height:30px;background:#fff;border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,.5)}
 .weakness-item{background:rgba(244,63,94,.08);border-left:3px solid #f87171;padding:6px 10px;border-radius:6px;margin-bottom:6px;font-size:12px;color:#fecaca;line-height:1.4}
 .strength-item{background:rgba(52,211,153,.08);border-left:3px solid #34d399;padding:6px 10px;border-radius:6px;margin-bottom:6px;font-size:12px;color:#a7f3d0;line-height:1.4}
-
-/* ========================================= */
-/* NEW ANIMATED MEDAL GALLERY                */
-/* ========================================= */
-.medal-gallery {
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding: 16px 12px;
-  margin-bottom: 16px;
-  background: linear-gradient(135deg, #1e293b, #0f172a);
-  border-radius: 16px;
-  border: 2px solid rgba(251, 191, 36, 0.4);
-  box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-.medal-gallery::-webkit-scrollbar { display: none; }
-
-.medal-gallery img {
-  width: 85%;
-  max-width: 280px;
-  flex-shrink: 0;
-  scroll-snap-align: start;
-  border-radius: 12px;
-  border: 3px solid #fbbf24;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  object-fit: cover;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: float 4s ease-in-out infinite;
-}
-
-/* Stagger the floating animation */
-.medal-gallery img:nth-child(1) { animation-delay: 0s; }
-.medal-gallery img:nth-child(2) { animation-delay: 0.6s; }
-.medal-gallery img:nth-child(3) { animation-delay: 1.2s; }
-
-.medal-gallery img:hover {
-  transform: scale(1.08) translateY(-8px);
-  box-shadow: 0 20px 40px rgba(251, 191, 36, 0.4);
-  border-color: #fde68a;
-  z-index: 10;
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
 </style>
 </head>
 <body>
@@ -251,15 +192,44 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
         <li>Cheating = disqualification &amp; blacklist</li>
       </ul>
     </div>
-    <div class="wc-card" style="border-left:6px solid #fbbf24;background:linear-gradient(90deg,#fffbeb,#fff)">
-      <h3>🏆 All-time MCPS medals</h3>
-      <div class="medal-gallery">
-        <img src="file_0000000024cc81f486d5d30878999856.png" alt="Chierika Onele" loading="lazy">
-        <img src="file_000000007a0081f4b9c40abf0ce701fe.png" alt="Oluwaseun Ajayi" loading="lazy">
-        <img src="file_0000000016b481f480db56e6bda9ea6a.png" alt="Semilore Beckley" loading="lazy">
+    <div class="wc-card" style="border-left:5px solid #fbbf24;background:linear-gradient(90deg,#fffbeb,#fff)">
+      <h3>🏆 All-time MCPS medalists</h3>
+      <div id="all-time-medals-body" class="text-sm text-slate-600">
+        <div class="all-time-medal-row">
+          <span class="all-time-name">Chierika Onele</span>
+          <span class="all-time-score gold">🥇 Gold + 🥉 Bronze</span>
+        </div>
+        <div class="all-time-medal-row">
+          <span class="all-time-name">Semilore Beckley</span>
+          <span class="all-time-score silver">🥈 Silver + 🥉 Bronze</span>
+        </div>
+        <div class="all-time-medal-row">
+          <span class="all-time-name">Oluwaseun Ajayi</span>
+          <span class="all-time-score bronze">🥉 Bronze</span>
+        </div>
+        <div class="all-time-medal-row">
+          <span class="all-time-name">Chukwuemeka Obi</span>
+          <span class="all-time-score bronze">🥉 Bronze</span>
+        </div>
       </div>
-      <div id="all-time-medals-body" class="text-sm text-slate-600 mt-2">
-        <div class="text-center text-slate-500 text-xs py-2">Loading medals…</div>
+      <!-- Player picture grid – add image srcs later -->
+      <div class="mt-3 grid grid-cols-2 gap-2" id="medalist-photo-grid">
+        <div class="rounded-xl overflow-hidden border border-amber-200 bg-slate-100 aspect-square flex flex-col items-center justify-center text-center p-2">
+          <div class="w-full h-24 bg-slate-200 rounded-lg mb-1 flex items-center justify-center text-slate-400 text-xs">Photo</div>
+          <div class="text-[10px] font-bold text-slate-700 leading-tight">Chierika Onele</div>
+        </div>
+        <div class="rounded-xl overflow-hidden border border-amber-200 bg-slate-100 aspect-square flex flex-col items-center justify-center text-center p-2">
+          <div class="w-full h-24 bg-slate-200 rounded-lg mb-1 flex items-center justify-center text-slate-400 text-xs">Photo</div>
+          <div class="text-[10px] font-bold text-slate-700 leading-tight">Semilore Beckley</div>
+        </div>
+        <div class="rounded-xl overflow-hidden border border-amber-200 bg-slate-100 aspect-square flex flex-col items-center justify-center text-center p-2">
+          <div class="w-full h-24 bg-slate-200 rounded-lg mb-1 flex items-center justify-center text-slate-400 text-xs">Photo</div>
+          <div class="text-[10px] font-bold text-slate-700 leading-tight">Oluwaseun Ajayi</div>
+        </div>
+        <div class="rounded-xl overflow-hidden border border-amber-200 bg-slate-100 aspect-square flex flex-col items-center justify-center text-center p-2">
+          <div class="w-full h-24 bg-slate-200 rounded-lg mb-1 flex items-center justify-center text-slate-400 text-xs">Photo</div>
+          <div class="text-[10px] font-bold text-slate-700 leading-tight">Chukwuemeka Obi</div>
+        </div>
       </div>
     </div>
     <button type="button" class="wc-btn-main" onclick="showPlayerLogin()">Enter as player</button>
@@ -338,26 +308,13 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   </div>
 </div>
 
-<!-- AI DRAW OFFER MODAL -->
-<div id="draw-offer-modal" class="modal-bg">
-  <div class="panel p-6 max-w-sm w-full text-center fade-up" style="border-color:rgba(251,191,36,.5)">
-    <div class="text-5xl mb-3">🤝</div>
-    <h3 class="text-xl font-black text-white mb-2">Draw Offered!</h3>
-    <p class="text-sm text-slate-300 mb-5 leading-relaxed">Your opponent believes the position is balanced.<br>Do you accept the draw?</p>
-    <div class="flex gap-2">
-      <button type="button" class="btn-gold flex-1 py-3" onclick="acceptDraw()">Accept</button>
-      <button type="button" class="btn-soft flex-1 py-3" onclick="declineDraw()">Decline</button>
-    </div>
-  </div>
-</div>
-
 <div id="screen-login" class="hidden min-h-screen px-4 py-8">
   <div class="max-w-md mx-auto">
     <h2 class="text-xl font-black uppercase italic text-white mb-1">Select your board</h2>
-    <p class="text-sm text-slate-400 mb-4">Tap your name, then enter your personal PIN.</p>
+    <p class="text-sm text-slate-400 mb-4">Tap your name, then enter the team password.</p>
     <div id="rep-list" class="mb-4"></div>
-    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">Personal PIN</label>
-    <input id="login-pass" type="password" placeholder="Ask coach for your PIN" class="mb-4" autocomplete="off">
+    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">Password</label>
+    <input id="login-pass" type="password" placeholder="Team password" class="mb-4" autocomplete="off">
     <button type="button" class="btn-gold w-full mb-2" onclick="doPlayerLogin()">Enter championship</button>
     <button type="button" class="btn-soft w-full" onclick="showWelcome()">Back</button>
   </div>
@@ -380,7 +337,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="text-[10px] font-black uppercase tracking-widest text-amber-400" id="play-round">Round 1 / 7 · 10+2</div>
     <div class="text-[11px] font-bold text-slate-400" id="play-team-pts">Team: 0</div>
     <button type="button" class="sound-toggle" id="sound-toggle" onclick="toggleSound()">🔊</button>
-    <button type="button" class="btn-blue" style="padding: 6px 12px; font-size: 10px;" onclick="tryOpenStandings()">📊 Team Report</button>
+    <button type="button" class="text-xs font-bold text-slate-500 opacity-60" onclick="tryOpenStandings()">Team Report</button>
   </nav>
   <div class="max-w-xl mx-auto px-3 py-3">
     <div class="flex items-center justify-between gap-3 mb-2 panel px-3 py-2.5" style="border-left:4px solid #f87171">
@@ -407,8 +364,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     </div>
     <div class="flex gap-2 mt-3">
       <button type="button" class="btn-danger flex-1" onclick="handleResign()">Resign</button>
-      <button type="button" class="btn-soft flex-1" onclick="handlePlayerDrawOffer()">Offer Draw</button>
-      <button type="button" class="btn-soft flex-1" onclick="enterSpectator()">Watch</button>
+      <button type="button" class="btn-soft flex-1" onclick="enterSpectator()">Watch boards</button>
     </div>
   </div>
 </div>
@@ -431,40 +387,68 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   </div>
 </div>
 
-<div id="screen-wait" class="hidden min-h-screen flex flex-col items-center justify-center px-4 text-center pb-12">
+<div id="screen-wait" class="hidden min-h-screen flex flex-col items-center justify-center px-4 text-center">
   <div class="text-5xl mb-4" id="wait-emoji">☕</div>
   <h2 class="text-xl font-black text-white uppercase italic mb-2" id="wait-title">Break — clocks frozen</h2>
   <p class="text-slate-400 text-sm mb-4" id="wait-sub">All boards finished. Next round starts together after the break.</p>
   <div class="text-3xl font-black text-amber-300 mb-6" id="wait-timer">2:00</div>
-  
-  <button type="button" class="btn-blue w-full max-w-md mb-2 shadow-lg" style="font-size: 14px; padding: 14px;" onclick="openStandings()">📊 View Team Report</button>
-  <button type="button" class="btn-soft w-full max-w-md mb-4" onclick="enterSpectator()">Watch live boards &amp; chat</button>
+  <button type="button" class="btn-soft" onclick="enterSpectator()">Watch live boards &amp; chat</button>
 
-  <div class="w-full max-w-md panel p-3 mb-4">
-    <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2 text-left">🏆 All-time MCPS medalists</div>
-    <div class="medal-gallery" style="margin-bottom:0; padding-bottom:0;">
-      <img src="file_0000000024cc81f486d5d30878999856.png" alt="Chierika Onele" loading="lazy">
-      <img src="file_000000007a0081f4b9c40abf0ce701fe.png" alt="Oluwaseun Ajayi" loading="lazy">
-      <img src="file_0000000016b481f480db56e6bda9ea6a.png" alt="Semilore Beckley" loading="lazy">
+  <!-- Team photos while waiting -->
+  <div class="w-full max-w-md mt-4 mb-2">
+    <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2 text-center">MCPS Team</div>
+    <div class="grid grid-cols-4 gap-2" id="lobby-photo-grid">
+      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
+        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Obi</div>
+      </div>
+      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
+        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Chierika</div>
+      </div>
+      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
+        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Beckley</div>
+      </div>
+      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
+        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Ajayi</div>
+      </div>
+      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
+        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Sage</div>
+      </div>
+      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
+        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Isioma</div>
+      </div>
+      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
+        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Enemoh</div>
+      </div>
+      <div class="rounded-lg overflow-hidden bg-slate-800 border border-white/10 flex flex-col items-center">
+        <div class="w-full aspect-square bg-slate-700 flex items-center justify-center text-[9px] text-slate-400">Photo</div>
+        <div class="text-[8px] font-bold text-slate-300 py-1 px-0.5 text-center leading-tight">Kosi</div>
+      </div>
     </div>
   </div>
 
-  <div class="beaten-wrap w-full max-w-md" id="beaten-wrap" style="display:none">
+  <div class="beaten-wrap" id="beaten-wrap" style="display:none">
     <div class="h">You've beaten so far</div>
     <ul id="beaten-list"></ul>
   </div>
 
-  <div class="beaten-wrap w-full max-w-md" id="wait-medal-wrap" style="display:none">
+  <div class="beaten-wrap" id="wait-medal-wrap" style="display:none">
     <div class="h">🏆 Medal table · MCPS</div>
     <div id="wait-medal-body" class="text-sm text-slate-300"></div>
   </div>
 
-  <div class="beaten-wrap w-full max-w-md" id="progress-wrap" style="display:none">
+  <div class="beaten-wrap" id="progress-wrap" style="display:none">
     <div class="h">Your progress</div>
     <div id="progress-body" class="text-sm text-slate-300"></div>
   </div>
 
-  <div class="w-full max-w-md mt-4 panel p-3 chat-wrap">
+  <div class="w-full max-w-md mt-6 panel p-3 chat-wrap">
     <div class="flex items-center justify-between mb-2">
       <span class="text-[10px] font-black uppercase tracking-widest text-amber-400">Lobby Chat</span>
       <span class="text-[10px] text-slate-500 chat-role">spectator</span>
@@ -549,7 +533,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <nav class="sticky top-0 z-40 border-b border-white/5 bg-[#070b14]/95 backdrop-blur px-4 py-3 flex items-center justify-between">
     <button type="button" class="text-xs font-bold text-slate-400" onclick="specHubBack()">← Back</button>
     <div class="text-[10px] font-black uppercase tracking-widest text-amber-400">Live Boards</div>
-    <button type="button" class="btn-soft" style="padding: 6px 12px; font-size: 10px;" onclick="openStandings()">📊 Team Report</button>
+    <button type="button" class="text-xs font-bold text-slate-400" onclick="openStandings()">Team Report</button>
   </nav>
   <div class="max-w-3xl mx-auto px-3 py-3">
     <div class="live-team-line" id="live-team-line">
@@ -668,16 +652,15 @@ function toggleSound(){
   }
 }
 
-/* ============ SECURE ROSTER WITH PINS ============ */
 const ROSTER=[
-  {id:"p1",board:1,name:"Obi Chukwuemeka", pin:"OBIE1"},
-  {id:"p2",board:2,name:"Onele Chierika", pin:"CHIERI2"},
-  {id:"p3",board:3,name:"Semilore Beckley", pin:"SEMI3"},
-  {id:"p4",board:4,name:"Sage Osafile", pin:"SAGE4"},
-  {id:"p5",board:5,name:"Ajayi Oluwaseun", pin:"AJAYI5"},
-  {id:"p6",board:6,name:"Princewill Isioma", pin:"PRINCE6"},
-  {id:"p7",board:7,name:"James Enemoh", pin:"JAMES7"},
-  {id:"p8",board:8,name:"Kosi Elelugu", pin:"KOSI8"}
+  {id:"p1",board:1,name:"Obi Chukwuemeka"},
+  {id:"p2",board:2,name:"Onele Chierika"},
+  {id:"p3",board:3,name:"Semilore Beckley"},
+  {id:"p4",board:4,name:"Sage Osafile"},
+  {id:"p5",board:5,name:"Ajayi Oluwaseun"},
+  {id:"p6",board:6,name:"Princewill Isioma"},
+  {id:"p7",board:7,name:"James Enemoh"},
+  {id:"p8",board:8,name:"Kosi Elelugu"}
 ];
 
 const SLOW_PLAY_IDS = new Set(["p3","p4"]);
@@ -690,7 +673,6 @@ const MID_SCHOOLS=[
   "Halifield Schools","Caleb British International","Topfield College","Nova International"
 ];
 
-/* ============ STRONGER & SLOWER ROUND PLAN ============ */
 const ROUND_PLAN=[
   {school:"Grange School",
    players:["Damilola Adeyinka","Chidera Okonkwo","Oluwaseun Fashola","Chukwuemeka Nnamdi",
@@ -699,7 +681,7 @@ const ROUND_PLAN=[
             "Ifeoma Obi","Ayodeji Oladipo","Kanyinsola Ojo","Ndubuisi Eze",
             "Amaka Obi","Gbenga Adeleke","Chinaza Uche","Oluwafunmilayo Adeyemi",
             "Olumide Adekunle","Oluwadamilare Ogunbiyi","Akintunde Oyedeji","Nneka Nwosu"],
-   strength:0.65, elo:1450, depth:4, time:400},
+   strength:0.55, elo:1200, depth:3, time:200},
 
   {school:"Corona Private School",
    players:["Adewale Ogundipe","Somtochukwu Uche","Ikechukwu Onyeka","Chinelo Obi",
@@ -708,52 +690,52 @@ const ROUND_PLAN=[
             "Akinwale Adegoke","Ezinne Obiora","Oluwatobi Sanni","Chisom Anya",
             "Wale Oladimeji","Kenechukwu Ezeani","Amarachi Ogbonna","Nkechi Umeh",
             "Olumuyiwa Akinyele","Ayotunde Salami","Adebola Osunlana","Chinwe Okwu"],
-   strength:0.70, elo:1600, depth:4, time:450},
+   strength:0.62, elo:1400, depth:3, time:250},
 
   {school:"Atlantic Hall",
    players:["Ayomide Ogundiran","Chukwuemeka Ogbonna","Oluwafemi Adegbite","Temitope Alabi",
             "Olusesan Adeoye","Chukwudi Obiora","Ikechukwu Madu","Ezinwanne Okafor",
             "Adetokunbo Oyelaran","Oluwadamilola Bankole","Segun Agbeniyi","Fiyinfoluwa Adejumo",
-            "Obi Chukwuemeka","Onele Chierika","Semilore Beckley","Sage Osafile",
+            "Chinedu Okoro","Amara Nwosu","Tunde Balogun","Zainab Yusuf",
             "Anwuli Okoye","Chukwuma Okafor","Nkem Eze","Adaobi Nwosu",
             "Olamiposi Adeniyi","Kolawole Adegbenro","Titilayo Ajibade","Ifeanyi Ezeh"],
-   strength:0.75, elo:1700, depth:4, time:500},
+   strength:0.68, elo:1500, depth:3, time:300},
 
   {school:"Platform School",
-   players:["Olalekan, Emmanuel","Fobes, Nwenri","Olamilekan, Oladokun","Michael, Ologun",
-            "Anyanwu, Alex","Okoro, Chidi","Balogun, Tunde","Eze, Nnamdi",
-            "Adeleke, Femi","Uche, Chukwudi","Bello, Aisha","Ojo, Samuel",
-            "Ibrahim, Musa","Lawal, Wale","Oni, Tunde","Nwachukwu, Emeka",
-            "Oladipo, Bimpe","Obi, Chinedu","Sanni, Tola","Eze, Uche",
-            "Adebayo, Yinka","Nnaji, Ebube","Adeyemi, Kemi","Okafor, Nkem"],
-   strength:0.80, elo:1800, depth:5, time:550},
+   players:["Olalekan Emmanuel","Fobes Nwenri","Olamilekan Oladokun","Michael Ologun",
+            "Anyanwu Alex","Chinedu Okeke","Blessing Okoro","Samuel Adeyemi",
+            "Fatima Bello","Ibrahim Yusuf","Grace Okonkwo","David Nwosu",
+            "Aisha Mohammed","Emmanuel Chukwu","Precious Eze","Victor Okafor",
+            "Faith Okeke","Daniel Obi","Joy Nnamdi","Peter Okoro",
+            "Blessing Uche","Collins Eze","Maryam Hassan","Tobi Adebayo"],
+   strength:0.72, elo:1450, depth:4, time:320},
 
   {school:"Oren School",
-   players:["Joshua, Itoadon","Elijah, Dazi","Prince, David Ude","Christian, Olayemi",
-            "Aggreh, Nathan","Musa, Ibrahim","Okafor, Chinedu","Adeyemi, Samuel",
-            "Bala, Yusuf","Chidi, Obi","Danladi, Adamu","Emma, Uche",
-            "Frank, Okon","Gideon, Musa","Henry, Peters","Isaac, John",
-            "Jacob, Dan","Kelvin, Tunde","Lucky, Efe","Moses, Paul",
-            "Nathan, Chukwuma","Ola, Bisi","Peter, Emma","Reuben, James"],
-   strength:0.82, elo:1850, depth:5, time:600},
+   players:["Joshua Itoadon","Elijah Dazi","Prince David Ude","Christian Olayemi",
+            "Aggreh Nathan","Chukwudi Okoro","Amara Bello","Tunde Yusuf",
+            "Zainab Okeke","Ifeanyi Nwosu","Blessing Eze","Samuel Okonkwo",
+            "Fatima Mohammed","Ibrahim Chukwu","Grace Okafor","David Eze",
+            "Aisha Okoro","Emmanuel Nnamdi","Precious Hassan","Victor Bello",
+            "Faith Adeyemi","Daniel Okeke","Joy Mohammed","Peter Chukwu"],
+   strength:0.75, elo:1500, depth:4, time:350},
 
   {school:"Chess in Slums Africa",
-   players:["Edewhen, Edwin Mawuzonsu","Avlessi, Thankgod Jeremiah","Ehuntin, Augustine Godday","Edewhen, Jonas Bobo",
-            "Azampo, Caleb","Obi, Chukwuemeka","Ade, Tunde","Ojo, Bisi",
-            "Nwaobi, Chinedu","Okoro, Nnamdi","Uche, Samuel","Eze, Daniel",
-            "Ibrahim, Ali","Yusuf, Bello","Chukwu, Emeka","Okafor, Ozo",
-            "Efe, Obinna","Tunde, Bakare","Chidi, Nwanze","Nkem, Oji",
-            "Ayo, Martins","Seyi, Ojo","Femi, Ade","Kunle, Bash"],
-   strength:0.85, elo:1950, depth:5, time:650},
+   players:["Edewhen Edwin Mawuzonsu","Avlessi Thankgod Jeremiah","Ehuntin Augustine Godday","Edewhen Jonas Bobo",
+            "Azampo Caleb","Chinedu Nwaobi","Tobi Akinyemi","Chiamaka Ibe",
+            "Damilare Fasanya","Emeka Okafor","Ebube Nnaji","Seyi Ogunbanjo",
+            "Amarachi Eze","Onyinyechi Eze","Tayo Ogunmefun","Ogechi Nwankwo",
+            "Femi Adeosun","Chinelo Uzoma","Kunle Balogun","Adanna Okoli",
+            "Wale Okeowo","Chinedu Anya","Ifedayo Salami","Onyeka Nnamdi"],
+   strength:0.80, elo:1600, depth:4, time:400},
 
   {school:"Indian Language School",
-   players:["Bhakti, Jaydeep Trivedi","Mokshtih, Davuluru","Palanisamy, Keerthan","Thoshan, Raj V J",
-            "Devansh, Parikh","Rahul, Sharma","Amit, Patel","Sanjay, Gupta",
-            "Vikram, Singh","Arjun, Mehta","Rohan, Patel","Aditya, Nair",
-            "Karan, Malhotra","Siddharth, Rao","Nikhil, Bhatt","Varun, Chatterjee",
-            "Priya, Sharma","Ananya, Reddy","Kavya, Iyer","Sneha, Kapoor",
-            "Divya, Krishnan","Neha, Desai","Pooja, Joshi","Meera, Subramanian"],
-   strength:0.88, elo:2050, depth:5, time:700}
+   players:["Mokshith Davuluru","Thoshan Raj V J","Devansh Parikh","Bhakti Jaydeep Trivdi",
+            "Palanisamy Keerthan","Arjun Mehta","Priya Sharma","Rohan Patel",
+            "Ananya Reddy","Vikram Singh","Kavya Iyer","Aditya Nair",
+            "Sneha Kapoor","Rahul Verma","Divya Krishnan","Karan Malhotra",
+            "Neha Desai","Siddharth Rao","Pooja Joshi","Aryan Gupta",
+            "Meera Subramanian","Varun Chatterjee","Riya Banerjee","Naveen Kumar"],
+   strength:0.88, elo:1700, depth:5, time:500}
 ];
 
 function oppPlayerFor(round, board){
@@ -782,8 +764,6 @@ let splashTimeout=null;
 let slowPlayStartShown=false;
 let slowPlayMove4Shown=false;
 let myMovesPlayed=0;
-let aiDrawOffered = false;
-let drawModalOpen = false;
 
 /* ===== Enhancement state ===== */
 let lastMoveFrom=null, lastMoveTo=null;
@@ -796,7 +776,6 @@ let offlineFlusher=null;
 let coachDashIv=null;
 let statsAnalysisToken = 0;
 let allTimeMedals = {};
-let myBlunderPlies = null;
 
 try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){console.warn("worker missing",e);}
 try{
@@ -809,17 +788,6 @@ try{
 function el(i){return document.getElementById(i);}
 function toast(m){const t=el("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-
-function getDeviceId(){
-  let id=null;
-  try{ id=localStorage.getItem("bcn_device_id"); }catch(e){}
-  if(!id){
-    id="dev_"+Math.random().toString(36).slice(2,10)+Date.now().toString(36);
-    try{ localStorage.setItem("bcn_device_id",id); }catch(e){}
-  }
-  return id;
-}
-
 const BLOCKED_WORDS=["fuck","fuk","fck","fcku","fuq","fvck","fuxk","fucc","phuck","f4ck","fcku","f u c k"];
 function hasBadWord(s){
   const norm=String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
@@ -1055,41 +1023,6 @@ function showSlowPlay(which){
   el("slow-play-modal").classList.add("open");
 }
 
-/* ============ DRAW OFFER LOGIC ============ */
-function triggerAiDrawOffer() {
-  drawModalOpen = true;
-  el("draw-offer-modal").classList.add("open");
-  playSfx("move"); 
-  haptic([50, 50, 50]);
-}
-function acceptDraw() {
-  el("draw-offer-modal").classList.remove("open");
-  drawModalOpen = false;
-  endRound(0.5, "Draw agreed");
-}
-function declineDraw() {
-  el("draw-offer-modal").classList.remove("open");
-  drawModalOpen = false;
-  lastTick = Date.now();
-  el("status").textContent = "Opponent is thinking…";
-  toast("You declined the draw.");
-  requestAIMove();
-}
-function handlePlayerDrawOffer() {
-  if(!gameLive || !game) return;
-  if(game.turn() !== userColor) {
-    toast("You can only offer a draw on your turn");
-    return;
-  }
-  el("status").textContent = "Draw offer sent...";
-  setTimeout(() => {
-    if(!gameLive || !game) return;
-    el("status").textContent = "Your turn";
-    toast("Opponent declined the draw offer.");
-    playSfx("opponent");
-  }, 1500);
-}
-
 /* ============ ROUND WINNER SPLASH ============ */
 function dismissSplash(){
   el("round-splash").classList.remove("open");
@@ -1274,12 +1207,21 @@ function loadState(){
 
 /* ============ ALL-TIME MEDALS ============ */
 function loadAllTimeMedals(){
-  allTimeMedals = {
-    "Onele Chierika": { score: 7, rounds: 7, medal: "Gold" },
-    "Semilore Beckley": { score: 6, rounds: 7, medal: "Silver" },
-    "Ajayi Oluwaseun": { score: 5, rounds: 7, medal: "Bronze" }
-  };
-  saveAllTimeMedals();
+  try{
+    const raw = localStorage.getItem("bcn_all_time_medals");
+    if(raw){
+      allTimeMedals = JSON.parse(raw) || {};
+    } else {
+      // Seed with known all-time medalists (display is also hardcoded on welcome for clarity)
+      allTimeMedals = {
+        "Chierika Onele": { score: 7, rounds: 7, medal: "Gold" },
+        "Semilore Beckley": { score: 6, rounds: 7, medal: "Silver" },
+        "Oluwaseun Ajayi": { score: 5, rounds: 7, medal: "Bronze" },
+        "Chukwuemeka Obi": { score: 5, rounds: 7, medal: "Bronze" }
+      };
+      saveAllTimeMedals();
+    }
+  }catch(e){ allTimeMedals = {}; }
 }
 function saveAllTimeMedals(){
   try{ localStorage.setItem("bcn_all_time_medals", JSON.stringify(allTimeMedals)); }catch(e){}
@@ -1287,18 +1229,31 @@ function saveAllTimeMedals(){
 function renderAllTimeMedals(){
   const elx = el("all-time-medals-body");
   if(!elx) return;
-  const entries = Object.entries(allTimeMedals);
-  if(!entries.length){
+  // Preferred static order & labels for the known all-time medalists
+  const preferred = [
+    { name: "Chierika Onele",   label: "🥇 Gold + 🥉 Bronze", cls: "gold" },
+    { name: "Semilore Beckley", label: "🥈 Silver + 🥉 Bronze", cls: "silver" },
+    { name: "Oluwaseun Ajayi",  label: "🥉 Bronze", cls: "bronze" },
+    { name: "Chukwuemeka Obi",  label: "🥉 Bronze", cls: "bronze" }
+  ];
+  // Merge any extra dynamic entries
+  const known = new Set(preferred.map(p => p.name));
+  const extra = Object.entries(allTimeMedals)
+    .filter(([n]) => !known.has(n))
+    .map(([name, data]) => {
+      const cls = data.medal === "Gold" ? "gold" : (data.medal === "Silver" ? "silver" : "bronze");
+      const emoji = data.medal === "Gold" ? "🥇" : (data.medal === "Silver" ? "🥈" : "🥉");
+      return { name, label: data.score+'/'+data.rounds+' '+emoji+' '+data.medal, cls };
+    });
+  const list = preferred.concat(extra);
+  if(!list.length){
     elx.innerHTML = '<div class="text-center text-slate-500 text-xs py-2">No medals recorded yet.</div>';
     return;
   }
-  entries.sort((a,b)=> b[1].score - a[1].score || a[0].localeCompare(b[0]));
-  elx.innerHTML = entries.map(([name, data])=>{
-    const cls = data.medal === "Gold" ? "gold" : (data.medal === "Silver" ? "silver" : "bronze");
-    const emoji = data.medal === "Gold" ? "🥇" : (data.medal === "Silver" ? "🥈" : "🥉");
+  elx.innerHTML = list.map(item => {
     return '<div class="all-time-medal-row">'+
-      '<span class="all-time-name">'+esc(name)+'</span>'+
-      '<span class="all-time-score '+cls+'">'+data.score+'/'+data.rounds+' '+emoji+' '+data.medal+'</span>'+
+      '<span class="all-time-name">'+esc(item.name)+'</span>'+
+      '<span class="all-time-score '+item.cls+'">'+item.label+'</span>'+
     '</div>';
   }).join("");
 }
@@ -1406,6 +1361,15 @@ function standingsFor(round){
     }
   }
   return rows;
+}
+function simBoardResult(round,boardNo,oppStrength){
+  const h1=hashRand(round*7919+boardNo*131+11);
+  const h2=hashRand(round*104729+boardNo*313+29);
+  const roll=(h1+h2)/2;
+  const winP=0.30+(1-oppStrength)*0.55;
+  if(roll<winP)return 1;
+  if(roll<winP+0.16)return 0.5;
+  return 0;
 }
 
 /* ============ SHARED SCORE AGGREGATION ============ */
@@ -1538,28 +1502,6 @@ function pickEngineMove(c,depth){
   return best;
 }
 function eloBlunder(elo){ return Math.max(0.005, 0.05 - (elo-1200)*0.000075); }
-
-function computeBlunderPlies(round, board, aiColor){
-  const plan = ROUND_PLAN[round-1] || {elo:1500};
-  const elo  = plan.elo || 1500;
-  let count  = 1;
-  if(elo < 1600)      count = 3;
-  else if(elo < 1800) count = 2;
-  else                count = 1;
-
-  const rng  = mulberry32(round * 10000 + board * 100 + 13);
-  const aiIsWhite = aiColor === "w";
-  const candidates = [];
-  for(let ply = 1; ply <= 120; ply++){
-    const moverIsWhite = ply % 2 === 1;
-    if(moverIsWhite === aiIsWhite) candidates.push(ply);
-  }
-  for(let i = candidates.length - 1; i > 0; i--){
-    const j = Math.floor(rng() * (i + 1));
-    const t = candidates[i]; candidates[i] = candidates[j]; candidates[j] = t;
-  }
-  return new Set(candidates.slice(0, count));
-}
 
 /* ============ STATISTICS MODULE ============ */
 function quickEval(c){
@@ -1998,17 +1940,13 @@ async function adminResetTournament(){
   offlineQueue.length=0;
   gameStatsByRound={};
   statsAnalysisToken++;
-  gameLive = false;
-  if(timer){ clearInterval(timer); timer = null; }
-  game = null;
-  aiThinking = false;
-  myBlunderPlies = null;
   try{
     const at = localStorage.getItem("bcn_all_time_medals");
     localStorage.clear();
     if(at) localStorage.setItem("bcn_all_time_medals", at);
   }catch(e){}
-  me=null;
+  me=null;gameLive=false;game=null;
+  if(timer){clearInterval(timer);timer=null;}
   closeAdminModal();
   toast("Tournament reset — all boards cleared");
   showWelcome();
@@ -2060,55 +1998,47 @@ function showPlayerLogin(){
     b.appendChild(x);
   });
 }
-async function doPlayerLogin(){
+function doPlayerLogin(){
   if(!me) return toast("Select your board");
-  const entered = el("login-pass").value.trim();
-  const pinOK = entered === me.pin;
-  const generalOK = entered.toUpperCase() === TEAM_PASS;
-  
-  if(!pinOK && !generalOK) {
-    return toast("Wrong PIN. Ask Coach for your personal code.");
-  }
-
-  if(!pinOK && generalOK){
-    const deviceId = getDeviceId();
-    try{
-      const snap = await db.collection("bcn_live").doc(me.id).get();
-      if(snap.exists){
-        const g = snap.data() || {};
-        const freshLive = g.status === "live" && g.deviceId && g.deviceId !== deviceId && (Date.now() - (g.updated || 0)) < 20000;
-        if(freshLive){
-          return toast("This board is actively playing on another device. Enter your personal PIN.");
-        }
-      }
-    }catch(e){}
-  }
-
+  if(el("login-pass").value!==TEAM_PASS) return toast("Wrong team password");
   chatRole="player"; chatName=me.name;
   enterRound(currentRoundFromClock(Date.now()));
 }
 
 /* ============ ROUND ENTRY ============ */
 async function enterRound(round){
+  // --- FIX: ENFORCE SYNCHRONIZATION ACROSS ALL BOARDS ---
+  // Do not start the next round while any board still has a live (non-stale) game from the previous round.
   if (round > 1) {
     try {
       const snap = await db.collection("bcn_live").where("round", "==", round - 1).get();
-      const now = Date.now();
-      const currentRoundNow = currentRoundFromClock(now);
       let activeGames = 0;
+      const now = Date.now();
       snap.forEach(d => {
-        const g = d.data() || {};
-        if (g.status !== "live") return;
-        const ageStale = g.updated && (now - g.updated > 180000);
-        const roundStale = g.round && g.round < currentRoundNow;
-        if (!ageStale && !roundStale) activeGames++;
+        const g = d.data();
+        // If a game is marked live but hasn't been updated in 15 mins, treat as abandoned.
+        const isStale = g.status === "live" && g.updated && (now - g.updated > 900000);
+        if ((g.status === "live" && !isStale) || (!g.status && g.round === round-1)) {
+          activeGames++;
+        }
       });
       
       if (activeGames > 0) {
+        // Stay on (or show) the wait screen and explain why.
         if (!el("screen-wait").classList.contains("hidden")) {
           el("wait-title").textContent = "Waiting for other boards...";
-          el("wait-sub").textContent = "Round " + (round - 1) + " is still in progress on another board.";
+          el("wait-sub").textContent = "Round " + (round - 1) + " is still in progress on another board. Next round starts together.";
+        } else {
+          // Force into wait screen if somehow not there
+          hideAll();
+          el("screen-wait").classList.remove("hidden");
+          attachLobbyChat();
+          el("wait-emoji").textContent = "⏳";
+          el("wait-title").textContent = "Waiting for other boards...";
+          el("wait-sub").textContent = "Round " + (round - 1) + " is still in progress on another board. Next round starts together.";
+          el("wait-timer").textContent = "…";
         }
+        // Re-check every 5 seconds
         setTimeout(() => enterRound(round), 5000);
         return;
       }
@@ -2116,6 +2046,7 @@ async function enterRound(round){
       console.warn("Sync check failed, proceeding...", e);
     }
   }
+  // -----------------------------------------------------
 
   currentRound=round;
   let prevRoundDone=false;
@@ -2235,10 +2166,6 @@ function setupMatch(round,anchor,late){
   slowPlayStartShown=false;
   slowPlayMove4Shown=false;
   myMovesPlayed=0;
-  aiDrawOffered = false;
-  drawModalOpen = false;
-  
-  myBlunderPlies = computeBlunderPlies(round, me.board, userColor === "w" ? "b" : "w");
 
   el("play-round").textContent="Round "+round+" / "+TOTAL_ROUNDS+" · 10+2";
   el("play-team-pts").textContent="Team: "+teamMatchPoints;
@@ -2293,10 +2220,6 @@ function resumeGame(g){
   slowPlayStartShown=false;
   slowPlayMove4Shown=false;
   myMovesPlayed=0;
-  aiDrawOffered = false;
-  drawModalOpen = false;
-
-  myBlunderPlies = computeBlunderPlies(currentRound, me.board, userColor === "w" ? "b" : "w");
 
   const el2=Math.floor((Date.now()-lastMoveAt)/1000);
   if(el2>0 && !game.game_over()){
@@ -2339,7 +2262,6 @@ function resumeGame(g){
 /* ============ CLOCKS ============ */
 function tickClocks(){
   if(!gameLive||!game) return;
-  if(drawModalOpen){ lastTick = Date.now(); return; }
   if(game.game_over()){ finishGame(); return; }
   const now=Date.now();
   let d=Math.floor((now-lastTick)/1000);
@@ -2403,63 +2325,30 @@ function onSquareClick(sq){
   requestAIMove();
 }
 
-function getAiThinkTime(){
-  const ply = (game && game.history) ? game.history().length : 0; 
-  let minTime, maxTime;
-  
-  if (ply < 24) {
-    minTime = 5000;
-    maxTime = 10000;
-  } else {
-    minTime = 4000;
-    maxTime = 20000;
-  }
-  
-  if (oppTime <= 15) return Math.floor(Math.random() * 1000) + 500;
-  if (oppTime <= 60) return Math.floor(Math.random() * Math.min(3000, maxTime)) + 1000;
-  
-  return Math.floor(Math.random() * (maxTime - minTime)) + minTime;
-}
-
 let aiThinking=false;
 function requestAIMove(){
   if(!game||game.game_over()||game.turn()===userColor||aiThinking) return;
-
-  if(!aiDrawOffered && game.history().length >= 30) {
-    const currentEval = quickEval(game);
-    const aiIsWhite = (userColor === "b");
-    const isLosing = aiIsWhite ? (currentEval < -300) : (currentEval > 300);
-    
-    if(isLosing && Math.random() < 0.20) {
-      aiDrawOffered = true;
-      triggerAiDrawOffer();
-      return;
-    }
-  }
-
   aiThinking=true;
   el("status").textContent="Opponent is thinking…";
   const plan=ROUND_PLAN[currentRound-1]||{depth:3,time:200};
-  const thinkTime = getAiThinkTime();
-  
+  const aiLow = oppTime<=60;
+  const thinkMin = aiLow?200:3000;
+  const thinkRange = aiLow?400:7000;
   if(chessWorker){
     try{ chessWorker.postMessage("position "+game.fen()+" depth "+plan.depth+" time "+plan.time); }
-    catch(e){ aiThinking=false; setTimeout(doFallbackAI, thinkTime); }
-    setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, thinkTime + 3000);
+    catch(e){ aiThinking=false; setTimeout(doFallbackAI, thinkMin+Math.random()*thinkRange); }
+    setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, aiLow?1200:15000);
   } else {
-    setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, thinkTime);
+    setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, thinkMin+Math.random()*thinkRange);
   }
 }
 if(chessWorker){
   chessWorker.onmessage=function(e){
     if(typeof e.data!=="string") return;
-    if(e.data.startsWith("error")){ 
-      aiThinking=false; 
-      setTimeout(doFallbackAI, getAiThinkTime()); 
-      return; 
-    }
+    if(e.data.startsWith("error")){ aiThinking=false; setTimeout(doFallbackAI, 3000+Math.floor(Math.random()*7000)); return; }
     if(e.data.length>=4 && e.data.length<=5){
-      const t = getAiThinkTime();
+      const aiLow = oppTime<=60;
+      const t = aiLow ? (200+Math.floor(Math.random()*400)) : (3000+Math.floor(Math.random()*7000));
       setTimeout(()=>{ aiThinking=false; applyAIMove(e.data); }, t);
     }
   };
@@ -2468,15 +2357,11 @@ function applyAIMove(uci){
   aiThinking=false;
   if(!gameLive||!game||game.game_over()||game.turn()===userColor) return;
   const plan=ROUND_PLAN[currentRound-1]||{elo:1200,depth:3};
+  const blunder=eloBlunder(plan.elo);
   const legal=game.moves({verbose:true});
   let played=null;
-  
-  const ply = game.history().length + 1;
-  const shouldBlunder = myBlunderPlies && myBlunderPlies.has(ply);
-
-  if(shouldBlunder && legal.length){
-    const rng = mulberry32(currentRound * 10000 + (me?me.board:1) * 100 + ply * 7);
-    played = game.move(legal[Math.floor(rng() * legal.length)]);
+  if(Math.random()<blunder && legal.length){
+    played=game.move(legal[Math.floor(Math.random()*legal.length)]);
   } else {
     const f=uci.substring(0,2),t=uci.substring(2,4),p=uci.length>4?uci[4]:"q";
     played=game.move({from:f,to:t,promotion:p});
@@ -2486,13 +2371,11 @@ function applyAIMove(uci){
       played=m?game.move(m):game.move(legal[0]);
     }
   }
-
   if(played){
     oppTime+=INC;
     el("clock-opp").textContent=fmt(oppTime);
     if(board) board.position(game.fen());
     lastMoveAt=Date.now();
-    lastTick=Date.now();
     pushCloud();
     el("status").textContent="Your turn";
     setLastHighlight(played.from, played.to);
@@ -2507,29 +2390,21 @@ function doFallbackAI(){
   aiThinking=false;
   if(!game||game.game_over()||game.turn()===userColor) return;
   const plan=ROUND_PLAN[currentRound-1]||{elo:1200,depth:3};
+  const blunder=eloBlunder(plan.elo);
   let played=null;
-  
-  const ply = game.history().length + 1;
-  const shouldBlunder = myBlunderPlies && myBlunderPlies.has(ply);
-
-  if(shouldBlunder){
+  if(Math.random()<blunder){
     const m=game.moves();
-    if(m.length) {
-      const rng = mulberry32(currentRound * 10000 + (me?me.board:1) * 100 + ply * 7);
-      played=game.move(m[Math.floor(rng() * m.length)]);
-    }
+    if(m.length) played=game.move(m[Math.floor(Math.random()*m.length)]);
   } else {
     const c=new Chess(); try{c.load(game.fen());}catch(e){}
     const m=pickEngineMove(c,Math.max(2,(plan.depth||3)-1));
     played=m?game.move(m):(function(){const ms=game.moves();return ms.length?game.move(ms[0]):null;})();
   }
-
   if(played){
     oppTime+=INC;
     el("clock-opp").textContent=fmt(oppTime);
     if(board) board.position(game.fen());
     lastMoveAt=Date.now();
-    lastTick=Date.now();
     pushCloud();
     el("status").textContent="Your turn";
     setLastHighlight(played.from, played.to);
@@ -2687,7 +2562,6 @@ function pushCloud(){
     userColor,fen:game.fen(),pgn:game.pgn(),
     userTime,oppTime,lastMoveAt,turn:game.turn(),
     round:currentRound,status:gameLive?"live":"done",
-    deviceId: getDeviceId(),
     updated:Date.now()
   };
   ref.set(payload,{merge:true}).catch(()=>{
@@ -2825,12 +2699,11 @@ function boardClockInfo(g){
   if(g&&(g.status==="live"||g.status==="done")){
     let ut=g.userTime!=null?g.userTime:BASE;
     let ot=g.oppTime!=null?g.oppTime:BASE;
-    const ref = g.updated || g.lastMoveAt;
-    if(g.status==="live" && ref){
-      const e=Math.floor((now - ref)/1000);
+    if(g.status==="live"&&g.lastMoveAt){
+      const e=Math.floor((now-g.lastMoveAt)/1000);
       if(e>0){
         if(g.turn===g.userColor) ut=Math.max(0,ut-e);
-        else                     ot=Math.max(0,ot-e);
+        else ot=Math.max(0,ot-e);
       }
     }
     return {ut,ot,live:g.status==="live",status:g.status,round:g.round};
@@ -3157,11 +3030,6 @@ db.collection("bcn_meta").doc("mcps").onSnapshot(d=>{
       pendingCommit=null; roundResults=[];
       gameStatsByRound={};
       statsAnalysisToken++;
-      gameLive = false;
-      if(timer){ clearInterval(timer); timer = null; }
-      game = null;
-      aiThinking = false;
-      myBlunderPlies = null;
       try{
         const at = localStorage.getItem("bcn_all_time_medals");
         localStorage.clear();
