@@ -2018,9 +2018,31 @@ async function enterRound(round){
       const now = Date.now();
       snap.forEach(d => {
         const g = d.data();
-        // If a game is marked live but hasn't been updated in 15 mins, treat as abandoned.
-        const isStale = g.status === "live" && g.updated && (now - g.updated > 900000);
-        if ((g.status === "live" && !isStale) || (!g.status && g.round === round-1)) {
+        if (!g || g.status !== "live") return;
+        
+        // Calculate real-time clock to see if they actually flagged
+        let ut = g.userTime != null ? g.userTime : BASE;
+        let ot = g.oppTime != null ? g.oppTime : BASE;
+        if (g.lastMoveAt) {
+          const elapsed = Math.floor((now - g.lastMoveAt) / 1000);
+          if (elapsed > 0) {
+            if (g.turn === g.userColor) ut = Math.max(0, ut - elapsed);
+            else ot = Math.max(0, ot - elapsed);
+          }
+        }
+        
+        const isTimedOut = (ut <= 0 || ot <= 0);
+        const isStale = g.updated && (now - g.updated > 900000); // 15 mins
+
+        if (isTimedOut) {
+          // Auto-clean the DB so it stops blocking the round
+          d.ref.set({ 
+            status: "done", 
+            result: g.turn === g.userColor ? 0 : 1, 
+            reason: "Lost on time (disconnected)",
+            updated: now
+          }, { merge: true }).catch(()=>{});
+        } else if (!isStale) {
           activeGames++;
         }
       });
@@ -2030,6 +2052,8 @@ async function enterRound(round){
         if (!el("screen-wait").classList.contains("hidden")) {
           el("wait-title").textContent = "Waiting for other boards...";
           el("wait-sub").textContent = "Round " + (round - 1) + " is still in progress on another board. Next round starts together.";
+        } else if (!el("screen-spec-hub").classList.contains("hidden") || !el("screen-spec-one").classList.contains("hidden")) {
+          // FIX: If they are watching live boards, let them watch! Do not pull them back to the wait screen.
         } else {
           // Force into wait screen if somehow not there
           hideAll();
