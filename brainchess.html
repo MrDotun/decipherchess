@@ -338,6 +338,19 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   </div>
 </div>
 
+<!-- AI DRAW OFFER MODAL -->
+<div id="draw-offer-modal" class="modal-bg">
+  <div class="panel p-6 max-w-sm w-full text-center fade-up" style="border-color:rgba(251,191,36,.5)">
+    <div class="text-5xl mb-3">🤝</div>
+    <h3 class="text-xl font-black text-white mb-2">Draw Offered!</h3>
+    <p class="text-sm text-slate-300 mb-5 leading-relaxed">Your opponent believes the position is balanced.<br>Do you accept the draw?</p>
+    <div class="flex gap-2">
+      <button type="button" class="btn-gold flex-1 py-3" onclick="acceptDraw()">Accept</button>
+      <button type="button" class="btn-soft flex-1 py-3" onclick="declineDraw()">Decline</button>
+    </div>
+  </div>
+</div>
+
 <div id="screen-login" class="hidden min-h-screen px-4 py-8">
   <div class="max-w-md mx-auto">
     <h2 class="text-xl font-black uppercase italic text-white mb-1">Select your board</h2>
@@ -394,7 +407,8 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     </div>
     <div class="flex gap-2 mt-3">
       <button type="button" class="btn-danger flex-1" onclick="handleResign()">Resign</button>
-      <button type="button" class="btn-soft flex-1" onclick="enterSpectator()">Watch boards</button>
+      <button type="button" class="btn-soft flex-1" onclick="handlePlayerDrawOffer()">Offer Draw</button>
+      <button type="button" class="btn-soft flex-1" onclick="enterSpectator()">Watch</button>
     </div>
   </div>
 </div>
@@ -705,40 +719,40 @@ const ROUND_PLAN=[
             "Olamiposi Adeniyi","Kolawole Adegbenro","Titilayo Ajibade","Ifeanyi Ezeh"],
    strength:0.75, elo:1700, depth:4, time:500},
 
-  {school:"Skylink International School",
-   players:["Oluwafemi Adegbite","Kenechukwu Ezeani","Temitope Alabi","Chukwudi Obiora",
-            "Amarachi Ogbonna","Olusesan Adeoye","Nkechi Umeh","Adetokunbo Oyelaran",
-            "Olumide Fashola","Chinwe Okonkwo","Ayodeji Adebayo","Nnamdi Uche",
-            "Tokunbo Sanni","Ifeanyi Onyeka","Kemi Oladipo","Chidera Obi",
-            "Bimbo Adeleke","Obinna Nwosu","Tayo Oyedeji","Adaora Eze",
-            "Folarin Akinyemi","Chiamaka Ugo","Segun Bankole","Onyinye Nnamdi"],
+  {school:"Platform School",
+   players:["Olalekan, Emmanuel","Fobes, Nwenri","Olamilekan, Oladokun","Michael, Ologun",
+            "Anyanwu, Alex","Okoro, Chidi","Balogun, Tunde","Eze, Nnamdi",
+            "Adeleke, Femi","Uche, Chukwudi","Bello, Aisha","Ojo, Samuel",
+            "Ibrahim, Musa","Lawal, Wale","Oni, Tunde","Nwachukwu, Emeka",
+            "Oladipo, Bimpe","Obi, Chinedu","Sanni, Tola","Eze, Uche",
+            "Adebayo, Yinka","Nnaji, Ebube","Adeyemi, Kemi","Okafor, Nkem"],
    strength:0.80, elo:1800, depth:5, time:550},
 
-  {school:"Chess In Slums Academy",
-   players:["Tobi Akinyemi","Chiamaka Ibe","Damilare Fasanya","Emeka Okafor",
-            "Ebube Nnaji","Seyi Ogunbanjo","Amarachi Eze","Onyinyechi Eze",
-            "Tayo Ogunmefun","Ogechi Nwankwo","Femi Adeosun","Chinelo Uzoma",
-            "Kunle Balogun","Adanna Okoli","Wale Okeowo","Chinedu Anya",
-            "Ifedayo Salami","Onyeka Nnamdi","Ayobami Ojo","Chioma Ezeani",
-            "Olatunji Adeleke","Kelechi Ugwu","Morayo Ogunjimi","Ugochi Nwaeze"],
+  {school:"Oren School",
+   players:["Joshua, Itoadon","Elijah, Dazi","Prince, David Ude","Christian, Olayemi",
+            "Aggreh, Nathan","Musa, Ibrahim","Okafor, Chinedu","Adeyemi, Samuel",
+            "Bala, Yusuf","Chidi, Obi","Danladi, Adamu","Emma, Uche",
+            "Frank, Okon","Gideon, Musa","Henry, Peters","Isaac, John",
+            "Jacob, Dan","Kelvin, Tunde","Lucky, Efe","Moses, Paul",
+            "Nathan, Chukwuma","Ola, Bisi","Peter, Emma","Reuben, James"],
    strength:0.82, elo:1850, depth:5, time:600},
 
-  {school:"Jareb Private School",
-   players:["Olumide Adekunle","Somtochukwu Uche","Oluwadamilare Ogunbiyi","Ikechukwu Onyeka",
-            "Chinelo Obi","Akintunde Oyedeji","Nneka Nwosu","Ayomide Ogundiran",
-            "Ademola Olaniyan","Chidera Nwosu","Olamilekan Salami","Uchenna Eze",
-            "Ololade Akande","Nnamdi Okonkwo","Bolanle Ogunbanwo","Ifeanyi Aniekwe",
-            "Temitayo Adekunbi","Chinonso Umeh","Folasade Bello","Emeka Nweke",
-            "Adebayo Oyelowo","Ekene Nwafor","Yejide Sanni","Ikechukwu Obi"],
+  {school:"Chess in Slums Africa",
+   players:["Edewhen, Edwin Mawuzonsu","Avlessi, Thankgod Jeremiah","Ehuntin, Augustine Godday","Edewhen, Jonas Bobo",
+            "Azampo, Caleb","Obi, Chukwuemeka","Ade, Tunde","Ojo, Bisi",
+            "Nwaobi, Chinedu","Okoro, Nnamdi","Uche, Samuel","Eze, Daniel",
+            "Ibrahim, Ali","Yusuf, Bello","Chukwu, Emeka","Okafor, Ozo",
+            "Efe, Obinna","Tunde, Bakare","Chidi, Nwanze","Nkem, Oji",
+            "Ayo, Martins","Seyi, Ojo","Femi, Ade","Kunle, Bash"],
    strength:0.85, elo:1950, depth:5, time:650},
 
   {school:"Indian Language School",
-   players:["Arjun Mehta","Priya Sharma","Rohan Patel","Ananya Reddy",
-            "Vikram Singh","Kavya Iyer","Aditya Nair","Sneha Kapoor",
-            "Rahul Verma","Divya Krishnan","Karan Malhotra","Neha Desai",
-            "Siddharth Rao","Pooja Joshi","Aryan Gupta","Meera Subramanian",
-            "Varun Chatterjee","Riya Banerjee","Naveen Kumar","Shruti Menon",
-            "Nikhil Bhatt","Tara Sinha","Rohit Saxena","Aisha Khan"],
+   players:["Bhakti, Jaydeep Trivedi","Mokshtih, Davuluru","Palanisamy, Keerthan","Thoshan, Raj V J",
+            "Devansh, Parikh","Rahul, Sharma","Amit, Patel","Sanjay, Gupta",
+            "Vikram, Singh","Arjun, Mehta","Rohan, Patel","Aditya, Nair",
+            "Karan, Malhotra","Siddharth, Rao","Nikhil, Bhatt","Varun, Chatterjee",
+            "Priya, Sharma","Ananya, Reddy","Kavya, Iyer","Sneha, Kapoor",
+            "Divya, Krishnan","Neha, Desai","Pooja, Joshi","Meera, Subramanian"],
    strength:0.88, elo:2050, depth:5, time:700}
 ];
 
@@ -768,6 +782,8 @@ let splashTimeout=null;
 let slowPlayStartShown=false;
 let slowPlayMove4Shown=false;
 let myMovesPlayed=0;
+let aiDrawOffered = false;
+let drawModalOpen = false;
 
 /* ===== Enhancement state ===== */
 let lastMoveFrom=null, lastMoveTo=null;
@@ -780,6 +796,7 @@ let offlineFlusher=null;
 let coachDashIv=null;
 let statsAnalysisToken = 0;
 let allTimeMedals = {};
+let myBlunderPlies = null;
 
 try{chessWorker=new Worker(new URL("chess-worker.js",location.href).href);}catch(e){console.warn("worker missing",e);}
 try{
@@ -792,6 +809,17 @@ try{
 function el(i){return document.getElementById(i);}
 function toast(m){const t=el("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function getDeviceId(){
+  let id=null;
+  try{ id=localStorage.getItem("bcn_device_id"); }catch(e){}
+  if(!id){
+    id="dev_"+Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+    try{ localStorage.setItem("bcn_device_id",id); }catch(e){}
+  }
+  return id;
+}
+
 const BLOCKED_WORDS=["fuck","fuk","fck","fcku","fuq","fvck","fuxk","fucc","phuck","f4ck","fcku","f u c k"];
 function hasBadWord(s){
   const norm=String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
@@ -1027,6 +1055,41 @@ function showSlowPlay(which){
   el("slow-play-modal").classList.add("open");
 }
 
+/* ============ DRAW OFFER LOGIC ============ */
+function triggerAiDrawOffer() {
+  drawModalOpen = true;
+  el("draw-offer-modal").classList.add("open");
+  playSfx("move"); 
+  haptic([50, 50, 50]);
+}
+function acceptDraw() {
+  el("draw-offer-modal").classList.remove("open");
+  drawModalOpen = false;
+  endRound(0.5, "Draw agreed");
+}
+function declineDraw() {
+  el("draw-offer-modal").classList.remove("open");
+  drawModalOpen = false;
+  lastTick = Date.now();
+  el("status").textContent = "Opponent is thinking…";
+  toast("You declined the draw.");
+  requestAIMove();
+}
+function handlePlayerDrawOffer() {
+  if(!gameLive || !game) return;
+  if(game.turn() !== userColor) {
+    toast("You can only offer a draw on your turn");
+    return;
+  }
+  el("status").textContent = "Draw offer sent...";
+  setTimeout(() => {
+    if(!gameLive || !game) return;
+    el("status").textContent = "Your turn";
+    toast("Opponent declined the draw offer.");
+    playSfx("opponent");
+  }, 1500);
+}
+
 /* ============ ROUND WINNER SPLASH ============ */
 function dismissSplash(){
   el("round-splash").classList.remove("open");
@@ -1211,7 +1274,6 @@ function loadState(){
 
 /* ============ ALL-TIME MEDALS ============ */
 function loadAllTimeMedals(){
-  // Force the correct data you requested, overriding old local storage
   allTimeMedals = {
     "Onele Chierika": { score: 7, rounds: 7, medal: "Gold" },
     "Semilore Beckley": { score: 6, rounds: 7, medal: "Silver" },
@@ -1345,15 +1407,6 @@ function standingsFor(round){
   }
   return rows;
 }
-function simBoardResult(round,boardNo,oppStrength){
-  const h1=hashRand(round*7919+boardNo*131+11);
-  const h2=hashRand(round*104729+boardNo*313+29);
-  const roll=(h1+h2)/2;
-  const winP=0.30+(1-oppStrength)*0.55;
-  if(roll<winP)return 1;
-  if(roll<winP+0.16)return 0.5;
-  return 0;
-}
 
 /* ============ SHARED SCORE AGGREGATION ============ */
 async function aggregateFromRounds(){
@@ -1485,6 +1538,28 @@ function pickEngineMove(c,depth){
   return best;
 }
 function eloBlunder(elo){ return Math.max(0.005, 0.05 - (elo-1200)*0.000075); }
+
+function computeBlunderPlies(round, board, aiColor){
+  const plan = ROUND_PLAN[round-1] || {elo:1500};
+  const elo  = plan.elo || 1500;
+  let count  = 1;
+  if(elo < 1600)      count = 3;
+  else if(elo < 1800) count = 2;
+  else                count = 1;
+
+  const rng  = mulberry32(round * 10000 + board * 100 + 13);
+  const aiIsWhite = aiColor === "w";
+  const candidates = [];
+  for(let ply = 1; ply <= 120; ply++){
+    const moverIsWhite = ply % 2 === 1;
+    if(moverIsWhite === aiIsWhite) candidates.push(ply);
+  }
+  for(let i = candidates.length - 1; i > 0; i--){
+    const j = Math.floor(rng() * (i + 1));
+    const t = candidates[i]; candidates[i] = candidates[j]; candidates[j] = t;
+  }
+  return new Set(candidates.slice(0, count));
+}
 
 /* ============ STATISTICS MODULE ============ */
 function quickEval(c){
@@ -1923,13 +1998,17 @@ async function adminResetTournament(){
   offlineQueue.length=0;
   gameStatsByRound={};
   statsAnalysisToken++;
+  gameLive = false;
+  if(timer){ clearInterval(timer); timer = null; }
+  game = null;
+  aiThinking = false;
+  myBlunderPlies = null;
   try{
     const at = localStorage.getItem("bcn_all_time_medals");
     localStorage.clear();
     if(at) localStorage.setItem("bcn_all_time_medals", at);
   }catch(e){}
-  me=null;gameLive=false;game=null;
-  if(timer){clearInterval(timer);timer=null;}
+  me=null;
   closeAdminModal();
   toast("Tournament reset — all boards cleared");
   showWelcome();
@@ -1981,40 +2060,55 @@ function showPlayerLogin(){
     b.appendChild(x);
   });
 }
-function doPlayerLogin(){
+async function doPlayerLogin(){
   if(!me) return toast("Select your board");
   const entered = el("login-pass").value.trim();
-  if(entered !== me.pin && entered !== TEAM_PASS) {
+  const pinOK = entered === me.pin;
+  const generalOK = entered.toUpperCase() === TEAM_PASS;
+  
+  if(!pinOK && !generalOK) {
     return toast("Wrong PIN. Ask Coach for your personal code.");
   }
+
+  if(!pinOK && generalOK){
+    const deviceId = getDeviceId();
+    try{
+      const snap = await db.collection("bcn_live").doc(me.id).get();
+      if(snap.exists){
+        const g = snap.data() || {};
+        const freshLive = g.status === "live" && g.deviceId && g.deviceId !== deviceId && (Date.now() - (g.updated || 0)) < 20000;
+        if(freshLive){
+          return toast("This board is actively playing on another device. Enter your personal PIN.");
+        }
+      }
+    }catch(e){}
+  }
+
   chatRole="player"; chatName=me.name;
   enterRound(currentRoundFromClock(Date.now()));
 }
 
-/* ============ ROUND ENTRY (WITH STALE GAME FIX) ============ */
+/* ============ ROUND ENTRY ============ */
 async function enterRound(round){
-  // --- FIX: ENFORCE SYNCHRONIZATION ACROSS ALL BOARDS ---
   if (round > 1) {
     try {
       const snap = await db.collection("bcn_live").where("round", "==", round - 1).get();
-      let activeGames = 0;
       const now = Date.now();
+      const currentRoundNow = currentRoundFromClock(now);
+      let activeGames = 0;
       snap.forEach(d => {
-        const g = d.data();
-        // If a game is marked live, but hasn't been updated in 15 mins (900000ms), consider it abandoned.
-        const isStale = g.status === "live" && g.updated && (now - g.updated > 900000);
-        if ((g.status === "live" && !isStale) || (!g.status && g.round === round-1)) {
-          activeGames++;
-        }
+        const g = d.data() || {};
+        if (g.status !== "live") return;
+        const ageStale = g.updated && (now - g.updated > 180000);
+        const roundStale = g.round && g.round < currentRoundNow;
+        if (!ageStale && !roundStale) activeGames++;
       });
       
       if (activeGames > 0) {
-        // If we are on the wait screen, update the message so players know why they are waiting.
         if (!el("screen-wait").classList.contains("hidden")) {
           el("wait-title").textContent = "Waiting for other boards...";
           el("wait-sub").textContent = "Round " + (round - 1) + " is still in progress on another board.";
         }
-        // Check again in 5 seconds
         setTimeout(() => enterRound(round), 5000);
         return;
       }
@@ -2022,7 +2116,6 @@ async function enterRound(round){
       console.warn("Sync check failed, proceeding...", e);
     }
   }
-  // -----------------------------------------------------
 
   currentRound=round;
   let prevRoundDone=false;
@@ -2142,6 +2235,10 @@ function setupMatch(round,anchor,late){
   slowPlayStartShown=false;
   slowPlayMove4Shown=false;
   myMovesPlayed=0;
+  aiDrawOffered = false;
+  drawModalOpen = false;
+  
+  myBlunderPlies = computeBlunderPlies(round, me.board, userColor === "w" ? "b" : "w");
 
   el("play-round").textContent="Round "+round+" / "+TOTAL_ROUNDS+" · 10+2";
   el("play-team-pts").textContent="Team: "+teamMatchPoints;
@@ -2196,6 +2293,10 @@ function resumeGame(g){
   slowPlayStartShown=false;
   slowPlayMove4Shown=false;
   myMovesPlayed=0;
+  aiDrawOffered = false;
+  drawModalOpen = false;
+
+  myBlunderPlies = computeBlunderPlies(currentRound, me.board, userColor === "w" ? "b" : "w");
 
   const el2=Math.floor((Date.now()-lastMoveAt)/1000);
   if(el2>0 && !game.game_over()){
@@ -2238,6 +2339,7 @@ function resumeGame(g){
 /* ============ CLOCKS ============ */
 function tickClocks(){
   if(!gameLive||!game) return;
+  if(drawModalOpen){ lastTick = Date.now(); return; }
   if(game.game_over()){ finishGame(); return; }
   const now=Date.now();
   let d=Math.floor((now-lastTick)/1000);
@@ -2301,36 +2403,63 @@ function onSquareClick(sq){
   requestAIMove();
 }
 
+function getAiThinkTime(){
+  const ply = (game && game.history) ? game.history().length : 0; 
+  let minTime, maxTime;
+  
+  if (ply < 24) {
+    minTime = 5000;
+    maxTime = 10000;
+  } else {
+    minTime = 4000;
+    maxTime = 20000;
+  }
+  
+  if (oppTime <= 15) return Math.floor(Math.random() * 1000) + 500;
+  if (oppTime <= 60) return Math.floor(Math.random() * Math.min(3000, maxTime)) + 1000;
+  
+  return Math.floor(Math.random() * (maxTime - minTime)) + minTime;
+}
+
 let aiThinking=false;
 function requestAIMove(){
   if(!game||game.game_over()||game.turn()===userColor||aiThinking) return;
+
+  if(!aiDrawOffered && game.history().length >= 30) {
+    const currentEval = quickEval(game);
+    const aiIsWhite = (userColor === "b");
+    const isLosing = aiIsWhite ? (currentEval < -300) : (currentEval > 300);
+    
+    if(isLosing && Math.random() < 0.20) {
+      aiDrawOffered = true;
+      triggerAiDrawOffer();
+      return;
+    }
+  }
+
   aiThinking=true;
   el("status").textContent="Opponent is thinking…";
   const plan=ROUND_PLAN[currentRound-1]||{depth:3,time:200};
-  const aiLow = oppTime<=60;
-  
-  // INCREASED THINKING TIME
-  const thinkMin = aiLow ? 800 : 5000;
-  const thinkRange = aiLow ? 1200 : 9000;
+  const thinkTime = getAiThinkTime();
   
   if(chessWorker){
     try{ chessWorker.postMessage("position "+game.fen()+" depth "+plan.depth+" time "+plan.time); }
-    catch(e){ aiThinking=false; setTimeout(doFallbackAI, thinkMin+Math.random()*thinkRange); }
-    setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, aiLow?1500:18000);
+    catch(e){ aiThinking=false; setTimeout(doFallbackAI, thinkTime); }
+    setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, thinkTime + 3000);
   } else {
-    setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, thinkMin+Math.random()*thinkRange);
+    setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, thinkTime);
   }
 }
 if(chessWorker){
   chessWorker.onmessage=function(e){
     if(typeof e.data!=="string") return;
-    if(e.data.startsWith("error")){ aiThinking=false; setTimeout(doFallbackAI, 3000+Math.floor(Math.random()*7000)); return; }
+    if(e.data.startsWith("error")){ 
+      aiThinking=false; 
+      setTimeout(doFallbackAI, getAiThinkTime()); 
+      return; 
+    }
     if(e.data.length>=4 && e.data.length<=5){
-      const aiLow = oppTime<=60;
-      
-      // INCREASED THINKING TIME FOR WORKER
-      const t = aiLow ? (800+Math.floor(Math.random()*1200)) : (5000+Math.floor(Math.random()*9000));
-      
+      const t = getAiThinkTime();
       setTimeout(()=>{ aiThinking=false; applyAIMove(e.data); }, t);
     }
   };
@@ -2339,11 +2468,15 @@ function applyAIMove(uci){
   aiThinking=false;
   if(!gameLive||!game||game.game_over()||game.turn()===userColor) return;
   const plan=ROUND_PLAN[currentRound-1]||{elo:1200,depth:3};
-  const blunder=eloBlunder(plan.elo);
   const legal=game.moves({verbose:true});
   let played=null;
-  if(Math.random()<blunder && legal.length){
-    played=game.move(legal[Math.floor(Math.random()*legal.length)]);
+  
+  const ply = game.history().length + 1;
+  const shouldBlunder = myBlunderPlies && myBlunderPlies.has(ply);
+
+  if(shouldBlunder && legal.length){
+    const rng = mulberry32(currentRound * 10000 + (me?me.board:1) * 100 + ply * 7);
+    played = game.move(legal[Math.floor(rng() * legal.length)]);
   } else {
     const f=uci.substring(0,2),t=uci.substring(2,4),p=uci.length>4?uci[4]:"q";
     played=game.move({from:f,to:t,promotion:p});
@@ -2353,11 +2486,13 @@ function applyAIMove(uci){
       played=m?game.move(m):game.move(legal[0]);
     }
   }
+
   if(played){
     oppTime+=INC;
     el("clock-opp").textContent=fmt(oppTime);
     if(board) board.position(game.fen());
     lastMoveAt=Date.now();
+    lastTick=Date.now();
     pushCloud();
     el("status").textContent="Your turn";
     setLastHighlight(played.from, played.to);
@@ -2372,21 +2507,29 @@ function doFallbackAI(){
   aiThinking=false;
   if(!game||game.game_over()||game.turn()===userColor) return;
   const plan=ROUND_PLAN[currentRound-1]||{elo:1200,depth:3};
-  const blunder=eloBlunder(plan.elo);
   let played=null;
-  if(Math.random()<blunder){
+  
+  const ply = game.history().length + 1;
+  const shouldBlunder = myBlunderPlies && myBlunderPlies.has(ply);
+
+  if(shouldBlunder){
     const m=game.moves();
-    if(m.length) played=game.move(m[Math.floor(Math.random()*m.length)]);
+    if(m.length) {
+      const rng = mulberry32(currentRound * 10000 + (me?me.board:1) * 100 + ply * 7);
+      played=game.move(m[Math.floor(rng() * m.length)]);
+    }
   } else {
     const c=new Chess(); try{c.load(game.fen());}catch(e){}
     const m=pickEngineMove(c,Math.max(2,(plan.depth||3)-1));
     played=m?game.move(m):(function(){const ms=game.moves();return ms.length?game.move(ms[0]):null;})();
   }
+
   if(played){
     oppTime+=INC;
     el("clock-opp").textContent=fmt(oppTime);
     if(board) board.position(game.fen());
     lastMoveAt=Date.now();
+    lastTick=Date.now();
     pushCloud();
     el("status").textContent="Your turn";
     setLastHighlight(played.from, played.to);
@@ -2544,6 +2687,7 @@ function pushCloud(){
     userColor,fen:game.fen(),pgn:game.pgn(),
     userTime,oppTime,lastMoveAt,turn:game.turn(),
     round:currentRound,status:gameLive?"live":"done",
+    deviceId: getDeviceId(),
     updated:Date.now()
   };
   ref.set(payload,{merge:true}).catch(()=>{
@@ -2681,11 +2825,12 @@ function boardClockInfo(g){
   if(g&&(g.status==="live"||g.status==="done")){
     let ut=g.userTime!=null?g.userTime:BASE;
     let ot=g.oppTime!=null?g.oppTime:BASE;
-    if(g.status==="live"&&g.lastMoveAt){
-      const e=Math.floor((now-g.lastMoveAt)/1000);
+    const ref = g.updated || g.lastMoveAt;
+    if(g.status==="live" && ref){
+      const e=Math.floor((now - ref)/1000);
       if(e>0){
         if(g.turn===g.userColor) ut=Math.max(0,ut-e);
-        else ot=Math.max(0,ot-e);
+        else                     ot=Math.max(0,ot-e);
       }
     }
     return {ut,ot,live:g.status==="live",status:g.status,round:g.round};
@@ -3012,6 +3157,11 @@ db.collection("bcn_meta").doc("mcps").onSnapshot(d=>{
       pendingCommit=null; roundResults=[];
       gameStatsByRound={};
       statsAnalysisToken++;
+      gameLive = false;
+      if(timer){ clearInterval(timer); timer = null; }
+      game = null;
+      aiThinking = false;
+      myBlunderPlies = null;
       try{
         const at = localStorage.getItem("bcn_all_time_medals");
         localStorage.clear();
