@@ -450,9 +450,12 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 
 <div id="screen-standings" class="hidden min-h-screen px-4 py-6">
   <div class="max-w-lg mx-auto">
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center justify-between mb-4 gap-2">
       <h2 class="text-lg font-black text-white uppercase italic">Team Report</h2>
-      <button type="button" class="btn-soft" onclick="closeStandings()">Back</button>
+      <div class="flex gap-2">
+        <button type="button" class="btn-soft text-[11px]" onclick="downloadAllPgns()">⬇ PGN</button>
+        <button type="button" class="btn-soft" onclick="closeStandings()">Back</button>
+      </div>
     </div>
     <p class="text-xs text-slate-500 mb-1" id="stand-round-label">After Round 1</p>
     <p class="text-amber-300 font-black text-sm mb-1" id="mcps-rank-line">MCPS team report</p>
@@ -495,7 +498,8 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   <div class="max-w-lg mx-auto text-center">
     <div class="text-5xl mb-3">🏆</div>
     <h2 class="text-2xl font-black text-white mb-1" id="final-rank">MCPS · Rank #—</h2>
-    <p class="text-slate-400 text-sm mb-6" id="final-sub">7 rounds complete</p>
+    <p class="text-slate-400 text-sm mb-2" id="final-sub">7 rounds complete</p>
+    <button type="button" class="btn-gold mb-6" onclick="downloadAllPgns()">⬇ Download All PGNs</button>
     
     <div class="panel p-3 mb-4">
       <div class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">🏆 Final medal table · MCPS</div>
@@ -2550,6 +2554,90 @@ function saveGameToCloud(r){
     pgn:game?game.pgn():"",result:r,
     timestamp:firebase.firestore.FieldValue.serverTimestamp()
   }).catch(()=>{});
+}
+
+/* ============ PGN DOWNLOAD (Coach + Players) ============ */
+async function downloadAllPgns(){
+  toast("Collecting games…");
+  const games = [];
+  // 1. Finished games from tournament_games
+  try{
+    const snap = await db.collection("tournament_games").get();
+    snap.forEach(d=>{
+      const g = d.data() || {};
+      if(g.pgn && g.pgn.trim()){
+        games.push({
+          round: g.round || "?",
+          board: g.board || "?",
+          player: g.player || g.playerName || "MCPS",
+          opponent: g.opponent || "?",
+          school: g.school || "?",
+          result: g.result || "*",
+          pgn: g.pgn.trim()
+        });
+      }
+    });
+  }catch(e){ console.warn("tournament_games read failed", e); }
+
+  // 2. Also pull any finished games still sitting in bcn_live
+  try{
+    const snap = await db.collection("bcn_live").get();
+    snap.forEach(d=>{
+      const g = d.data() || {};
+      if(g.status === "done" && g.pgn && g.pgn.trim()){
+        // Avoid exact duplicates if already in tournament_games
+        const already = games.some(x => x.pgn === g.pgn.trim());
+        if(!already){
+          games.push({
+            round: g.round || "?",
+            board: g.board || "?",
+            player: g.playerName || "MCPS",
+            opponent: g.oppName || "?",
+            school: g.oppSchool || "?",
+            result: g.result === 1 ? "Win" : (g.result === 0 ? "Loss" : (g.result === 0.5 ? "Draw" : "*")),
+            pgn: g.pgn.trim()
+          });
+        }
+      }
+    });
+  }catch(e){ console.warn("bcn_live read failed", e); }
+
+  if(!games.length){
+    toast("No games with PGN found yet");
+    return;
+  }
+
+  // Sort by round then board
+  games.sort((a,b)=> (a.round-b.round) || (a.board-b.board));
+
+  let out = "";
+  games.forEach((g,i)=>{
+    // Add informative headers if the PGN doesn't already have them
+    let header = "";
+    if(!g.pgn.includes('[Event ')){
+      header += '[Event "Brain Chess National School Championship 2026"]\n';
+      header += '[Site "Maryland Convent Private School"]\n';
+      header += '[Round "'+g.round+'"]\n';
+      header += '[Board "'+g.board+'"]\n';
+      header += '[White "'+(g.result==="Win"||g.result===1 ? g.player : g.opponent)+'"]\n';
+      header += '[Black "'+(g.result==="Win"||g.result===1 ? g.opponent : g.player)+'"]\n';
+      header += '[Result "'+(g.result==="Win"?"1-0":(g.result==="Loss"?"0-1":(g.result==="Draw"?"1/2-1/2":"*")))+'"]\n';
+      header += '[WhiteTeam "MCPS"]\n';
+      header += '[BlackTeam "'+g.school+'"]\n\n';
+    }
+    out += header + g.pgn + "\n\n\n";
+  });
+
+  const blob = new Blob([out], {type: "application/x-chess-pgn"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "MCPS_BrainChess_2026_All_Games.pgn";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast(games.length + " games downloaded");
 }
 function pushCloud(){
   if(!me||!game) return;
