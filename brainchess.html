@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Brain Chess National School Championship 2026 · MCPS</title>
+<title>Vetrinox Capital Brainchess Schools Chess Championship 2026 · MCPS</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -24,38 +24,76 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:#e2e8
 .btn-soft{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#e2e8f0;font-weight:800;border-radius:12px;padding:12px 16px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer}
 .btn-danger{background:rgba(244,63,94,.2);border:1px solid rgba(244,63,94,.45);color:#fda4af;font-weight:800;border-radius:12px;padding:12px 16px;font-size:12px;cursor:pointer}
 .btn-blue{background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;font-weight:900;border-radius:12px;padding:13px 18px;font-size:12px;text-transform:uppercase;border:0;cursor:pointer}
-#screen-welcome{background:#f4f7fb;position:relative;overflow-x:hidden;min-height:100vh;color:#0f172a}
-#screen-welcome .wc-topbar{background:linear-gradient(90deg,#008751 0%,#00a86b 40%,#fcd116 70%,#e11d48 100%);height:6px;width:100%}
-#screen-welcome .wc-header{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 16px 12px;text-align:center}
-#screen-welcome .wc-pill{display:inline-block;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;margin-bottom:8px}
-#screen-welcome .wc-h1{margin:0;font-size:clamp(1.35rem,4.5vw,1.85rem);font-weight:900;color:#0f172a;line-height:1.15;letter-spacing:-0.02em}
-#screen-welcome .wc-h1 span{color:#008751}
-#screen-welcome .wc-tagline{margin:6px 0 0;font-size:12px;font-weight:700;color:#64748b}
-#screen-welcome .wc-photo-wrap{position:relative;margin:0;background:#0f172a}
+/* ===== WELCOME · white / blue / gold ===== */
+#screen-welcome{background:linear-gradient(180deg,#f8fafc 0%,#eef2ff 40%,#f8fafc 100%);position:relative;overflow-x:hidden;min-height:100vh;color:#0f172a}
+#screen-welcome::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(ellipse 80% 50% at 10% -10%,rgba(37,99,235,.18),transparent 55%),
+  radial-gradient(ellipse 70% 45% at 90% 5%,rgba(251,191,36,.16),transparent 50%),
+  radial-gradient(ellipse 60% 40% at 50% 100%,rgba(59,130,246,.1),transparent 55%);
+  pointer-events:none;animation:wcGlowPulse 7s ease-in-out infinite alternate}
+@keyframes wcGlowPulse{0%{opacity:.75;transform:scale(1)}100%{opacity:1;transform:scale(1.03)}}
+#screen-welcome .wc-topbar{background:linear-gradient(90deg,#1e3a8a,#2563eb,#3b82f6,#fbbf24,#f59e0b,#eab308);height:6px;width:100%;background-size:200% 100%;animation:wcBarShine 5s linear infinite;box-shadow:0 2px 16px rgba(37,99,235,.35),0 0 24px rgba(251,191,36,.2)}
+@keyframes wcBarShine{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+#screen-welcome .wc-header{background:rgba(255,255,255,.88);backdrop-filter:blur(18px);border-bottom:1px solid rgba(37,99,235,.12);padding:18px 16px 14px;text-align:center;position:relative;box-shadow:0 4px 24px rgba(37,99,235,.06)}
+#screen-welcome .wc-pill{display:inline-block;background:linear-gradient(135deg,#eff6ff,#dbeafe);color:#1d4ed8;border:1px solid rgba(37,99,235,.3);border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;padding:6px 14px;margin-bottom:10px;box-shadow:0 0 18px rgba(37,99,235,.15);animation:wcPillFloat 3s ease-in-out infinite}
+@keyframes wcPillFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+#screen-welcome .wc-h1{margin:0;font-size:clamp(1.4rem,4.8vw,2rem);font-weight:900;color:#0f172a;line-height:1.15;letter-spacing:-0.02em}
+#screen-welcome .wc-h1 span{background:linear-gradient(135deg,#1d4ed8,#2563eb,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#screen-welcome .wc-tagline{margin:8px 0 0;font-size:12px;font-weight:700;color:#64748b}
+#screen-welcome .wc-photo-wrap{position:relative;margin:0;background:#0f172a;overflow:hidden}
+#screen-welcome .wc-photo-wrap::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(15,23,42,.75) 100%);pointer-events:none}
 #screen-welcome .wc-photo-wrap img{display:block;width:100%;max-height:min(52vh,420px);object-fit:cover;object-position:top center}
-#screen-welcome .wc-photo-caption{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(255,255,255,.95);border-radius:14px;padding:10px 14px;text-align:center;box-shadow:0 8px 28px rgba(15,23,42,.25);border:2px solid #fcd116}
+#screen-welcome .wc-photo-caption{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(255,255,255,.96);border-radius:14px;padding:12px 14px;text-align:center;box-shadow:0 8px 32px rgba(15,23,42,.2),0 0 0 2px #fbbf24,0 0 28px rgba(251,191,36,.35);z-index:2;animation:wcCaptionIn .7s cubic-bezier(.22,1,.36,1) both}
+@keyframes wcCaptionIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 #screen-welcome .wc-photo-caption .k{font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#b45309}
 #screen-welcome .wc-photo-caption .v{font-size:14px;font-weight:900;color:#0f172a;margin-top:2px}
-#screen-welcome .wc-body{padding:16px 16px 28px;max-width:480px;margin:0 auto}
-#screen-welcome .wc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-#screen-welcome .wc-stat{background:#fff;border-radius:14px;padding:12px 8px;text-align:center;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(15,23,42,.04)}
-#screen-welcome .wc-stat .n{font-size:1.35rem;font-weight:900;color:#008751;line-height:1}
-#screen-welcome .wc-stat .l{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-top:4px}
-#screen-welcome .wc-card{background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;border:1px solid #e2e8f0;box-shadow:0 4px 16px rgba(15,23,42,.06)}
-#screen-welcome .wc-card.green{border-left:5px solid #008751}
+#screen-welcome .wc-body{padding:18px 16px 32px;max-width:480px;margin:0 auto;position:relative;z-index:1}
+#screen-welcome .wc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+#screen-welcome .wc-stat{background:#fff;border-radius:16px;padding:14px 8px;text-align:center;border:1px solid rgba(37,99,235,.12);box-shadow:0 4px 18px rgba(37,99,235,.08),0 1px 0 rgba(255,255,255,.8) inset;animation:wcStatIn .55s cubic-bezier(.22,1,.36,1) both}
+#screen-welcome .wc-stat:nth-child(1){animation-delay:.06s}
+#screen-welcome .wc-stat:nth-child(2){animation-delay:.14s}
+#screen-welcome .wc-stat:nth-child(3){animation-delay:.22s}
+@keyframes wcStatIn{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+#screen-welcome .wc-stat .n{font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#1d4ed8,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+#screen-welcome .wc-stat .l{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-top:5px}
+#screen-welcome .wc-card{background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;border:1px solid rgba(15,23,42,.06);box-shadow:0 6px 22px rgba(15,23,42,.06);transition:transform .2s,box-shadow .25s,border-color .25s;animation:wcCardIn .5s ease both}
+#screen-welcome .wc-card:nth-of-type(1){animation-delay:.1s}
+#screen-welcome .wc-card:nth-of-type(2){animation-delay:.18s}
+#screen-welcome .wc-card:nth-of-type(3){animation-delay:.26s}
+@keyframes wcCardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+#screen-welcome .wc-card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(37,99,235,.12);border-color:rgba(37,99,235,.2)}
+#screen-welcome .wc-card.green{border-left:5px solid #2563eb;box-shadow:0 6px 22px rgba(37,99,235,.1)}
 #screen-welcome .wc-card.red{border-left:5px solid #e11d48;background:linear-gradient(90deg,#fff1f2,#fff)}
 #screen-welcome .wc-card h3{margin:0 0 8px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#0f172a}
 #screen-welcome .wc-card ul{margin:0;padding-left:1.1rem;font-size:13px;color:#334155;line-height:1.55;font-weight:600}
 #screen-welcome .wc-card.red ul{color:#9f1239}
-#screen-welcome .wc-time{text-align:center;background:#ecfdf5;border:2px solid #6ee7b7;border-radius:16px;padding:14px;margin-bottom:14px}
-#screen-welcome .wc-time .lab{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#047857}
-#screen-welcome .wc-time .val{font-size:1.2rem;font-weight:900;color:#065f46;margin-top:4px}
-#screen-welcome .wc-time .cd{font-size:12px;color:#059669;margin-top:4px}
-#screen-welcome .wc-btn-main{width:100%;border:0;border-radius:16px;padding:16px;cursor:pointer;background:linear-gradient(135deg,#008751,#00c853);color:#fff;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 8px 24px rgba(0,135,81,.35)}
+#screen-welcome .wc-card.red h3{color:#9f1239}
+#screen-welcome .wc-time{text-align:center;background:linear-gradient(160deg,#eff6ff,#dbeafe);border:2px solid #93c5fd;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 0 0 4px rgba(37,99,235,.08),0 8px 28px rgba(37,99,235,.12);animation:wcTimePulse 2.8s ease-in-out infinite}
+@keyframes wcTimePulse{0%,100%{box-shadow:0 0 0 4px rgba(37,99,235,.08),0 8px 28px rgba(37,99,235,.12)}50%{box-shadow:0 0 0 6px rgba(37,99,235,.14),0 8px 32px rgba(37,99,235,.2),0 0 40px rgba(251,191,36,.15)}}
+#screen-welcome .wc-time .lab{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#1d4ed8}
+#screen-welcome .wc-time .val{font-size:1.25rem;font-weight:900;color:#1e3a8a;margin-top:4px}
+#screen-welcome .wc-time .cd{font-size:12px;color:#2563eb;margin-top:4px}
+#screen-welcome .wc-btn-main{width:100%;border:0;border-radius:16px;padding:17px;cursor:pointer;background:linear-gradient(135deg,#1d4ed8,#2563eb,#3b82f6);color:#fff;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 8px 28px rgba(37,99,235,.4),0 0 0 1px rgba(37,99,235,.2),inset 0 1px 0 rgba(255,255,255,.25);transition:transform .15s,box-shadow .2s;position:relative;overflow:hidden}
+#screen-welcome .wc-btn-main::after{content:"";position:absolute;top:-50%;left:-60%;width:40%;height:200%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);animation:wcBtnShine 3.2s ease-in-out infinite}
+@keyframes wcBtnShine{0%{left:-60%}45%{left:130%}100%{left:130%}}
+#screen-welcome .wc-btn-main:hover{box-shadow:0 12px 36px rgba(37,99,235,.5),0 0 24px rgba(251,191,36,.2)}
 #screen-welcome .wc-btn-main:active{transform:scale(.98)}
-#screen-welcome .wc-btn-sec{width:100%;margin-top:10px;border-radius:14px;padding:14px;cursor:pointer;background:#fff;border:2px solid #0f172a;color:#0f172a;font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
-#screen-welcome .wc-btn-admin{width:100%;margin-top:10px;border:0;background:transparent;color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:10px;cursor:pointer}
-#screen-welcome .wc-footer{text-align:center;font-size:10px;color:#94a3b8;font-weight:600;margin-top:8px}
+#screen-welcome .wc-btn-sec{width:100%;margin-top:10px;border-radius:14px;padding:14px;cursor:pointer;background:#fff;border:2px solid #1e3a8a;color:#1e3a8a;font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:.05em;transition:background .2s,border-color .2s,box-shadow .2s,color .2s}
+#screen-welcome .wc-btn-sec:hover{background:linear-gradient(135deg,#fffbeb,#fef3c7);border-color:#f59e0b;color:#92400e;box-shadow:0 0 20px rgba(251,191,36,.25)}
+#screen-welcome .wc-btn-admin{width:100%;margin-top:8px;border:0;background:transparent;color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:10px;cursor:pointer;transition:color .2s}
+#screen-welcome .wc-btn-admin:hover{color:#64748b}
+#screen-welcome .wc-footer{text-align:center;font-size:10px;color:#94a3b8;font-weight:600;margin-top:10px}
+/* Medals — white/gold cards */
+#screen-welcome .wc-card[style*="fbbf24"]{background:linear-gradient(160deg,#fffbeb,#fff)!important;border:1px solid rgba(251,191,36,.35)!important;border-left:5px solid #fbbf24!important;box-shadow:0 6px 24px rgba(251,191,36,.12)!important}
+#screen-welcome .all-time-medal-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #e2e8f0;font-size:13px}
+#screen-welcome .all-time-medal-row:last-child{border-bottom:0}
+#screen-welcome .all-time-name{font-weight:800;color:#0f172a}
+#screen-welcome .all-time-score{font-weight:900}
+#screen-welcome .all-time-score.gold{color:#b45309;text-shadow:0 0 12px rgba(251,191,36,.25)}
+#screen-welcome .all-time-score.silver{color:#64748b}
+#screen-welcome .all-time-score.bronze{color:#c2410c}
+#screen-welcome #medalist-photo-grid > div{background:#f8fafc!important;border-color:rgba(251,191,36,.4)!important;box-shadow:0 4px 14px rgba(251,191,36,.1)}
+#screen-welcome #medalist-photo-grid .text-\[10px\]{color:#0f172a!important}
 .all-time-medal-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #e2e8f0;font-size:13px}
 .all-time-medal-row:last-child{border-bottom:0}
 .all-time-name{font-weight:800;color:#0f172a}
@@ -152,9 +190,9 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 <div id="screen-welcome">
   <div class="wc-topbar"></div>
   <div class="wc-header">
-    <div class="wc-pill">National School Championship 2026</div>
+    <div class="wc-pill">Vetrinox Capital Brainchess · Primary Schools</div>
     <h1 class="wc-h1">Maryland Convent<br><span>Private School</span></h1>
-    <p class="wc-tagline">Official team login · Brain Chess Nigeria</p>
+    <p class="wc-tagline">Official team login · Schools Chess Championship 2026</p>
   </div>
   <div class="wc-photo-wrap">
     <img src="Screenshot_20260516-211346.jpg" alt="Maryland Convent Private School chess team" onerror="this.style.display='none'">
@@ -165,9 +203,9 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
   </div>
   <div class="wc-body">
     <div class="wc-stats">
-      <div class="wc-stat"><div class="n">8</div><div class="l">Boards</div></div>
+      <div class="wc-stat"><div class="n">5</div><div class="l">Boards</div></div>
       <div class="wc-stat"><div class="n">7</div><div class="l">Rounds</div></div>
-      <div class="wc-stat"><div class="n">183</div><div class="l">Schools</div></div>
+      <div class="wc-stat"><div class="n">142</div><div class="l">Schools</div></div>
     </div>
     <div class="wc-time" id="schedule-banner">
       <div class="lab">Round 1 kick-off</div>
@@ -177,10 +215,11 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <div class="wc-card green">
       <h3>Event details</h3>
       <ul>
+        <li><strong>Event:</strong> Vetrinox Capital Brainchess Schools Championship</li>
         <li><strong>Time control:</strong> 10 minutes + 2 seconds per move</li>
-        <li><strong>Format:</strong> Team Swiss · match points</li>
-        <li><strong>Rounds:</strong> 13 minutes apart (1 min pairing + 10 min play + 2 min break)</li>
-        <li><strong>Spectators:</strong> All 8 boards live + chat + replay</li>
+        <li><strong>Format:</strong> Team Swiss · 7 rounds · Primary schools</li>
+        <li><strong>Prize fund:</strong> ₦20,000,000 · Team &amp; individual medals</li>
+        <li><strong>Spectators:</strong> All 5 main boards live + Section B + chat + replay</li>
       </ul>
     </div>
     <div class="wc-card red">
@@ -192,7 +231,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
         <li>Cheating = disqualification &amp; blacklist</li>
       </ul>
     </div>
-    <div class="wc-card" style="border-left:5px solid #fbbf24;background:linear-gradient(90deg,#fffbeb,#fff)">
+    <div class="wc-card" style="border-left:4px solid #fbbf24">
       <h3>🏆 All-time MCPS medalists</h3>
       <div id="all-time-medals-body" class="text-sm text-slate-600">
         <div class="all-time-medal-row">
@@ -244,7 +283,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
     <button type="button" class="wc-btn-sec" onclick="enterSpectator()">Watch live boards</button>
     <button type="button" class="wc-btn-admin" onclick="openCoachModal()">Coach login</button>
     <button type="button" class="wc-btn-admin" onclick="openAdminModal()">Admin · set start time</button>
-    <p class="wc-footer">Nigeria Chess Federation style · School team event</p>
+    <p class="wc-footer">Vetrinox Capital Brainchess · Primary Schools · Lagos 2026</p>
   </div>
 </div>
 
@@ -281,6 +320,11 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
         <button type="button" class="btn-gold px-3" onclick="sendCoachBroadcast()">Send</button>
       </div>
       <p class="text-[10px] text-slate-500 mt-1">Appears as a banner on every live board.</p>
+    </div>
+    <div class="text-left mb-3 panel p-3" style="border-color:rgba(52,211,153,.35)">
+      <div class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2">Section B chat access</div>
+      <p class="text-[11px] text-slate-400 mb-2 leading-snug">By default only the 5 main players and coach can chat. Unlock Section B when you want them to join the conversation.</p>
+      <button type="button" class="btn-soft w-full" id="btn-section-b-chat" onclick="toggleSectionBChat()">Enable Section B chat</button>
     </div>
     <div id="coach-dash">
       <div class="dh">Live board dashboard</div>
@@ -319,10 +363,10 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
 <div id="screen-login" class="hidden min-h-screen px-4 py-8">
   <div class="max-w-md mx-auto">
     <h2 class="text-xl font-black uppercase italic text-white mb-1">Select your board</h2>
-    <p class="text-sm text-slate-400 mb-4">Tap your name, then enter the team password.</p>
+    <p class="text-sm text-slate-400 mb-4">Main Team or Section B (Rising Stars) — everyone is still part of MCPS. Tap your name, then enter <strong>your board password</strong> (Section B uses the team password).</p>
     <div id="rep-list" class="mb-4"></div>
     <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">Password</label>
-    <input id="login-pass" type="password" placeholder="Team password" class="mb-4" autocomplete="off">
+    <input id="login-pass" type="password" placeholder="Your board password" class="mb-4" autocomplete="off">
     <button type="button" class="btn-gold w-full mb-2" onclick="doPlayerLogin()">Enter championship</button>
     <button type="button" class="btn-soft w-full" onclick="showWelcome()">Back</button>
   </div>
@@ -490,8 +534,8 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
       </table>
     </div>
 
-    <div id="school-standings-wrap" class="hidden">
-      <h3 class="text-sm font-black text-white uppercase mb-2">Full standings · 183 schools</h3>
+    <div id="school-standings-wrap">
+      <h3 class="text-sm font-black text-white uppercase mb-2">Top 10 schools · after this round</h3>
       <div class="panel p-3 mb-4 overflow-x-auto">
         <table>
           <thead><tr><th>#</th><th>School</th><th>MP</th><th>GP</th></tr></thead>
@@ -620,7 +664,9 @@ const firebaseConfig={apiKey:"AIzaSyCcSVTifrJhzXvhQ4m1UyObtCKd8",authDomain:"ass
 firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
 
 const TEAM_PASS="MCPS",ADMIN_PASS="decipher1234",ADMIN_PASS_ALT="brainchess2026";
-const TOTAL_ROUNDS=7,TOTAL_SCHOOLS=183;
+/* Per-board passwords for main team (prevents impersonation) */
+const BOARD_PASS={p1:"1234",p2:"1235",p3:"1236",p4:"1237",p5:"1238"};
+const TOTAL_ROUNDS=7,TOTAL_SCHOOLS=142;
 const CHAT_COOLDOWN_MS=30000;
 
 const BASE=600,INC=2;
@@ -659,29 +705,36 @@ function toggleSound(){
   }
 }
 
+const TOTAL_BOARDS=5;
+
+/* Main championship team (5 boards) – OTB event squad */
 const ROSTER=[
-  {id:"p1",board:1,name:"Obi Chukwuemeka"},
-  {id:"p2",board:2,name:"Onele Chierika"},
-  {id:"p3",board:3,name:"Semilore Beckley"},
-  {id:"p4",board:4,name:"Sage Osafile"},
-  {id:"p5",board:5,name:"Ajayi Oluwaseun"},
-  {id:"p6",board:6,name:"Princewill Isioma"},
-  {id:"p7",board:7,name:"James Enemoh"},
-  {id:"p8",board:8,name:"Kosi Elelugu"}
+  {id:"p1",board:1,name:"Sage Osafile",section:"main"},
+  {id:"p2",board:2,name:"Oluwaseun Ajayi",section:"main"},
+  {id:"p3",board:3,name:"Chukwuemeka Obi",section:"main"},
+  {id:"p4",board:4,name:"Chierika Onele",section:"main"},
+  {id:"p5",board:5,name:"Semilore Beckley",section:"main"}
 ];
 
-const SLOW_PLAY_IDS = new Set(["p3","p4"]);
+/* Section B – Rising Stars / Development Squad (still fully part of the MCPS family) */
+const SECTION_B=[
+  {id:"b1",board:1,name:"Princewill Isioma",section:"B"},
+  {id:"b2",board:2,name:"James Enemoh",section:"B"},
+  {id:"b3",board:3,name:"Kosi Elelugu",section:"B"}
+];
+
+const SLOW_PLAY_IDS = new Set(["p1","p5"]);
 
 const MID_SCHOOLS=[
-  "Grange School","Lekki British School","Corona Private School","Green Springs School",
-  "Atlantic Hall","British International School","Greensprings Ikoyi","Chrisland College",
-  "Dowen College","Whitesands School","Lagos Preparatory School","St. Saviour's School",
-  "Rainbow College","Meadow Hall","Avi-Cenna International","Babcock University High",
-  "Halifield Schools","Caleb British International","Topfield College","Nova International"
+  "Grange Primary School","St. Saviour's School Ikoyi","Temple School","British International Junior School",
+  "Children International School","Halcyon International School","Hillsprings International Schools","The Lagoon School",
+  "New Hall International School","Greenwood House School","Juniper Hill School","Crown Gate School",
+  "Grace Children School","Home Science Association Abule Egba","Impetus Dominion Academy","Doyens School",
+  "Diagold Schools","Divine Offspring International Schools","First Baptist Group of Schools","Berkley Science Magnet School"
 ];
 
 const ROUND_PLAN=[
-  {school:"Grange School",
+  {school:"Grange Primary School",
    players:["Damilola Adeyinka","Chidera Okonkwo","Oluwaseun Fashola","Chukwuemeka Nnamdi",
             "Ijeoma Eze","Babatunde Ogunleye","Adaeze Okafor","Toluwalase Adebayo",
             "Ngozika Nnamdi","Temiloluwa Ajayi","Obinna Chukwu","Ogechi Chukwuma",
@@ -690,7 +743,7 @@ const ROUND_PLAN=[
             "Olumide Adekunle","Oluwadamilare Ogunbiyi","Akintunde Oyedeji","Nneka Nwosu"],
    strength:0.55, elo:1200, depth:3, time:200},
 
-  {school:"Corona Private School",
+  {school:"St. Saviour's School Ikoyi",
    players:["Adewale Ogundipe","Somtochukwu Uche","Ikechukwu Onyeka","Chinelo Obi",
             "Chidubem Nwankwo","Chiamaka Ibe","Emeka Okafor","Ebube Nnaji",
             "Onyinyechi Eze","Damilare Fasanya","Seyi Ogunbanjo","Amarachi Eze",
@@ -699,7 +752,7 @@ const ROUND_PLAN=[
             "Olumuyiwa Akinyele","Ayotunde Salami","Adebola Osunlana","Chinwe Okwu"],
    strength:0.62, elo:1400, depth:3, time:250},
 
-  {school:"Atlantic Hall",
+  {school:"Temple School",
    players:["Ayomide Ogundiran","Chukwuemeka Ogbonna","Oluwafemi Adegbite","Temitope Alabi",
             "Olusesan Adeoye","Chukwudi Obiora","Ikechukwu Madu","Ezinwanne Okafor",
             "Adetokunbo Oyelaran","Oluwadamilola Bankole","Segun Agbeniyi","Fiyinfoluwa Adejumo",
@@ -748,7 +801,7 @@ const ROUND_PLAN=[
 function oppPlayerFor(round, board){
   const plan=ROUND_PLAN[Math.max(0,Math.min(TOTAL_ROUNDS-1,(round||1)-1))]||{};
   const arr=plan.players||[];
-  return arr[Math.max(0,Math.min(7,(board||1)-1))]||"—";
+  return arr[Math.max(0,Math.min(TOTAL_BOARDS-1,(board||1)-1))]||"—";
 }
 
 /* ============ STATE ============ */
@@ -759,6 +812,7 @@ let game=null,board=null,userColor="w",userTime=BASE,oppTime=BASE,timer=null,gam
 let oppMeta={name:"—",school:"—",strength:0.5};
 let lastMoveAt=0,lastTick=0,srcSq=null;
 let chatRole="spectator",chatName="";
+let sectionBChatEnabled=false; /* coach-controlled; only main 5 can chat unless true */
 let chatUnsub=null,hubUnsub=null,specUnsub=null;
 let specBoard=null,specReplayFens=[],specReplaySans=[],specReplayPly=null;
 let fromStandings="screen-result",chessWorker=null;
@@ -876,33 +930,33 @@ function updateLiveTeamLine(rows){
   const subEl   = el("live-team-sub");
   if(!scoreEl || !subEl) return;
   const liveRound = currentRoundFromClock(Date.now());
-  const byBoard = {};
-  rows.forEach(r=>{ if(r.board) byBoard[r.board]=r; });
+  const byId = {};
+  rows.forEach(r=>{ if(r.id||r.playerId) byId[r.id||r.playerId]=r; });
   let gp=0, played=0, liveCount=0;
   ROSTER.forEach(p=>{
-    const g = byBoard[p.board];
+    const g = byId[p.id];
     if(!g) return;
     if(g.status==="done" && typeof g.result==="number"){ gp += g.result; played++; }
     else if(g.status==="live") liveCount++;
   });
   const oppSchool = (ROUND_PLAN[Math.max(0,liveRound-1)]||{}).school || "Opponent";
-  const oppGP = Math.max(0, 8-gp);
+  const oppGP = Math.max(0, TOTAL_BOARDS-gp);
   scoreEl.textContent = "Maryland Convent  "+gp.toFixed(1)+" – "+oppGP.toFixed(1)+"  "+oppSchool;
   const parts = [];
   parts.push("Round "+liveRound);
   if(played) parts.push(played+" finished");
   if(liveCount) parts.push(liveCount+" live");
-  if(played+liveCount<8) parts.push((8-played-liveCount)+" waiting");
+  if(played+liveCount<TOTAL_BOARDS) parts.push((TOTAL_BOARDS-played-liveCount)+" waiting");
   subEl.textContent = parts.join(" · ");
 }
 
 /* ============ COACH DASHBOARD ============ */
 function renderCoachDash(rows){
   const tb = el("coach-dash-body"); if(!tb) return;
-  const byBoard = {};
-  rows.forEach(r=>{ if(r.board) byBoard[r.board]=r; });
+  const byId = {};
+  rows.forEach(r=>{ if(r.id||r.playerId) byId[r.id||r.playerId]=r; });
   tb.innerHTML = ROSTER.map(p=>{
-    const g = byBoard[p.board] || {};
+    const g = byId[p.id] || {};
     const ut = g.userTime!=null ? fmt(g.userTime) : "—";
     const ot = g.oppTime!=null ? fmt(g.oppTime) : "—";
     const st = g.status==="done" ? (g.result===1?"🟢":(g.result===0.5?"🟡":"🔴"))
@@ -1068,7 +1122,7 @@ async function maybeShowRoundSplash(round){
       const v = boards["p"+p.board];
       if(typeof v==="number"){ gp += v; if(v===1) winners.push(p); }
     });
-    const oppGP = 8-gp;
+    const oppGP = TOTAL_BOARDS-gp;
     const oppSchool = (rr && rr.oppSchool) || (ROUND_PLAN[Math.max(0,Math.min(TOTAL_ROUNDS-1,round-1))]||{}).school || "Opponent";
 
     el("splash-title").textContent = "Round "+round+" complete";
@@ -1118,6 +1172,7 @@ function openCoachModal(){
   el("coach-modal").classList.add("open");
   const n=el("coach-name"); if(n) n.value=chatRole==="coach"?(chatName||"Coach"):"Coach";
   if(chatRole==="coach") startCoachDash();
+  updateSectionBChatButton();
 }
 function closeCoachModal(){ el("coach-modal").classList.remove("open"); }
 function confirmCoachLogin(){
@@ -1141,6 +1196,41 @@ function coachLogout(){
   stopCoachDash();
 }
 function refreshChatEverywhere(){ try{ attachLobbyChat(); }catch(e){} }
+
+function updateSectionBChatButton(){
+  const btn=el("btn-section-b-chat");
+  if(!btn) return;
+  if(sectionBChatEnabled){
+    btn.textContent="Disable Section B chat";
+    btn.className="btn-danger w-full";
+  } else {
+    btn.textContent="Enable Section B chat";
+    btn.className="btn-soft w-full";
+  }
+}
+async function toggleSectionBChat(){
+  if(chatRole!=="coach"){ toast("Sign in as coach first"); return; }
+  const next=!sectionBChatEnabled;
+  try{
+    await db.collection("bcn_meta").doc("chat").set({sectionBEnabled:next,updated:Date.now()},{merge:true});
+    sectionBChatEnabled=next;
+    updateSectionBChatButton();
+    toast(next?"Section B can now chat":"Section B chat locked again");
+  }catch(e){
+    toast("Could not update chat access — check network");
+  }
+}
+function startSectionBChatListener(){
+  db.collection("bcn_meta").doc("chat").onSnapshot(d=>{
+    if(d.exists){
+      const x=d.data()||{};
+      sectionBChatEnabled=!!x.sectionBEnabled;
+    } else {
+      sectionBChatEnabled=false;
+    }
+    updateSectionBChatButton();
+  },()=>{});
+}
 
 async function sendCoachBroadcast(){
   if(chatRole!=="coach"){ toast("Sign in as coach first"); return; }
@@ -1303,48 +1393,95 @@ function currentRoundFromClock(now){
   return r;
 }
 
-/* ============ 183-SCHOOL SIM ============ */
-const TOP_SCHOOLS=["Jareb Private School","Chess In Slums Academy","Indian Language School","Skylink International School"];
-const NAMED_SCHOOLS=["Grange School","Lekki British School","Corona Private School","Green Springs School","Atlantic Hall","British International School","Greensprings Ikoyi","Chrisland College","Dowen College","Whitesands School","Lagos Preparatory School","St. Saviour's School","Air Force Secondary School","Command Secondary School","Federal Government College","King's College Lagos","Queen's College Lagos","Loyola Jesuit College","Regent Secondary School","Children's International School","Rainbow College","Meadow Hall","Avi-Cenna International","Hillcrest School","Babcock University High","Caleb British International","Halifield Schools","Topfield College","Preston International","Deeper Life High School","Fountain Heights","Starfield College","Nova International","Bridge House College","Vivian Fowler Memorial","Igbinedion Education Centre"];
+/* ============ FIELD SIM (from Vetrinox Capital Brainchess starting list) ============ */
+const TOP_SCHOOLS=["Indian Language School","Chess in Slums Africa","Oren School","Platform School"];
+const NAMED_SCHOOLS=[
+  "Grange Primary School","St. Saviour's School Ikoyi","St Saviour School, Ebute Metta","British International Junior School",
+  "Children International School","Temple School","Halcyon International School","Hillsprings International Schools",
+  "The Lagoon School","New Hall International School","Greenwood House School","Juniper Hill School",
+  "Crown Gate School","Grace Children School","Home Science Association Abule Egba","Impetus Dominion Academy",
+  "Doyens School","Diagold Schools","Divine Offspring International Schools","First Baptist Group of Schools",
+  "Berkley Science Magnet School","Bethany Hall","Canterbury International School","Child of Promise School",
+  "Dayspring Schools","Deaton Ville School, Lekki","Flourish Court School, Lekki","Fort Wort Elite School",
+  "Gem Private School","Great Omega International School","Karis School","Kingstep International School",
+  "Lara Day School","Lightcliffe Schools","Lindaves International School","Love World Schools, Ikeja",
+  "Maymaxwell School Okota","New Bloom School","Oakville Children School","Parach Schools",
+  "Penielfield Private Schools","Precious Life Nur & Pry School","Prime Solid Schools","Pure Beryl Ville Schools (Team A)",
+  "Rare Gems Creative Art School","Redeemer Rising Star School","Role Model School","SageWorld Montessori School",
+  "Startright International School","Sunnyfields Primary School","The Foreshore Schools","The Riverbank School",
+  "Treasure Star International, School","Whiteberyl School","Woodbell School","Abifid School",
+  "Agape Bundles Montessori Schools","Al-Azeemah Schools","Applesbury School","Baynes Montessori School"
+];
 const PRE=["Royal","Bright","Golden","Unity","Victory","Excel","Pinnacle","Heritage","Summit","Crown","Prime","Great","Divine","Fountain","Crescent","Crystal","Horizon","Legacy","Noble","Zenith","Star","Pace","Grace","Wisdom"];
 const SUF=["International School","Academy","College","Grammar School","High School","Model College","Comprehensive School","Secondary School","British School","Group of Schools"];
 let fieldSnapshots=[];
 
 function buildField(){
   const rng=mulberry32(20260516);const l=[];
-  TOP_SCHOOLS.forEach((n,i)=>l.push({name:n,s:0.97-i*0.008,tie:rng()}));
-  NAMED_SCHOOLS.forEach((n,i)=>l.push({name:n,s:0.90-(i/NAMED_SCHOOLS.length)*0.72,tie:rng()}));
+  /* Elite four — clearly stronger than the rest so they rise and stay near the top */
+  const eliteS=[0.99,0.97,0.955,0.94];
+  TOP_SCHOOLS.forEach((n,i)=>l.push({name:n,s:eliteS[i],tie:rng(),elite:true}));
+  /* Named mid-tier schools — solid but below the elite */
+  NAMED_SCHOOLS.forEach((n,i)=>l.push({name:n,s:0.72-(i/NAMED_SCHOOLS.length)*0.38,tie:rng(),elite:false}));
   let idx=0;
   while(l.length<TOTAL_SCHOOLS-1){
     const name=PRE[idx%PRE.length]+" "+SUF[Math.floor(idx/PRE.length)%SUF.length];idx++;
     if(l.some(x=>x.name===name))continue;
-    l.push({name,s:0.10+rng()*0.60,tie:rng()});
+    /* Filler schools stay weaker so they rarely post 5–0 wins */
+    l.push({name,s:0.08+rng()*0.42,tie:rng(),elite:false});
   }
   return l;
 }
 function simulateField(){
+  /* Swiss-team sim (5 boards). Elite four (Indian Language, Chess in Slums,
+     Oren, Platform) win most matches and score high GP so they occupy the
+     top of the table — those are the teams MCPS must beat to climb. */
   const rng=mulberry32(777);
-  const list=buildField().map(x=>({name:x.name,s:x.s,tie:x.tie,mp:0,gp:0,opp:[]}));
+  const list=buildField().map(x=>({name:x.name,s:x.s,tie:x.tie,elite:!!x.elite,mp:0,gp:0,opp:[]}));
   fieldSnapshots=[list.map(x=>({name:x.name,mp:0,gp:0}))];
+  const BOARDS = TOTAL_BOARDS;
   for(let r=1;r<=TOTAL_ROUNDS;r++){
     const order=list.slice().sort((a,b)=>(b.mp-a.mp)||(b.gp-a.gp)||(a.tie-b.tie));
     const used=new Array(order.length).fill(false);
     for(let i=0;i<order.length;i++){
-      if(used[i])continue;
+      if(used[i]) continue;
       let j=i+1;
-      while(j<order.length&&(used[j]||order[i].opp.indexOf(order[j].name)>=0))j++;
-      if(j>=order.length){used[i]=true;order[i].mp+=2;order[i].gp+=5;continue;}
+      while(j<order.length && (used[j] || order[i].opp.indexOf(order[j].name)>=0)) j++;
+      if(j>=order.length){
+        used[i]=true;
+        order[i].mp+=2;
+        order[i].gp+=BOARDS;
+        continue;
+      }
       used[i]=used[j]=true;
-      const A=order[i],B=order[j];
-      A.opp.push(B.name);B.opp.push(A.name);
-      const pA=1/(1+Math.pow(10,(B.s-A.s)*5));
-      const roll=rng();
-      if(rng()<0.06){A.mp+=1;B.mp+=1;A.gp+=3.5;B.gp+=3.5;}
-      else{
-        const strong=(roll<pA)?A:B;
-        const weak=(strong===A)?B:A;
-        const g=Math.min(7,Math.round((4+rng()*3)*2)/2);
-        strong.mp+=2;strong.gp+=g;weak.gp+=(7-g);
+      const A=order[i], B=order[j];
+      A.opp.push(B.name); B.opp.push(A.name);
+
+      const pA=1/(1+Math.pow(10,(B.s-A.s)*5.5));
+      const drawChance=0.05 + 0.05*(1-Math.abs(A.s-B.s));
+
+      if(rng()<drawChance){
+        const gpA=Math.max(1.5, Math.min(BOARDS-1.5, Math.round((BOARDS/2+(rng()-0.5)*0.8)*2)/2));
+        A.mp+=1; B.mp+=1;
+        A.gp+=gpA; B.gp+=(BOARDS-gpA);
+      } else {
+        const A_wins = rng() < pA;
+        const winner = A_wins ? A : B;
+        const loser  = A_wins ? B : A;
+        let wGP;
+        if(winner.elite){
+          /* Elite almost always crush weaker sides: 4.0–5.0 */
+          wGP = (rng()<0.55) ? 5.0 : (rng()<0.7 ? 4.5 : 4.0);
+          if(loser.elite) wGP = (rng()<0.45) ? 3.5 : (rng()<0.6 ? 3.0 : 4.0); /* elite vs elite closer */
+        } else if(winner.s > 0.55){
+          wGP = 3.0 + Math.floor(rng()*3)*0.5; /* 3.0–4.0 */
+        } else {
+          /* Weaker winners rarely sweep — caps random 5–0 noise in top 10 */
+          wGP = 2.5 + Math.floor(rng()*3)*0.5; /* 2.5–3.5 */
+        }
+        wGP = Math.max(2.5, Math.min(BOARDS, wGP));
+        winner.mp+=2; winner.gp+=wGP;
+        loser.gp +=(BOARDS - wGP);
       }
     }
     fieldSnapshots.push(list.map(x=>({name:x.name,mp:x.mp,gp:x.gp})));
@@ -1355,13 +1492,6 @@ function standingsFor(round){
   const rows=snap.map(x=>({name:x.name,mp:x.mp,gp:x.gp}));
   rows.push({name:"Maryland Convent Private School",mp:teamMatchPoints,gp:teamGamePoints,you:true});
   rows.sort((a,b)=>(b.mp-a.mp)||(b.gp-a.gp)||a.name.localeCompare(b.name));
-  if(round>=TOTAL_ROUNDS){
-    const idx=rows.findIndex(x=>x.you);
-    if(idx>=0 && idx!==4){
-      const mcps=rows.splice(idx,1)[0];
-      rows.splice(4,0,mcps);
-    }
-  }
   return rows;
 }
 function simBoardResult(round,boardNo,oppStrength){
@@ -1435,13 +1565,13 @@ async function aggregateFromRounds(){
       if(typeof v === "number"){ gp += v; perBoard[p.id] += v; }
       return {board:p.board,id:p.id,name:p.name,res:(typeof v==="number"?v:null)};
     });
-    const mp = gp>4?2:(gp===4?1:0);
+    const mp = gp>2.5?2:(gp===2.5?1:0);
     totalGP += gp; totalMP += mp;
     roundsOut.push({
       round:r,
       oppSchool: doc.oppSchool || "—",
       myGP: gp,
-      oppGP: 8-gp,
+      oppGP: TOTAL_BOARDS-gp,
       mp: mp,
       result: mp===2?"Win":(mp===1?"Draw":"Loss"),
       boardResults: boardResults
@@ -2003,6 +2133,13 @@ function showPlayerLogin(){
   hideAll(); el("screen-login").classList.remove("hidden");
   const b=el("rep-list"); b.innerHTML="";
   const r=currentRoundFromClock(Date.now());
+
+  /* Main team header */
+  const hMain=document.createElement("div");
+  hMain.className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2 mt-1";
+  hMain.textContent="Main Team · Championship Boards";
+  b.appendChild(hMain);
+
   ROSTER.forEach(p=>{
     const x=document.createElement("button");
     x.type="button"; x.className="rep-btn";
@@ -2015,11 +2152,46 @@ function showPlayerLogin(){
     };
     b.appendChild(x);
   });
+
+  /* Section B – positive framing so no one feels left out */
+  const hB=document.createElement("div");
+  hB.className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1 mt-4";
+  hB.textContent="Section B · Rising Stars";
+  b.appendChild(hB);
+  const noteB=document.createElement("div");
+  noteB.className="text-[11px] text-slate-400 mb-2 leading-snug";
+  noteB.innerHTML="You are still part of the <strong class='text-emerald-300'>MCPS family</strong>. Practice hard, support the main boards, and grow with the team. Your games count for pride and progress.";
+  b.appendChild(noteB);
+
+  SECTION_B.forEach(p=>{
+    const x=document.createElement("button");
+    x.type="button"; x.className="rep-btn";
+    const col=colorForBoard(r,p.board);
+    x.innerHTML=`<span class="text-emerald-400 font-black">B${p.board}</span> · ${esc(p.name)} <span class="text-[10px] text-slate-500">(${col==="w"?"White":"Black"})</span>`;
+    x.onclick=()=>{
+      document.querySelectorAll(".rep-btn").forEach(y=>y.classList.remove("selected"));
+      x.classList.add("selected");
+      me=p;
+    };
+    b.appendChild(x);
+  });
 }
 function doPlayerLogin(){
   if(!me) return toast("Select your board");
-  if(el("login-pass").value!==TEAM_PASS) return toast("Wrong team password");
+  const pass=(el("login-pass").value||"").trim();
+  if(me.section==="main"){
+    const expected=BOARD_PASS[me.id];
+    if(!expected || pass!==expected) return toast("Wrong password for Board "+me.board);
+  } else {
+    /* Section B shares the team password */
+    if(pass!==TEAM_PASS) return toast("Wrong team password");
+  }
   chatRole="player"; chatName=me.name;
+  if(me.section==="B"){
+    toast("Welcome, Rising Star! You're training with the squad — keep improving.");
+  } else {
+    toast("Board "+me.board+" · "+me.name+" — good luck!");
+  }
   enterRound(currentRoundFromClock(Date.now()));
 }
 
@@ -2032,9 +2204,12 @@ async function enterRound(round){
       const snap = await db.collection("bcn_live").where("round", "==", round - 1).get();
       let activeGames = 0;
       const now = Date.now();
+      const mainIds = new Set(ROSTER.map(p=>p.id));
       snap.forEach(d => {
         const g = d.data();
         if (!g || g.status !== "live") return;
+        /* Only main-team boards can block the next championship round */
+        if (!mainIds.has(d.id) && !mainIds.has(g.playerId)) return;
         
         // Calculate real-time clock to see if they actually flagged
         let ut = g.userTime != null ? g.userTime : BASE;
@@ -2507,8 +2682,8 @@ async function commitPendingRound(){
     return {board:p.board,id:p.id,name:p.name,res:res};
   });
 
-  const mp=gp>4?2:(gp===4?1:0);
-  const oppGP=8-gp;
+  const mp=gp>2.5?2:(gp===2.5?1:0);
+  const oppGP=TOTAL_BOARDS-gp;
   const resultLabel=mp===2?"Win":(mp===1?"Draw":"Loss");
   
   const entry = {
@@ -2543,17 +2718,19 @@ function endRound(points,reason){
   pushCloudFinal(points,reason);
   saveGameToCloud(points===1?"Win":(points===0.5?"Draw":"Loss"));
 
-  try{
-    const ref=db.collection("bcn_rounds").doc("r"+currentRound);
-    const upd={};
-    upd["round"]=currentRound;
-    upd["oppSchool"]=plan.school||"—";
-    upd["updated"]=Date.now();
-    upd["boards.p"+me.board]=points;
-    ref.set(upd,{merge:true}).catch(()=>{});
-  }catch(e){}
-
-  shiftScheduleForBreak();
+  /* Only main-team boards write into the official team round document */
+  if(!me.section || me.section==="main"){
+    try{
+      const ref=db.collection("bcn_rounds").doc("r"+currentRound);
+      const upd={};
+      upd["round"]=currentRound;
+      upd["oppSchool"]=plan.school||"—";
+      upd["updated"]=Date.now();
+      upd["boards.p"+me.board]=points;
+      ref.set(upd,{merge:true}).catch(()=>{});
+    }catch(e){}
+    shiftScheduleForBreak();
+  }
 
   try{
     const rw = el("result-stats");
@@ -2675,8 +2852,8 @@ async function downloadAllPgns(){
   finalGames.forEach((g,i)=>{
     let header = "";
     if(!g.pgn.includes('[Event ')){
-      header += '[Event "Brain Chess National School Championship 2026"]\n';
-      header += '[Site "Maryland Convent Private School"]\n';
+      header += '[Event "Vetrinox Capital Brainchess Schools Chess Championship 2026"]\n';
+      header += '[Site "Lagos · Maryland Convent Private School"]\n';
       header += '[Round "'+g.round+'"]\n';
       header += '[Board "'+g.board+'"]\n';
       header += '[White "'+(g.result==="Win"||g.result===1 ? g.player : g.opponent)+'"]\n';
@@ -2807,10 +2984,29 @@ function renderStandings(roundOverride){
   }
 
   const schoolWrap=el("school-standings-wrap");
-  if(schoolWrap) schoolWrap.classList.add("hidden");
-  const tb=el("team-body"); if(tb) tb.innerHTML="";
-  el("mcps-rank-line").textContent="MCPS team report";
+  if(schoolWrap) schoolWrap.classList.remove("hidden");
+  const ranked = standingsFor(played);
+  const mcpsRank = ranked.findIndex(x=>x.you)+1;
+  el("mcps-rank-line").textContent = played>0 ? ("MCPS · Rank #"+mcpsRank+" of "+ranked.length) : "MCPS team report";
   el("mcps-pts-line").textContent="Match pts "+teamMatchPoints.toFixed(0)+" · Game pts "+teamGamePoints.toFixed(1);
+
+  const tb=el("team-body");
+  if(tb){
+    const top10 = ranked.slice(0,10);
+    /* Always include MCPS if outside top 10 so the team can see their place */
+    const mcpsRow = ranked.find(x=>x.you);
+    if(mcpsRow && !top10.some(x=>x.you)) top10.push(mcpsRow);
+    tb.innerHTML = top10.map((row,i)=>{
+      const isYou = !!row.you;
+      const rankNum = ranked.findIndex(x=>x.name===row.name)+1;
+      const rankCls = rankNum===1?"rank-1":(rankNum===2?"rank-2":(rankNum===3?"rank-3":""));
+      return `<tr style="${isYou?"background:rgba(52,211,153,.15);border-left:3px solid #34d399":""}">`+
+        `<td class="${rankCls} font-black">${rankNum}</td>`+
+        `<td class="font-bold ${isYou?"text-emerald-300":"text-white"}">${esc(row.name)}${isYou?" · YOU":""}</td>`+
+        `<td class="font-black">${row.mp}</td>`+
+        `<td>${Number(row.gp).toFixed(1)}</td></tr>`;
+    }).join("");
+  }
 
   el("ind-body").innerHTML=ROSTER.map(p=>{
     const sc=(individualScores[p.id]||0);
@@ -2886,13 +3082,17 @@ function enterSpectator(){
 }
 function renderMulti(rows){
   const box=el("multi-boards"); if(!box) return;
-  const byB={}; rows.forEach(r=>{ if(r.board) byB[r.board]=r; });
+  const byId={}; rows.forEach(r=>{ if(r.id||r.playerId) byId[r.id||r.playerId]=r; });
   const liveRound=currentRoundFromClock(Date.now());
-  ROSTER.forEach(p=>{
+
+  function renderPlayerCard(p, isSectionB){
     let card=el("mini-card-"+p.id);
     if(!card){
       card=document.createElement("div"); card.id="mini-card-"+p.id; card.className="panel p-2";
-      card.innerHTML=`<button type="button" class="w-full text-left" onclick="openSpecBoard('${p.id}')"><div class="flex items-center justify-between mb-1 px-1"><span class="text-[10px] font-black uppercase text-amber-400">Bd ${p.board} · ${esc(p.name)}</span><span class="text-[10px]" id="mini-st-${p.id}">—</span></div><div class="px-1 mb-1"><span id="mini-col-${p.id}" class="mini-col-badge mini-col-white">⬜ White</span></div><div id="mini-board-${p.id}" class="mini-board" style="width:100%;pointer-events:none"></div><div class="text-[11px] text-slate-400 mt-1 px-1 truncate" id="mini-opp-${p.id}">Waiting…</div><div class="text-[10px] text-slate-500 px-1" id="mini-clk-${p.id}"></div></button>`;
+      const label = isSectionB
+        ? `<span class="text-[10px] font-black uppercase text-emerald-400">B${p.board} · ${esc(p.name)}</span>`
+        : `<span class="text-[10px] font-black uppercase text-amber-400">Bd ${p.board} · ${esc(p.name)}</span>`;
+      card.innerHTML=`<button type="button" class="w-full text-left" onclick="openSpecBoard('${p.id}')"><div class="flex items-center justify-between mb-1 px-1">${label}<span class="text-[10px]" id="mini-st-${p.id}">—</span></div><div class="px-1 mb-1"><span id="mini-col-${p.id}" class="mini-col-badge mini-col-white">⬜ White</span></div><div id="mini-board-${p.id}" class="mini-board" style="width:100%;pointer-events:none"></div><div class="text-[11px] text-slate-400 mt-1 px-1 truncate" id="mini-opp-${p.id}">Waiting…</div><div class="text-[10px] text-slate-500 px-1" id="mini-clk-${p.id}"></div></button>`;
       box.appendChild(card);
     }
     if(!miniBoards[p.id] && !miniPending[p.id]){
@@ -2904,7 +3104,7 @@ function renderMulti(rows){
         },60);
       })(p.id);
     }
-    const g=byB[p.board];
+    const g=byId[p.id];
     const fen=(g&&g.fen)?g.fen:"start";
     miniDesiredFen[p.id]=fen;
     if(miniBoards[p.id]){ try{miniBoards[p.id].position(fen,false);}catch(e){} }
@@ -2932,7 +3132,19 @@ function renderMulti(rows){
       if(opp) opp.textContent="vs "+oppName+" · "+(plan.school||"—");
       if(clk) clk.textContent="R"+ci.round+" · not logged in · "+fmt(ci.ut)+" left";
     }
-  });
+  }
+
+  ROSTER.forEach(p=>renderPlayerCard(p,false));
+
+  /* Section B cards – still visible so they feel part of the team */
+  if(!el("section-b-header")){
+    const hdr=document.createElement("div");
+    hdr.id="section-b-header";
+    hdr.className="col-span-full text-[10px] font-black uppercase tracking-widest text-emerald-400 mt-2 mb-1 px-1";
+    hdr.textContent="Section B · Rising Stars (still on the team)";
+    box.appendChild(hdr);
+  }
+  SECTION_B.forEach(p=>renderPlayerCard(p,true));
 }
 function specHubBack(){
   if(me&&gameLive){ hideAll(); el("screen-play").classList.remove("hidden"); return; }
@@ -2949,14 +3161,15 @@ function openSpecBoard(id){
   attachLobbyChat();
   setTimeout(()=>{
     specUnsub=db.collection("bcn_live").doc(id).onSnapshot(doc=>{
-      const re=ROSTER.find(r=>r.id===id)||{};
+      const re=ROSTER.find(r=>r.id===id)||SECTION_B.find(r=>r.id===id)||{};
       const liveR=currentRoundFromClock(Date.now());
       const plan=ROUND_PLAN[Math.max(0,liveR-1)]||{};
       if(!doc.exists){
         const ci=boardClockInfo(null);
         const uc=colorForBoard(ci.round,re.board||1);
         const oppName=oppPlayerFor(ci.round,re.board||1);
-        el("spec-one-label").textContent="Board "+(re.board||"—");
+        const boardLabel = re.section==="B" ? ("Section B"+re.board) : ("Board "+(re.board||"—"));
+        el("spec-one-label").textContent=boardLabel;
         el("spec-opp-name").textContent=oppName;
         el("spec-opp-school").textContent=plan.school||"—";
         el("spec-me-name").textContent=re.name||"—";
@@ -2968,7 +3181,8 @@ function openSpecBoard(id){
         return;
       }
       const g=doc.data();
-      el("spec-one-label").textContent="Board "+(g.board||"—");
+      const boardLabel = (re.section==="B") ? ("Section B"+ (g.board||re.board||"—")) : ("Board "+(g.board||"—"));
+      el("spec-one-label").textContent=boardLabel;
       el("spec-opp-name").textContent=g.oppName||"—";
       el("spec-opp-school").textContent=g.oppSchool||"—";
       el("spec-me-name").textContent=g.playerName||"—";
@@ -3107,7 +3321,19 @@ async function doSendChat(input){
     }
     toast("Wrong coach password"); return;
   }
+
+  /* Chat access: coach + main 5 always; Section B only when coach unlocks; spectators never */
   if(chatRole!=="coach"){
+    const isMain = me && me.section==="main";
+    const isSectionB = me && me.section==="B";
+    if(isSectionB && !sectionBChatEnabled){
+      toast("You have not met the required points to unlock chat yet. Keep playing and improving!");
+      return;
+    }
+    if(!isMain && !isSectionB){
+      toast("You have not met the required points to allow you to chat.");
+      return;
+    }
     try{
       const who=chatName||"Visitor";
       const snap=await db.collection("bcn_chat").where("name","==",who).limit(20).get();
@@ -3201,6 +3427,7 @@ loadAllTimeMedals();
 renderAllTimeMedals();
 startBroadcastListener();
 startOfflineFlusher();
+startSectionBChatListener();
 try{ const st=el("sound-toggle"); if(st){ st.textContent = soundOn ? "🔊" : "🔇"; st.classList.toggle("off", !soundOn); } }catch(e){}
 setInterval(updateScheduleBanner,1000);
 showWelcome();
