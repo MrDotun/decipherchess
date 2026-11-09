@@ -236,7 +236,7 @@ td{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
       <div id="all-time-medals-body" class="text-sm text-slate-600">
         <div class="all-time-medal-row">
           <span class="all-time-name">Chierika Onele</span>
-          <span class="all-time-score gold">🥇 Gold + 🥈 Silver + 🥉 Bronze</span>
+          <span class="all-time-score gold">🥇 Gold + 🥈 Silver + 🥉🥉 Bronze×2</span>
         </div>
         <div class="all-time-medal-row">
           <span class="all-time-name">Semilore Beckley</span>
@@ -741,7 +741,7 @@ const ROUND_PLAN=[
             "Ifeoma Obi","Ayodeji Oladipo","Kanyinsola Ojo","Ndubuisi Eze",
             "Amaka Obi","Gbenga Adeleke","Chinaza Uche","Oluwafunmilayo Adeyemi",
             "Olumide Adekunle","Oluwadamilare Ogunbiyi","Akintunde Oyedeji","Nneka Nwosu"],
-   strength:0.55, elo:1200, depth:3, time:200},
+   strength:0.62, elo:1600, depth:3, time:450},
 
   {school:"St. Saviour's School Ikoyi",
    players:["Adewale Ogundipe","Somtochukwu Uche","Ikechukwu Onyeka","Chinelo Obi",
@@ -750,7 +750,7 @@ const ROUND_PLAN=[
             "Akinwale Adegoke","Ezinne Obiora","Oluwatobi Sanni","Chisom Anya",
             "Wale Oladimeji","Kenechukwu Ezeani","Amarachi Ogbonna","Nkechi Umeh",
             "Olumuyiwa Akinyele","Ayotunde Salami","Adebola Osunlana","Chinwe Okwu"],
-   strength:0.62, elo:1400, depth:3, time:250},
+   strength:0.68, elo:1700, depth:3, time:550},
 
   {school:"Temple School",
    players:["Ayomide Ogundiran","Chukwuemeka Ogbonna","Oluwafemi Adegbite","Temitope Alabi",
@@ -759,7 +759,7 @@ const ROUND_PLAN=[
             "Chinedu Okoro","Amara Nwosu","Tunde Balogun","Zainab Yusuf",
             "Anwuli Okoye","Chukwuma Okafor","Nkem Eze","Adaobi Nwosu",
             "Olamiposi Adeniyi","Kolawole Adegbenro","Titilayo Ajibade","Ifeanyi Ezeh"],
-   strength:0.68, elo:1500, depth:3, time:300},
+   strength:0.74, elo:1800, depth:4, time:650},
 
   {school:"Platform School",
    players:["Olalekan Emmanuel","Fobes Nwenri","Olamilekan Oladokun","Michael Ologun",
@@ -768,7 +768,7 @@ const ROUND_PLAN=[
             "Aisha Mohammed","Emmanuel Chukwu","Precious Eze","Victor Okafor",
             "Faith Okeke","Daniel Obi","Joy Nnamdi","Peter Okoro",
             "Blessing Uche","Collins Eze","Maryam Hassan","Tobi Adebayo"],
-   strength:0.72, elo:1450, depth:4, time:320},
+   strength:0.80, elo:1900, depth:4, time:750},
 
   {school:"Oren School",
    players:["Joshua Itoadon","Elijah Dazi","Prince David Ude","Christian Olayemi",
@@ -777,7 +777,7 @@ const ROUND_PLAN=[
             "Fatima Mohammed","Ibrahim Chukwu","Grace Okafor","David Eze",
             "Aisha Okoro","Emmanuel Nnamdi","Precious Hassan","Victor Bello",
             "Faith Adeyemi","Daniel Okeke","Joy Mohammed","Peter Chukwu"],
-   strength:0.75, elo:1500, depth:4, time:350},
+   strength:0.85, elo:2000, depth:4, time:850},
 
   {school:"Chess in Slums Africa",
    players:["Edewhen Edwin Mawuzonsu","Avlessi Thankgod Jeremiah","Ehuntin Augustine Godday","Edewhen Jonas Bobo",
@@ -786,7 +786,7 @@ const ROUND_PLAN=[
             "Amarachi Eze","Onyinyechi Eze","Tayo Ogunmefun","Ogechi Nwankwo",
             "Femi Adeosun","Chinelo Uzoma","Kunle Balogun","Adanna Okoli",
             "Wale Okeowo","Chinedu Anya","Ifedayo Salami","Onyeka Nnamdi"],
-   strength:0.80, elo:1600, depth:4, time:400},
+   strength:0.90, elo:2100, depth:5, time:950},
 
   {school:"Indian Language School",
    players:["Mokshith Davuluru","Thoshan Raj V J","Devansh Parikh","Bhakti Jaydeep Trivdi",
@@ -795,7 +795,7 @@ const ROUND_PLAN=[
             "Sneha Kapoor","Rahul Verma","Divya Krishnan","Karan Malhotra",
             "Neha Desai","Siddharth Rao","Pooja Joshi","Aryan Gupta",
             "Meera Subramanian","Varun Chatterjee","Riya Banerjee","Naveen Kumar"],
-   strength:0.88, elo:1700, depth:5, time:500}
+   strength:0.95, elo:2200, depth:5, time:1100}
 ];
 
 function oppPlayerFor(round, board){
@@ -1311,7 +1311,7 @@ function loadAllTimeMedals(){
     } else {
       // Seed with known all-time medalists (display is also hardcoded on welcome for clarity)
       allTimeMedals = {
-        "Chierika Onele": { score: 7, rounds: 7, medal: "Gold" },
+        "Chierika Onele": { score: 7, rounds: 7, medal: "Gold", detail: "1 Gold, 1 Silver, 2 Bronze" },
         "Semilore Beckley": { score: 6, rounds: 7, medal: "Silver" },
         "Oluwaseun Ajayi": { score: 5, rounds: 7, medal: "Bronze" },
         "Chukwuemeka Obi": { score: 5, rounds: 7, medal: "Bronze" }
@@ -1335,7 +1335,7 @@ function renderAllTimeMedals(){
   if(!elx) return;
   // ONLY these four names – never show reversed-name duplicates
   const preferred = [
-    { name: "Chierika Onele",   label: "🥇 Gold + 🥉 Bronze", cls: "gold" },
+    { name: "Chierika Onele",   label: "🥇 Gold + 🥈 Silver + 🥉🥉 Bronze×2", cls: "gold" },
     { name: "Semilore Beckley", label: "🥈 Silver + 🥉 Bronze", cls: "silver" },
     { name: "Oluwaseun Ajayi",  label: "🥉 Bronze", cls: "bronze" },
     { name: "Chukwuemeka Obi",  label: "🥉 Bronze", cls: "bronze" }
@@ -1510,7 +1510,54 @@ async function aggregateFromRounds(){
   let totalGP=0, totalMP=0;
   const roundsOut=[];
   const roundsData = {};
+  /* Source priority (high → low): bcn_live done → bcn_rounds → tournament_games
+     Older bug: tournament_games was applied first and blocked correct Win (1)
+     values in bcn_rounds, so a later Draw string could freeze a board at 0.5. */
 
+  function ensureRound(r, school){
+    if(!roundsData[r]) roundsData[r] = { boards:{}, oppSchool: school||"—", src:{} };
+    if(school && school!=="—") roundsData[r].oppSchool = school;
+    return roundsData[r];
+  }
+  function setBoard(r, boardKey, val, srcRank, school){
+    if(typeof val !== "number") return;
+    const entry = ensureRound(r, school);
+    const prev = entry.src[boardKey];
+    if(prev != null && prev > srcRank) return; /* keep higher-priority source */
+    entry.boards[boardKey] = val;
+    entry.src[boardKey] = srcRank;
+  }
+
+  /* 1) Live finished boards — most reliable per player session */
+  try{
+    const snap = await db.collection("bcn_live").get();
+    snap.forEach(d=>{
+      const g = d.data() || {};
+      if(g.status !== "done" || typeof g.result !== "number") return;
+      const r = g.round; if(!r) return;
+      let bd = null;
+      if(g.playerId && /^p[1-5]$/.test(g.playerId)) bd = parseInt(g.playerId.slice(1));
+      else if(g.board) bd = parseInt(g.board);
+      if(!bd || bd < 1 || bd > TOTAL_BOARDS) return;
+      setBoard(r, "p"+bd, g.result, 3, g.oppSchool||g.school);
+    });
+  }catch(e){ console.warn("bcn_live read failed", e && e.message); }
+
+  /* 2) Official round docs written at commit */
+  try{
+    const snap = await db.collection("bcn_rounds").get();
+    snap.forEach(d=>{
+      const r = d.data() || {};
+      if(!r.round) return;
+      const b = r.boards || {};
+      Object.keys(b).forEach(k=>{
+        if(typeof b[k] === "number") setBoard(r.round, k, b[k], 2, r.oppSchool);
+      });
+      if(r.oppSchool) ensureRound(r.round, r.oppSchool);
+    });
+  }catch(e){ console.warn("bcn_rounds read failed", e && e.message); }
+
+  /* 3) tournament_games archive — fill gaps only */
   try{
     const snap = await db.collection("tournament_games").get();
     const latest = {};
@@ -1518,9 +1565,9 @@ async function aggregateFromRounds(){
       const g = d.data() || {};
       const r = g.round;
       let bd = null;
-      if(g.playerId && /^p[1-8]$/.test(g.playerId)) bd = parseInt(g.playerId.slice(1));
+      if(g.playerId && /^p[1-5]$/.test(g.playerId)) bd = parseInt(g.playerId.slice(1));
       else if(g.board) bd = parseInt(g.board);
-      if(!r || !bd) return;
+      if(!r || !bd || bd < 1 || bd > TOTAL_BOARDS) return;
       let v = g.result;
       if(typeof v === "string"){
         v = v === "Win" ? 1 : (v === "Draw" ? 0.5 : (v === "Loss" ? 0 : null));
@@ -1534,27 +1581,9 @@ async function aggregateFromRounds(){
     });
     Object.keys(latest).forEach(k=>{
       const x = latest[k];
-      const entry = roundsData[x.round] || { boards:{}, oppSchool:x.school };
-      entry.boards["p"+x.board] = x.result;
-      if(x.school) entry.oppSchool = x.school;
-      roundsData[x.round] = entry;
+      setBoard(x.round, "p"+x.board, x.result, 1, x.school);
     });
   }catch(e){ console.warn("tournament_games read failed", e && e.message); }
-
-  try{
-    const snap = await db.collection("bcn_rounds").get();
-    snap.forEach(d=>{
-      const r = d.data() || {};
-      if(!r.round) return;
-      const entry = roundsData[r.round] || { boards:{}, oppSchool:r.oppSchool||"—" };
-      const b = r.boards || {};
-      Object.keys(b).forEach(k=>{
-        if(typeof b[k] === "number" && entry.boards[k] === undefined) entry.boards[k] = b[k];
-      });
-      if(r.oppSchool) entry.oppSchool = r.oppSchool;
-      roundsData[r.round] = entry;
-    });
-  }catch(e){ console.warn("bcn_rounds read failed", e && e.message); }
 
   for(let r=1;r<=TOTAL_ROUNDS;r++){
     const doc = roundsData[r]; if(!doc) continue;
@@ -1585,14 +1614,38 @@ async function refreshScoresFromCloud(){
   const maxAllowed = Math.max(currentRoundFromClock(Date.now()), roundsCompleted, 1);
   if(agg.rounds.length){
     const existing={};
-    // keep only legitimate local results
     roundResults.forEach(r=>{ if(r.round <= maxAllowed) existing[r.round]=r; });
     agg.rounds.forEach(r=>{
-      if(r.round <= maxAllowed) existing[r.round]=r;
+      if(r.round > maxAllowed) return;
+      const local = existing[r.round];
+      if(!local){ existing[r.round]=r; return; }
+      /* Merge board-by-board: prefer known numeric results; never wipe a Win with a missing/stale Draw */
+      const mergedBoards = ROSTER.map(p=>{
+        const loc = (local.boardResults||[]).find(b=>b.id===p.id);
+        const clo = (r.boardResults||[]).find(b=>b.id===p.id);
+        const lv = loc && typeof loc.res==="number" ? loc.res : null;
+        const cv = clo && typeof clo.res==="number" ? clo.res : null;
+        let res = null;
+        if(lv!=null && cv!=null) res = cv; /* cloud after priority fix is authoritative */
+        else if(cv!=null) res = cv;
+        else if(lv!=null) res = lv;
+        return {board:p.board,id:p.id,name:p.name,res:res};
+      });
+      let gp=0;
+      mergedBoards.forEach(b=>{ if(typeof b.res==="number") gp+=b.res; });
+      const mp=gp>2.5?2:(gp===2.5?1:0);
+      existing[r.round]={
+        round:r.round,
+        oppSchool:r.oppSchool||local.oppSchool||"—",
+        myGP:gp,
+        oppGP:TOTAL_BOARDS-gp,
+        mp:mp,
+        result:mp===2?"Win":(mp===1?"Draw":"Loss"),
+        boardResults:mergedBoards
+      };
     });
     roundResults=Object.keys(existing).map(k=>existing[k]).sort((a,b)=>a.round-b.round);
   } else {
-    // Cloud is empty after reset – clear local history too
     roundResults = roundResults.filter(r => r.round <= maxAllowed);
   }
   recalculateAllTeamScores();
@@ -2547,14 +2600,16 @@ function requestAIMove(){
   if(!game||game.game_over()||game.turn()===userColor||aiThinking) return;
   aiThinking=true;
   el("status").textContent="Opponent is thinking…";
-  const plan=ROUND_PLAN[currentRound-1]||{depth:3,time:200};
+  const plan=ROUND_PLAN[currentRound-1]||{depth:3,time:450,elo:1600};
   const aiLow = oppTime<=60;
-  const thinkMin = aiLow?200:3000;
-  const thinkRange = aiLow?400:7000;
+  /* Human-like pause: stronger rounds think longer; not instant replies */
+  const baseThink = aiLow ? 400 : Math.min(9000, 1800 + Math.max(0,((plan.elo||1600)-1600)*4));
+  const thinkMin = aiLow ? 300 : baseThink;
+  const thinkRange = aiLow ? 700 : Math.min(8000, 2500 + Math.max(0,((plan.elo||1600)-1600)*3));
   if(chessWorker){
     try{ chessWorker.postMessage("position "+game.fen()+" depth "+plan.depth+" time "+plan.time); }
     catch(e){ aiThinking=false; setTimeout(doFallbackAI, thinkMin+Math.random()*thinkRange); }
-    setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, aiLow?1200:15000);
+    setTimeout(()=>{ if(aiThinking&&game&&game.turn()!==userColor&&!game.game_over()){ aiThinking=false; doFallbackAI(); } }, aiLow?1800:18000);
   } else {
     setTimeout(()=>{ aiThinking=false; doFallbackAI(); }, thinkMin+Math.random()*thinkRange);
   }
@@ -2562,10 +2617,12 @@ function requestAIMove(){
 if(chessWorker){
   chessWorker.onmessage=function(e){
     if(typeof e.data!=="string") return;
-    if(e.data.startsWith("error")){ aiThinking=false; setTimeout(doFallbackAI, 3000+Math.floor(Math.random()*7000)); return; }
+    if(e.data.startsWith("error")){ aiThinking=false; setTimeout(doFallbackAI, 2500+Math.floor(Math.random()*5000)); return; }
     if(e.data.length>=4 && e.data.length<=5){
+      const plan=ROUND_PLAN[currentRound-1]||{elo:1600};
       const aiLow = oppTime<=60;
-      const t = aiLow ? (200+Math.floor(Math.random()*400)) : (3000+Math.floor(Math.random()*7000));
+      const baseThink = aiLow ? 400 : Math.min(9000, 1800 + Math.max(0,((plan.elo||1600)-1600)*4));
+      const t = aiLow ? (300+Math.floor(Math.random()*700)) : (baseThink+Math.floor(Math.random()*Math.min(8000,2500+Math.max(0,((plan.elo||1600)-1600)*3))));
       setTimeout(()=>{ aiThinking=false; applyAIMove(e.data); }, t);
     }
   };
