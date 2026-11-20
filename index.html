@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -83,58 +84,118 @@
 </head>
 <body>
 
-    <div id="player-of-the-month-screen" class="fixed inset-0 bg-slate-950 z-[9999] overflow-y-auto flex items-center justify-center py-16 px-4">
-        <div class="absolute top-1/4 left-1/4 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- ========== MANDATORY BRAINCHESS CELEBRATION OVERLAY ========== -->
+    <div id="player-of-the-month-screen" class="fixed inset-0 bg-slate-950 z-[9999] overflow-y-auto flex flex-col">
+      <div class="min-h-full flex flex-col items-center justify-start py-10 px-4 md:px-8">
         
-        <div class="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
-            <div class="space-y-6 text-center md:text-left order-2 md:order-1">
-                <div class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-yellow-500/10 border border-amber-500/30 px-4 py-1.5 rounded-full backdrop-blur-sm">
-                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-amber-400 font-mono">Player of the Month</span>
-                </div>
-                
-                <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white leading-none uppercase">
-                    Our Undefeated <br/>
-                    <span class="bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent drop-shadow-sm">
-                        Spirit
-                    </span>
-                </h1>
-                
-                <p class="text-slate-300 text-base sm:text-lg max-w-md mx-auto md:mx-0 leading-relaxed">
-                    A massive congratulations to <strong class="text-white font-semibold">Ambar Tripathi</strong> for an extraordinary performance at the St. Saviour's School, Ikoyi Annual Chess Tournament!
-                </p>
-
-                <div class="grid grid-cols-3 gap-3 max-w-md mx-auto md:mx-0 pt-2">
-                    <div class="bg-white/[0.03] border border-white/[0.08] backdrop-blur-md rounded-2xl p-3 text-center">
-                        <p class="text-2xl font-black text-amber-400">5 / 5</p>
-                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mt-1">Perfect Score</p>
-                    </div>
-                    <div class="bg-white/[0.03] border border-white/[0.08] backdrop-blur-md rounded-2xl p-3 text-center">
-                        <p class="text-2xl font-black text-yellow-500">U-6</p>
-                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mt-1">Category</p>
-                    </div>
-                    <div class="bg-white/[0.03] border border-white/[0.08] backdrop-blur-md rounded-2xl p-3 text-center">
-                        <p class="text-2xl font-black text-emerald-400">1st</p>
-                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mt-1">Place Trophy</p>
-                    </div>
-                </div>
-
-                <div class="pt-6">
-                    <button onclick="dismissPlayerScreen()" class="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white font-black text-xs uppercase tracking-[0.2em] px-10 py-5 rounded-2xl shadow-xl hover:scale-105 transition transform duration-300 w-full sm:w-auto">
-                        Continue to Website <i class="fas fa-chevron-right ml-2 text-xs"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="order-1 md:order-2 flex justify-center">
-                <div class="relative max-w-sm w-full aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black border border-white/10 bg-slate-900/50">
-                    <img src="IMG-20260516-WA0162.jpg" alt="Ambar Tripathi - Player of the Month" class="w-full h-full object-cover object-center"/>
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent"></div>
-                </div>
-            </div>
+        <!-- Header -->
+        <div class="text-center mb-6 max-w-3xl">
+          <div class="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-500/40 px-4 py-1.5 rounded-full mb-4">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <span class="text-[11px] font-black uppercase tracking-widest text-amber-400">Breaking News · Championship Result</span>
+          </div>
+          <h1 class="text-3xl md:text-5xl font-black text-white leading-tight mb-2 uppercase">
+            Maryland Convent Private School<br>
+            <span class="bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent">Finishes 3rd</span>
+          </h1>
+          <p class="text-4xl md:text-5xl font-black text-amber-400 mt-2">₦3,000,000</p>
+          <p class="text-slate-300 text-sm md:text-base mt-3 max-w-2xl mx-auto leading-relaxed">
+            At the <strong class="text-white">Vetrinox Capital BrainChess Schools Chess Championship 2026</strong> — 
+            a FIDE-rated event with <strong class="text-amber-400">200+ schools</strong> and nearly <strong class="text-amber-400">1,000 young players</strong>.
+          </p>
         </div>
+
+        <!-- VIDEO -->
+        <div class="w-full max-w-4xl mb-8 rounded-2xl overflow-hidden border border-amber-500/30 shadow-2xl shadow-amber-500/10 bg-black">
+          <video controls autoplay muted playsinline class="w-full max-h-[420px] object-contain">
+            <source src="Maryland_Convent_Original_Colours.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+          <div class="bg-slate-900/90 px-5 py-3 text-center">
+            <p class="text-[11px] text-amber-400 font-bold uppercase tracking-wider">Medal Ceremony · Meeting Tunde Onakoya, Dr Osahon & Coach Peters</p>
+          </div>
+        </div>
+
+        <!-- PERFORMANCE STORY -->
+        <div class="w-full max-w-4xl bg-slate-900/80 border border-amber-500/20 rounded-2xl p-6 mb-8">
+          <h2 class="text-xl font-black text-white mb-4 flex items-center gap-2">
+            <span class="text-2xl">♟️</span> How We Played
+          </h2>
+          <div class="grid md:grid-cols-2 gap-4 text-sm text-slate-300 leading-relaxed">
+            <div class="bg-white/5 rounded-xl p-4">
+              <p class="text-amber-400 font-bold text-xs uppercase tracking-wider mb-2">Rounds 1 – 4</p>
+              <p>The team was unstoppable. Maryland Convent won every match <strong class="text-white">5–0</strong>, dominating opponents with clinical precision and team coordination.</p>
+            </div>
+            <div class="bg-white/5 rounded-xl p-4">
+              <p class="text-amber-400 font-bold text-xs uppercase tracking-wider mb-2">Final Round Drama</p>
+              <p>The medal-clinching match was tough. The team relied on Captain <strong class="text-white">Chukwuemeka Obi</strong>’s endgame technique to convert a drawn position into a win, securing the crucial <strong class="text-white">3–2</strong> match victory.</p>
+            </div>
+          </div>
+          <div class="mt-4 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center">
+            <p class="text-amber-300 text-sm">
+              <strong class="text-amber-400">Semilore Beckley</strong> scored a perfect <strong class="text-white">7/7</strong> on Board 5 and took the individual <strong class="text-white">Gold Medal</strong>.
+            </p>
+          </div>
+        </div>
+
+        <!-- PLAYER PHOTOS (no team photo) -->
+        <div class="w-full max-w-5xl mb-8">
+          <h2 class="text-center text-lg font-black text-white mb-5 uppercase tracking-wider">Our Champions</h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <!-- Semilore Beckley -->
+            <div class="bg-slate-900/80 border border-amber-500/30 rounded-2xl overflow-hidden text-center">
+              <img src="file_0000000073a481f4b22bcac6a31b3bd7.png" alt="Semilore Beckley" class="w-full aspect-square object-cover">
+              <div class="p-3">
+                <p class="text-white font-bold text-sm">Semilore Beckley</p>
+                <p class="text-amber-400 text-[11px] font-bold mt-0.5">🥇 Gold Medal · Board 5 · 7/7</p>
+              </div>
+            </div>
+            <!-- Chukwuemeka Obi (Captain) -->
+            <div class="bg-slate-900/80 border border-white/10 rounded-2xl overflow-hidden text-center">
+              <img src="file_000000002e5881f4b99df3738f79e1a5.png" alt="Chukwuemeka Obi" class="w-full aspect-square object-cover">
+              <div class="p-3">
+                <p class="text-white font-bold text-sm">Chukwuemeka Obi</p>
+                <p class="text-slate-400 text-[11px] mt-0.5">Team Captain · Endgame Hero</p>
+              </div>
+            </div>
+            <!-- Chierika Onele -->
+            <div class="bg-slate-900/80 border border-white/10 rounded-2xl overflow-hidden text-center">
+              <img src="file_00000000ba7881f4825e1494a48b7105.png" alt="Chierika Onele" class="w-full aspect-square object-cover">
+              <div class="p-3">
+                <p class="text-white font-bold text-sm">Chierika Onele</p>
+                <p class="text-slate-400 text-[11px] mt-0.5">Team Member</p>
+              </div>
+            </div>
+            <!-- Oluwaseun Ajayi -->
+            <div class="bg-slate-900/80 border border-white/10 rounded-2xl overflow-hidden text-center">
+              <img src="file_00000000ca6c81f4ad0e35d47e9b74b9.png" alt="Oluwaseun Ajayi" class="w-full aspect-square object-cover">
+              <div class="p-3">
+                <p class="text-white font-bold text-sm">Oluwaseun Ajayi</p>
+                <p class="text-slate-400 text-[11px] mt-0.5">Team Member</p>
+              </div>
+            </div>
+            <!-- Sage Osafile -->
+            <div class="bg-slate-900/80 border border-white/10 rounded-2xl overflow-hidden text-center md:col-start-2">
+              <img src="file_0000000089d881f4968bb934010c38d8.png" alt="Sage Osafile" class="w-full aspect-square object-cover">
+              <div class="p-3">
+                <p class="text-white font-bold text-sm">Sage Osafile</p>
+                <p class="text-slate-400 text-[11px] mt-0.5">Team Member</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="text-center pb-12">
+          <button onclick="dismissPlayerScreen()" 
+            class="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-black font-black text-sm uppercase tracking-[0.2em] px-12 py-5 rounded-2xl shadow-xl shadow-amber-500/30 hover:scale-105 transition-transform duration-300">
+            Continue to Decipher Chess Academy →
+          </button>
+          <p class="text-slate-500 text-xs mt-4">You must view this celebration before entering the academy</p>
+        </div>
+      </div>
     </div>
+    <!-- ========== END BRAINCHESS CELEBRATION ========== -->
 
     <!-- Mentorship Modal -->
     <div id="mentorship-modal-container" class="fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-500 overflow-y-auto">
@@ -265,16 +326,16 @@
                         Honoring <span class="gold-text">Maryland Convent <br class="hidden md:inline">Private School</span> Chess Team
                     </h2>
                     <p class="text-slate-300 text-sm leading-relaxed max-w-xl mx-auto lg:mx-0">
-                        A massive congratulations to our stellar players on their incredible performance at the prestigious <strong class="text-white">Ecobank Annual Schools Chess Championships 2026</strong> held in Victoria Island, Lagos! Competing head-to-head with <strong class="text-yellow-500">141 elite schools</strong>, our strategists showcased world-class resilience.
+                        A massive congratulations to our stellar players on their incredible performance at the prestigious <strong class="text-white">Vetrinox Capital BrainChess Schools Chess Championship 2026</strong>! Competing against <strong class="text-yellow-500">200+ schools</strong> and nearly <strong class="text-yellow-500">1,000 young players</strong>, the team dominated rounds 1–4 with clean 5–0 wins and secured the bronze medal with a dramatic final-round 3–2 victory.
                     </p>
                     <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto lg:mx-0">
                         <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
                             <p class="text-3xl font-black text-yellow-500">3rd</p>
-                            <p class="text-[9px] uppercase tracking-wider text-slate-400 font-bold mt-1">Match Points</p>
+                            <p class="text-[9px] uppercase tracking-wider text-slate-400 font-bold mt-1">Place</p>
                         </div>
                         <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                            <p class="text-3xl font-black text-slate-300">13th</p>
-                            <p class="text-[9px] uppercase tracking-wider text-slate-400 font-bold mt-1">Game Tiebreaks</p>
+                            <p class="text-3xl font-black text-amber-400">₦3M</p>
+                            <p class="text-[9px] uppercase tracking-wider text-slate-400 font-bold mt-1">Prize Money</p>
                         </div>
                     </div>
                 </div>
